@@ -10,9 +10,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class UserResponse {
 	private String userEmail;
 	private String name;
@@ -30,16 +30,23 @@ public class UserResponse {
 	private String refreshToken;
 	private String fcmToken;
 	
-	@Builder
-	private UserResponse(User user) {
-		this.userEmail=user.getUserEmail();
-		this.name=user.getName();
-		this.nickname=user.getNickname();
-		this.gender=user.getGender();
-		this.calendarType=user.getCalendarType();
-		this.birthdate=user.getBirthdate();
-		this.birthTime=user.getBirthTime();
-		this.profileUrl=user.getProfileUrl();
+
+	public static UserResponse fromUser(User user)  {
+		return UserResponse.builder()
+                .userEmail(user.getUserEmail())
+                .name(user.getName())
+                .nickname(user.getNickname())
+                .gender(user.getGender())
+                .calendarType(user.getCalendarType())
+                .birthdate(user.getBirthdate())
+                .birthTime(user.getBirthTime())
+                .profileUrl(user.getProfileUrl())
+                .build();
 	}
+	
+	
+//	 public static UserResponse create(User user) {
+//	        return new UserResponse(user);
+//	    }
 	
 }

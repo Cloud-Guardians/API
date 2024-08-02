@@ -30,7 +30,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	        http
 	            .csrf().disable()
 	            .authorizeRequests()
-	                .antMatchers("/api/users/**").permitAll() // 인증 없이 접근 허용
+	                .antMatchers("/**").permitAll() // 인증 없이 접근 허용
 	                .anyRequest().authenticated() // 나머지 모든 요청은 인증 필요
 	            .and()
 	            .cors(); // CORS 설정 추가

@@ -8,14 +8,19 @@ import javax.persistence.Id;
 
 import com.cloudians.user.dto.response.UserResponse;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Entity
+
+
+
+@Builder
 @Data
 @NoArgsConstructor
-@Builder
+@AllArgsConstructor
+@Entity
 public class User {
 
 	@Id
@@ -47,8 +52,7 @@ public class User {
 	
 	private int status;
 	
-	@Builder
-	private User(String userEmail, String name, String nickname, String password, char gender, String calendarType,
+	public User(String userEmail, String name, String nickname, String password, char gender, String calendarType,
 			Date birthdate, String birthTime) {
 		this.userEmail=userEmail;
 		this.name=name;
@@ -66,10 +70,11 @@ public class User {
                 .userEmail(this.userEmail)
                 .name(this.name)
                 .nickname(this.nickname)
-                .gender(this.gender)
                 .calendarType(this.calendarType)
                 .birthdate(this.birthdate)
                 .birthTime(this.birthTime)
                 .build();
     }
+//    
+    
 }

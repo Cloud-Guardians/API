@@ -1,5 +1,6 @@
 package com.cloudians.user.controller;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/api/users")
 public class UserController {
 	
-	private final UserService userService;
+	private UserService userService;
 	
 	@GetMapping("/test")
 	public ResponseEntity<String> testEndpoint() {
@@ -31,15 +32,28 @@ public class UserController {
 	// 프로필 생성
 	
 
-	// 프로필 조회
+	// 프로필 조회 (firebase storage 설정 이후 정하기)
+	@GetMapping("/profile")
+	public ResponseEntity<?> userProfile(@RequestParam String userEmail){
+		return null;
+		
+	}
 	
-	// 프로필 수정
+	// 프로필 수정 (firebase storage 설정 이후 정하기)
+		@PutMapping("/profile")
+		public ResponseEntity<UserResponse> userProfileUpdate(@RequestParam String userEmail,
+	            @RequestBody UserRequest userRequest){// 사용자 정보를 업데이트하는 서비스 호출
+	       System.out.println("controller - profile - modify");
+			return null;
+		}
 	
+	// 회원 가입
 	
 	// 내 정보 조회
 	@GetMapping("/user-info")
 	public ResponseEntity<?> userInfo(@RequestParam String userEmail){
 		try {
+			System.out.println(userEmail);
 		UserResponse userInfo = userService.findByEmail(userEmail);
 			return new ResponseEntity<>(userInfo,HttpStatus.OK);
 		} catch(Exception e) {

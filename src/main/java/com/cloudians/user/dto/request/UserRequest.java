@@ -18,4 +18,7 @@ public class UserRequest {
 	private String calendarType;
 	private Date birthdate;
 	private String birthTime;
+	
+	public UserRequest() {
+    }
 }

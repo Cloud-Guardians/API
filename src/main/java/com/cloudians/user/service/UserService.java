@@ -11,5 +11,9 @@ public interface UserService {
 	
 	// 사용자 정보 변경
 	UserResponse updateUser(String userEmail, UserRequest userRequest);
+	
+	// 사용자 프로필 변경
+	
+	// 사용자 프로필 조회
 	 
 }

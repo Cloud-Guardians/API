@@ -53,12 +53,13 @@ public class User {
 	private int status;
 	
 	public User(String userEmail, String name, String nickname, String password, char gender, String calendarType,
-			Date birthdate, String birthTime) {
+			Date birthdate, String birthTime, String profileUrl) {
 		this.userEmail=userEmail;
 		this.name=name;
 		this.nickname=nickname;
 		this.password=password;
 		this.gender=gender;
+		this.profileUrl=profileUrl;
 		this.calendarType=calendarType;
 		this.birthdate=birthdate;
 		this.birthTime=birthTime;
@@ -70,6 +71,7 @@ public class User {
                 .userEmail(this.userEmail)
                 .name(this.name)
                 .nickname(this.nickname)
+                .profileUrl(this.profileUrl)
                 .calendarType(this.calendarType)
                 .birthdate(this.birthdate)
                 .birthTime(this.birthTime)

@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+import java.time.LocalDate;
+
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.*;
 import static lombok.AccessLevel.*;
@@ -19,6 +21,7 @@ public class PersonalDiary extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
+    @Column(name = "personal_diary_id")
     Long id;
 
     @ManyToOne
@@ -29,18 +32,24 @@ public class PersonalDiary extends BaseTimeEntity {
     @JoinColumn(name = "emotion_id")
     private PersonalDiaryEmotion emotion;
 
+    @Column(length = 50, nullable = false)
     private String title;
 
+    @Column(nullable = false)
     private String content;
 
     private String photoUrl;
 
+    @Column(nullable = false)
+    private LocalDate date;
+
     @Builder
-    private PersonalDiary(User user, PersonalDiaryEmotion emotion, String title, String content, String photoUrl) {
+    private PersonalDiary(User user, PersonalDiaryEmotion emotion, String title, String content, String photoUrl, LocalDate date) {
         this.user = user;
         this.emotion = emotion;
         this.title = title;
         this.content = content;
         this.photoUrl = photoUrl;
+        this.date = date;
     }
 }

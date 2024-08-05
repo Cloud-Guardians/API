@@ -1,6 +1,8 @@
 package com.cloudians.domain.personaldiary.controller;
 
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreateRequest;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionCreateResponse;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.domain.user.service.UserService;
@@ -17,15 +19,25 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 public class PersonalDiaryController {
     private final PersonalDiaryService personalDiaryService;
-    private final UserService userService;
 
     // 자가 감정 측정 생성
     @PostMapping("/self-emotions")
     public ResponseEntity<Message> createSelfEmotions(@RequestParam String userEmail,
                                                       @Valid @RequestBody PersonalDiaryEmotionCreateRequest request) {
-        userService.findByEmail(userEmail);
 
-        PersonalDiaryEmotionCreateResponse response = personalDiaryService.createSelfEmotions(request);
+        PersonalDiaryEmotionCreateResponse response = personalDiaryService.createTempSelfEmotions(request, userEmail);
+        Message message = new Message(response, HttpStatus.CREATED.value());
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(message);
+    }
+
+    //     일기 내용 작성
+    @PostMapping()
+    public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,
+                                                       @Valid @RequestBody PersonalDiaryCreateRequest request) {
+
+        PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, userEmail);
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED)

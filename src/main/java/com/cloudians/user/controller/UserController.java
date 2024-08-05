@@ -32,16 +32,11 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 	
-	@Autowired
-	private FirebaseService firebaseService;
-	
 	@GetMapping("/test")
 	public ResponseEntity<String> testEndpoint() {
 	    return new ResponseEntity<>("Test endpoint working", HttpStatus.OK);
 	}
-	// 프로필 생성
-//	@PutMapping("/profile")
-//	public ResponseEntity<?> userProfileAdd()
+
 
 	// 프로필 조회 
 	@GetMapping("/profile")
@@ -49,7 +44,6 @@ public class UserController {
 		try {
 			System.out.println(userEmail);
 		UserResponse user = userService.findByEmail(userEmail);
-		String profile = user.getProfileUrl();
 		Map<String, String> param =  new HashMap<>();
 		param.put("profile",user.getProfileUrl());
 		param.put("nickname",user.getNickname());

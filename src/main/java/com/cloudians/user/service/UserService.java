@@ -100,9 +100,10 @@ public class UserService{
 	        return null;
 	    }
 		User user = optionalUser.get();
-		 String url = "https://firebaseStorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/noneProfile?alt=media";
-		user.setProfileUrl(url);
+		firebaseService.deleteFileUrl(user.getProfileUrl());
+		user.setProfileUrl(null);
 		  User updatedUser = userRepository.save(user);
+		  
 		  return updatedUser.toDto();
 	}
 

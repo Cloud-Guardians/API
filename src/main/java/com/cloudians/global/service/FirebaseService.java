@@ -28,14 +28,11 @@ public class FirebaseService {
 	
 	// 사진 업로드
 	public String uploadFiles(MultipartFile file, String nameFile) throws IOException, FirebaseAuthException {
-		String firebaseBucket = "cloudians-photo.appspot.com";
+String firebaseBucket = "cloudians-photo.appspot.com";
 		Bucket bucket = StorageClient.getInstance().bucket(firebaseBucket);
 		
 		InputStream content = new ByteArrayInputStream(file.getBytes());
-		Blob blob = bucket.create(nameFile.toString(), content, file.getContentType());
-	
-		
-        
+		Blob blob = bucket.create(nameFile.toString(), content, file.getContentType());        
 		return blob.getMediaLink();
 	}
 	
@@ -43,7 +40,7 @@ public class FirebaseService {
 
 	// 사진 url 얻기
     public String getFileUrl(String fileName) {
-    	String firebaseBucket = "cloudians-photo.appspot.com";
+    String firebaseBucket = "cloudians-photo.appspot.com";
 		Bucket bucket = StorageClient.getInstance().bucket(firebaseBucket);
     	System.out.println(fileName+"서비스에 들어왓공.");
         Blob blob = storage.get(bucket.getName(), fileName.toString());
@@ -55,6 +52,15 @@ public class FirebaseService {
         return null; // 파일을 찾을 수 없는 경우
     }
     
+    // 사진 삭ㅈㅔ
+    public String deleteFileUrl(String filePath) throws Exception {
+	String firebaseBucket = "cloudians-photo.appspot.com";
+	Bucket bucket = StorageClient.getInstance().bucket(firebaseBucket);
+	Blob blob = storage.get("your-project-id.appspot.com", filePath);
+	blob.delete();
+	return blob.getMediaLink();
+    }
+	
 
 
 }

@@ -72,18 +72,28 @@ public class PersonalDiaryService {
         User user = findUserByUserEmail(userEmail);
 
         PersonalDiaryEmotion emotions = getTempEmotion(user.getUserEmail());
-        if (emotions == null) {
-            throw new PersonalDiaryException(PersonalDiaryExceptionType.NO_EMOTION_DATA);
-        }
-        boolean isExist = personalDiaryRepository.existsPersonalDiaryByUserAndDate(user, emotions.getDate());
-        if (isExist) {
-            throw new PersonalDiaryException(PersonalDiaryExceptionType.PERSONAL_DIARY_ALREADY_EXIST);
-        }
+        validateEmotionsExistenceAndThrow(emotions);
+        validateDuplicateDateDiaryAndThrow(user, emotions);
+
         personalDiaryEmotionRepository.save(emotions);
         removeTempEmotion(user.getUserEmail());
         PersonalDiary personalDiary = request.toEntity(user, emotions);
         PersonalDiary savedPersonalDiary = personalDiaryRepository.save(personalDiary);
+
         return PersonalDiaryCreateResponse.of(savedPersonalDiary, user, emotions);
+    }
+
+    private void validateEmotionsExistenceAndThrow(PersonalDiaryEmotion emotions) {
+        if (emotions == null) {
+            throw new PersonalDiaryException(PersonalDiaryExceptionType.NO_EMOTION_DATA);
+        }
+    }
+
+    private void validateDuplicateDateDiaryAndThrow(User user, PersonalDiaryEmotion emotions) {
+        boolean isExist = personalDiaryRepository.existsPersonalDiaryByUserAndDate(user, emotions.getDate());
+        if (isExist) {
+            throw new PersonalDiaryException(PersonalDiaryExceptionType.PERSONAL_DIARY_ALREADY_EXIST);
+        }
     }
 
     private User findUserByUserEmail(String userEmail) {

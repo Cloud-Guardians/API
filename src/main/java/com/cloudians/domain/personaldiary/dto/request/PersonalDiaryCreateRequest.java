@@ -32,8 +32,8 @@ public class PersonalDiaryCreateRequest {
         return PersonalDiary.builder()
                 .user(user)
                 .emotion(emotions)
-                .title(title)
-                .content(content)
+                .title(title.trim())
+                .content(content.trim())
                 .photoUrl(photoUrl)
                 .date(emotions.getDate())
                 .build();

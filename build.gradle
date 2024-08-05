@@ -42,6 +42,11 @@ dependencies {
 	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	implementation 'com.jcraft:jsch:0.1.55'
+	
+	implementation 'org.apache.sshd:sshd-core:2.7.0'
+implementation 'org.apache.sshd:sshd-common:2.7.0'
+implementation 'org.apache.sshd:sshd-netty:2.7.0'
 	
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

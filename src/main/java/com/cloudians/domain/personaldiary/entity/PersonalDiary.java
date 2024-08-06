@@ -1,5 +1,6 @@
 package com.cloudians.domain.personaldiary.entity;
 
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.entity.BaseTimeEntity;
 import lombok.Builder;
@@ -51,5 +52,19 @@ public class PersonalDiary extends BaseTimeEntity {
         this.content = content;
         this.photoUrl = photoUrl;
         this.date = date;
+    }
+
+    public PersonalDiary edit(PersonalDiaryUpdateRequest request) {
+        if (request.getTitle() != null) {
+            this.title = request.getTitle().trim();
+        }
+        if (request.getContent() != null) {
+            this.content = request.getContent().trim();
+        }
+        if (request.getPhotoUrl() != null) {
+            this.photoUrl = request.getPhotoUrl();
+        }
+
+        return this;
     }
 }

@@ -2,8 +2,10 @@ package com.cloudians.domain.personaldiary.service;
 
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionRequest;
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionResponse;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryUpdateResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
@@ -113,5 +115,15 @@ public class PersonalDiaryService {
         PersonalDiaryEmotion editedEmotions = emotions.edit(request);
 
         return PersonalDiaryEmotionResponse.of(editedEmotions, user);
+    }
+
+    public PersonalDiaryUpdateResponse editPersonalDiary(PersonalDiaryUpdateRequest request, Long personalDiaryId, String userEmail) {
+        User user = findUserByUserEmail(userEmail);
+
+        PersonalDiary personalDiary = personalDiaryRepository.findByIdAndUser(personalDiaryId, user)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        PersonalDiary editedPersonalDiary = personalDiary.edit(request);
+
+        return PersonalDiaryUpdateResponse.of(editedPersonalDiary);
     }
 }

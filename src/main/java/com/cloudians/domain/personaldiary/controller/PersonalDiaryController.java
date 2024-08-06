@@ -2,8 +2,10 @@ package com.cloudians.domain.personaldiary.controller;
 
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionRequest;
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionResponse;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryUpdateResponse;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
@@ -43,7 +45,7 @@ public class PersonalDiaryController {
                 .body(message);
     }
 
-//     일기 내용 생성
+    // 일기 내용 생성
     @PostMapping()
     public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,
                                                        @Valid @RequestBody PersonalDiaryCreateRequest request) {
@@ -52,6 +54,18 @@ public class PersonalDiaryController {
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED)
+                .body(message);
+    }
+
+    // 일기 내용 수정
+    @PutMapping("/{personal-diary-id}")
+    public ResponseEntity<Message> editPersonalDiary(@RequestParam String userEmail,
+                                                     @PathVariable("personal-diary-id") Long personalDiaryId,
+                                                     @Valid @RequestBody PersonalDiaryUpdateRequest request) {
+        PersonalDiaryUpdateResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, userEmail);
+        Message message = new Message(response, HttpStatus.OK.value());
+
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
     }
 }

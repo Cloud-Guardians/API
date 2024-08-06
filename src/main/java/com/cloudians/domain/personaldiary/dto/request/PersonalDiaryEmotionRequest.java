@@ -2,6 +2,7 @@ package com.cloudians.domain.personaldiary.dto.request;
 
 import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
 import com.cloudians.domain.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -11,7 +12,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Getter
-public class PersonalDiaryEmotionCreateRequest {
+public class PersonalDiaryEmotionRequest {
 
     @Min(value = 0, message = "최소 0에서 최대 100사이의 값을 입력해주세요.")
     @Max(value = 100, message = "최소 0에서 최대 100사이의 값을 입력해주세요.")
@@ -34,10 +35,11 @@ public class PersonalDiaryEmotionCreateRequest {
     private int boredom;
 
     @NotNull(message = "날짜를 입력해주세요.")
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
 
     @Builder
-    private PersonalDiaryEmotionCreateRequest(int joy, int sadness, int anger, int anxiety, int boredom, LocalDate date) {
+    private PersonalDiaryEmotionRequest(int joy, int sadness, int anger, int anxiety, int boredom, LocalDate date) {
         this.joy = joy;
         this.sadness = sadness;
         this.anger = anger;

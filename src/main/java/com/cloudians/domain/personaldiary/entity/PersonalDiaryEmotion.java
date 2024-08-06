@@ -1,5 +1,6 @@
 package com.cloudians.domain.personaldiary.entity;
 
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionRequest;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.entity.BaseTimeEntity;
 import lombok.Builder;
@@ -54,5 +55,15 @@ public class PersonalDiaryEmotion extends BaseTimeEntity {
         this.anxiety = anxiety;
         this.boredom = boredom;
         this.date = date;
+    }
+
+    public PersonalDiaryEmotion edit(PersonalDiaryEmotionRequest request) {
+        this.joy = request.getJoy();
+        this.sadness = request.getSadness();
+        this.anger = request.getAnger();
+        this.anxiety = request.getAnxiety();
+        this.boredom = request.getBoredom();
+
+        return this;
     }
 }

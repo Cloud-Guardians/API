@@ -1,9 +1,9 @@
 package com.cloudians.domain.personaldiary.service;
 
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest;
-import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreateRequest;
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionRequest;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionCreateResponse;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
@@ -34,9 +34,18 @@ public class PersonalDiaryService {
     private Map<String, PersonalDiaryEmotion> tempEmotions = new HashMap<>();
 
 
-    public PersonalDiaryEmotionCreateResponse createTempSelfEmotions(PersonalDiaryEmotionCreateRequest request, String userEmail) {
+    public PersonalDiaryEmotionResponse createTempSelfEmotions(PersonalDiaryEmotionRequest request, String userEmail) {
         User user = findUserByUserEmail(userEmail);
 
+        validateEmotionsValue(request);
+
+        PersonalDiaryEmotion personalDiaryEmotion = request.toEntity(user);
+        tempEmotions.put(user.getUserEmail(), personalDiaryEmotion);
+
+        return PersonalDiaryEmotionResponse.of(personalDiaryEmotion, user);
+    }
+
+    private void validateEmotionsValue(PersonalDiaryEmotionRequest request) {
         List<Integer> emotions = Arrays.asList(
                 request.getJoy(),
                 request.getSadness(),
@@ -45,13 +54,6 @@ public class PersonalDiaryService {
                 request.getBoredom()
         );
         emotions.forEach(this::validateEmotionValue);
-
-        PersonalDiaryEmotion personalDiaryEmotion = request.toEntity(user);
-        tempEmotions.put(user.getUserEmail(), personalDiaryEmotion);
-
-//        PersonalDiaryEmotion savedEmotions = personalDiaryEmotionRepository.save(personalDiaryEmotion);
-
-        return PersonalDiaryEmotionCreateResponse.of(personalDiaryEmotion, user);
     }
 
     private void validateEmotionValue(int emotion) {
@@ -98,8 +100,18 @@ public class PersonalDiaryService {
 
     private User findUserByUserEmail(String userEmail) {
         return userRepository.findByUserEmail(userEmail)
-                .orElseThrow(
-                        () -> new UserException(UserExceptionType.USER_NOT_FOUND)
-                );
+                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+    }
+
+    public PersonalDiaryEmotionResponse editSelfEmotions(PersonalDiaryEmotionRequest request, Long emotionId, String userEmail) {
+        User user = findUserByUserEmail(userEmail);
+        // 수정할 감정이 있는지 확인
+        PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findByIdAndUser(emotionId, user)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        validateEmotionsValue(request);
+        //수정
+        PersonalDiaryEmotion editedEmotions = emotions.edit(request);
+
+        return PersonalDiaryEmotionResponse.of(editedEmotions, user);
     }
 }

@@ -1,11 +1,10 @@
 package com.cloudians.domain.personaldiary.controller;
 
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest;
-import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreateRequest;
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionRequest;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionCreateResponse;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionResponse;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
-import com.cloudians.domain.user.service.UserService;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,16 +22,28 @@ public class PersonalDiaryController {
     // 자가 감정 측정 생성
     @PostMapping("/self-emotions")
     public ResponseEntity<Message> createSelfEmotions(@RequestParam String userEmail,
-                                                      @Valid @RequestBody PersonalDiaryEmotionCreateRequest request) {
+                                                      @Valid @RequestBody PersonalDiaryEmotionRequest request) {
 
-        PersonalDiaryEmotionCreateResponse response = personalDiaryService.createTempSelfEmotions(request, userEmail);
+        PersonalDiaryEmotionResponse response = personalDiaryService.createTempSelfEmotions(request, userEmail);
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(message);
     }
 
-    //     일기 내용 작성
+    // 자가 감정 측정 수정
+    @PutMapping("/self-emotions/{emotion-id}")
+    public ResponseEntity<Message> editSelfEmotions(@RequestParam String userEmail,
+                                                    @PathVariable("emotion-id") Long emotionId,
+                                                    @Valid @RequestBody PersonalDiaryEmotionRequest request) {
+        PersonalDiaryEmotionResponse response = personalDiaryService.editSelfEmotions(request, emotionId, userEmail);
+        Message message = new Message(response, HttpStatus.OK.value());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+//     일기 내용 생성
     @PostMapping()
     public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,
                                                        @Valid @RequestBody PersonalDiaryCreateRequest request) {

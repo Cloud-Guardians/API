@@ -70,4 +70,15 @@ public class PersonalDiaryController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
     }
+
+    // 자가 감정 및 일기 삭제
+    @DeleteMapping("/{personal-diary-id}")
+    public ResponseEntity<Message> deletePersonalDiary(@RequestParam String userEmail,
+                                                       @PathVariable("personal-diary-id") Long personalDiaryId) {
+        personalDiaryService.deletePersonalDiary(userEmail, personalDiaryId);
+
+        Message message = new Message(null, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
 }

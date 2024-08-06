@@ -81,11 +81,25 @@ public class PersonalDiaryService {
     public PersonalDiaryUpdateResponse editPersonalDiary(PersonalDiaryUpdateRequest request, Long personalDiaryId, String userEmail) {
         User user = findUserByUserEmail(userEmail);
         // 수정할 일기가 있는지 확인
-        PersonalDiary personalDiary = personalDiaryRepository.findByIdAndUser(personalDiaryId, user)
-                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
+
         PersonalDiary editedPersonalDiary = personalDiary.edit(request);
 
         return PersonalDiaryUpdateResponse.of(editedPersonalDiary);
+    }
+
+    public void deletePersonalDiary(String userEmail, Long personalDiaryId) {
+        User user = findUserByUserEmail(userEmail);
+
+        PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
+
+        personalDiaryRepository.delete(personalDiary);
+        personalDiaryEmotionRepository.delete(personalDiary.getEmotion());
+    }
+
+    private PersonalDiary getPersonalDiaryOrThrow(Long personalDiaryId, User user) {
+        return personalDiaryRepository.findByIdAndUser(personalDiaryId, user)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
     }
 
     private void validateEmotionsValue(PersonalDiaryEmotionCreateRequest request) {

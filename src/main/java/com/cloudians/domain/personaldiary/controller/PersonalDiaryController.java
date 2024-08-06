@@ -7,7 +7,7 @@ import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionCreateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionUpdateResponse;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryUpdateResponse;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
@@ -59,17 +59,29 @@ public class PersonalDiaryController {
                 .body(message);
     }
 
-    // 일기 내용 수정
-    @PutMapping("/{personal-diary-id}")
-    public ResponseEntity<Message> editPersonalDiary(@RequestParam String userEmail,
-                                                     @PathVariable("personal-diary-id") Long personalDiaryId,
-                                                     @Valid @RequestBody PersonalDiaryUpdateRequest request) {
-        PersonalDiaryUpdateResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, userEmail);
+    // 일기 내용 조회
+    @GetMapping("/{personal-diary-id}")
+    public ResponseEntity<Message> getPersonalDiary(@RequestParam String userEmail,
+                                                    @PathVariable("personal-diary-id") Long personalDiaryId) {
+        PersonalDiaryResponse response = personalDiaryService.getPersonalDiary(userEmail, personalDiaryId);
         Message message = new Message(response, HttpStatus.OK.value());
 
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
     }
+
+    // 일기 내용 수정
+    @PutMapping("/{personal-diary-id}")
+    public ResponseEntity<Message> editPersonalDiary(@RequestParam String userEmail,
+                                                     @PathVariable("personal-diary-id") Long personalDiaryId,
+                                                     @Valid @RequestBody PersonalDiaryUpdateRequest request) {
+        PersonalDiaryResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, userEmail);
+        Message message = new Message(response, HttpStatus.OK.value());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
 
     // 자가 감정 및 일기 삭제
     @DeleteMapping("/{personal-diary-id}")

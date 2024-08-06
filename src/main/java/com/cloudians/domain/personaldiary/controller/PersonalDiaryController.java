@@ -1,10 +1,12 @@
 package com.cloudians.domain.personaldiary.controller;
 
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest;
-import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionRequest;
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreateRequest;
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionResponse;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionCreateResponse;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionUpdateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryUpdateResponse;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.global.Message;
@@ -24,9 +26,9 @@ public class PersonalDiaryController {
     // 자가 감정 측정 생성
     @PostMapping("/self-emotions")
     public ResponseEntity<Message> createSelfEmotions(@RequestParam String userEmail,
-                                                      @Valid @RequestBody PersonalDiaryEmotionRequest request) {
+                                                      @Valid @RequestBody PersonalDiaryEmotionCreateRequest request) {
 
-        PersonalDiaryEmotionResponse response = personalDiaryService.createTempSelfEmotions(request, userEmail);
+        PersonalDiaryEmotionCreateResponse response = personalDiaryService.createTempSelfEmotions(request, userEmail);
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -37,8 +39,8 @@ public class PersonalDiaryController {
     @PutMapping("/self-emotions/{emotion-id}")
     public ResponseEntity<Message> editSelfEmotions(@RequestParam String userEmail,
                                                     @PathVariable("emotion-id") Long emotionId,
-                                                    @Valid @RequestBody PersonalDiaryEmotionRequest request) {
-        PersonalDiaryEmotionResponse response = personalDiaryService.editSelfEmotions(request, emotionId, userEmail);
+                                                    @Valid @RequestBody PersonalDiaryEmotionUpdateRequest request) {
+        PersonalDiaryEmotionUpdateResponse response = personalDiaryService.editSelfEmotions(request, emotionId, userEmail);
         Message message = new Message(response, HttpStatus.OK.value());
 
         return ResponseEntity.status(HttpStatus.OK)

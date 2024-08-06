@@ -1,10 +1,12 @@
 package com.cloudians.domain.personaldiary.service;
 
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest;
-import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionRequest;
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreateRequest;
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionResponse;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionCreateResponse;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionUpdateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryUpdateResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
@@ -35,19 +37,58 @@ public class PersonalDiaryService {
 
     private Map<String, PersonalDiaryEmotion> tempEmotions = new HashMap<>();
 
-
-    public PersonalDiaryEmotionResponse createTempSelfEmotions(PersonalDiaryEmotionRequest request, String userEmail) {
+    public PersonalDiaryEmotionCreateResponse createTempSelfEmotions(PersonalDiaryEmotionCreateRequest request, String userEmail) {
         User user = findUserByUserEmail(userEmail);
-
+        //감정 수치 검증
         validateEmotionsValue(request);
-
         PersonalDiaryEmotion personalDiaryEmotion = request.toEntity(user);
+        //감정들 임시저장소에 저장
         tempEmotions.put(user.getUserEmail(), personalDiaryEmotion);
 
-        return PersonalDiaryEmotionResponse.of(personalDiaryEmotion, user);
+        return PersonalDiaryEmotionCreateResponse.of(personalDiaryEmotion, user);
     }
 
-    private void validateEmotionsValue(PersonalDiaryEmotionRequest request) {
+    public PersonalDiaryCreateResponse createPersonalDiary(PersonalDiaryCreateRequest request, String userEmail) {
+        User user = findUserByUserEmail(userEmail);
+        //감정 수치 가져오기
+        PersonalDiaryEmotion emotions = getTempEmotion(user.getUserEmail());
+        //없으면 예외처리
+        validateEmotionsExistenceAndThrow(emotions);
+        //이미 해당날짜에 일기 썼는지 확인
+        validateDuplicateDateDiaryAndThrow(user, emotions);
+
+        personalDiaryEmotionRepository.save(emotions);
+        //감정들 임시저장소에서 삭제
+        removeTempEmotion(user.getUserEmail());
+
+        PersonalDiary personalDiary = request.toEntity(user, emotions);
+        PersonalDiary savedPersonalDiary = personalDiaryRepository.save(personalDiary);
+
+        return PersonalDiaryCreateResponse.of(savedPersonalDiary, user, emotions);
+    }
+
+    public PersonalDiaryEmotionUpdateResponse editSelfEmotions(PersonalDiaryEmotionUpdateRequest request, Long emotionId, String userEmail) {
+        User user = findUserByUserEmail(userEmail);
+        // 수정할 감정이 있는지 확인
+        PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findByIdAndUser(emotionId, user)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        //수정
+        PersonalDiaryEmotion editedEmotions = emotions.edit(request);
+
+        return PersonalDiaryEmotionUpdateResponse.of(editedEmotions);
+    }
+
+    public PersonalDiaryUpdateResponse editPersonalDiary(PersonalDiaryUpdateRequest request, Long personalDiaryId, String userEmail) {
+        User user = findUserByUserEmail(userEmail);
+        // 수정할 일기가 있는지 확인
+        PersonalDiary personalDiary = personalDiaryRepository.findByIdAndUser(personalDiaryId, user)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        PersonalDiary editedPersonalDiary = personalDiary.edit(request);
+
+        return PersonalDiaryUpdateResponse.of(editedPersonalDiary);
+    }
+
+    private void validateEmotionsValue(PersonalDiaryEmotionCreateRequest request) {
         List<Integer> emotions = Arrays.asList(
                 request.getJoy(),
                 request.getSadness(),
@@ -60,32 +101,18 @@ public class PersonalDiaryService {
 
     private void validateEmotionValue(int emotion) {
         if (emotion % 10 != 0) {
-            throw new PersonalDiaryException(PersonalDiaryExceptionType.WRONG_INPUT);
+            throw new PersonalDiaryException(PersonalDiaryExceptionType.EMOTION_VALUE_WRONG_INPUT);
         }
     }
 
-    public PersonalDiaryEmotion getTempEmotion(String userEmail) {
+    private PersonalDiaryEmotion getTempEmotion(String userEmail) {
         return tempEmotions.get(userEmail);
     }
 
-    public void removeTempEmotion(String userEmail) {
+    private void removeTempEmotion(String userEmail) {
         tempEmotions.remove(userEmail);
     }
 
-    public PersonalDiaryCreateResponse createPersonalDiary(PersonalDiaryCreateRequest request, String userEmail) {
-        User user = findUserByUserEmail(userEmail);
-
-        PersonalDiaryEmotion emotions = getTempEmotion(user.getUserEmail());
-        validateEmotionsExistenceAndThrow(emotions);
-        validateDuplicateDateDiaryAndThrow(user, emotions);
-
-        personalDiaryEmotionRepository.save(emotions);
-        removeTempEmotion(user.getUserEmail());
-        PersonalDiary personalDiary = request.toEntity(user, emotions);
-        PersonalDiary savedPersonalDiary = personalDiaryRepository.save(personalDiary);
-
-        return PersonalDiaryCreateResponse.of(savedPersonalDiary, user, emotions);
-    }
 
     private void validateEmotionsExistenceAndThrow(PersonalDiaryEmotion emotions) {
         if (emotions == null) {
@@ -105,25 +132,4 @@ public class PersonalDiaryService {
                 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
     }
 
-    public PersonalDiaryEmotionResponse editSelfEmotions(PersonalDiaryEmotionRequest request, Long emotionId, String userEmail) {
-        User user = findUserByUserEmail(userEmail);
-        // 수정할 감정이 있는지 확인
-        PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findByIdAndUser(emotionId, user)
-                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
-        validateEmotionsValue(request);
-        //수정
-        PersonalDiaryEmotion editedEmotions = emotions.edit(request);
-
-        return PersonalDiaryEmotionResponse.of(editedEmotions, user);
-    }
-
-    public PersonalDiaryUpdateResponse editPersonalDiary(PersonalDiaryUpdateRequest request, Long personalDiaryId, String userEmail) {
-        User user = findUserByUserEmail(userEmail);
-
-        PersonalDiary personalDiary = personalDiaryRepository.findByIdAndUser(personalDiaryId, user)
-                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
-        PersonalDiary editedPersonalDiary = personalDiary.edit(request);
-
-        return PersonalDiaryUpdateResponse.of(editedPersonalDiary);
-    }
 }

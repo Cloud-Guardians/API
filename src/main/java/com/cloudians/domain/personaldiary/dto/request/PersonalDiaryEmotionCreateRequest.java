@@ -12,7 +12,7 @@ import javax.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 @Getter
-public class PersonalDiaryEmotionRequest {
+public class PersonalDiaryEmotionCreateRequest {
 
     @Min(value = 0, message = "최소 0에서 최대 100사이의 값을 입력해주세요.")
     @Max(value = 100, message = "최소 0에서 최대 100사이의 값을 입력해주세요.")
@@ -39,7 +39,7 @@ public class PersonalDiaryEmotionRequest {
     private LocalDate date;
 
     @Builder
-    private PersonalDiaryEmotionRequest(int joy, int sadness, int anger, int anxiety, int boredom, LocalDate date) {
+    private PersonalDiaryEmotionCreateRequest(int joy, int sadness, int anger, int anxiety, int boredom, LocalDate date) {
         this.joy = joy;
         this.sadness = sadness;
         this.anger = anger;

@@ -1,6 +1,8 @@
 package com.cloudians.domain.personaldiary.entity;
 
-import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionRequest;
+import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionUpdateRequest;
+import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
+import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.entity.BaseTimeEntity;
 import lombok.Builder;
@@ -57,13 +59,37 @@ public class PersonalDiaryEmotion extends BaseTimeEntity {
         this.date = date;
     }
 
-    public PersonalDiaryEmotion edit(PersonalDiaryEmotionRequest request) {
-        this.joy = request.getJoy();
-        this.sadness = request.getSadness();
-        this.anger = request.getAnger();
-        this.anxiety = request.getAnxiety();
-        this.boredom = request.getBoredom();
+    public PersonalDiaryEmotion edit(PersonalDiaryEmotionUpdateRequest request) {
+        if (request.getJoy() != null) {
+            validateEmotionValue(request.getJoy());
+            this.joy = request.getJoy();
+        }
+        if (request.getSadness() != null) {
+            validateEmotionValue(request.getSadness());
+            this.sadness = request.getSadness();
+        }
+        if (request.getAnger() != null) {
+            validateEmotionValue(request.getAnger());
+            this.anger = request.getAnger();
+        }
+        if (request.getAnxiety() != null) {
+            validateEmotionValue(request.getAnxiety());
+            this.anxiety = request.getAnxiety();
+        }
+        if (request.getBoredom() != null) {
+            validateEmotionValue(request.getBoredom());
+            this.boredom = request.getBoredom();
+        }
 
         return this;
+    }
+
+    private void validateEmotionValue(int value) {
+        if (value < 0 || value > 100) {
+            throw new PersonalDiaryException(PersonalDiaryExceptionType.EMOTION_VALUE_OUT_OF_RANGE);
+        }
+        if (value % 10 != 0) {
+            throw new PersonalDiaryException(PersonalDiaryExceptionType.EMOTION_VALUE_WRONG_INPUT);
+        }
     }
 }

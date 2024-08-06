@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
-public class PersonalDiaryEmotionResponse {
+public class PersonalDiaryEmotionCreateResponse {
     private Long emotionId;
 
     private String userEmail;
@@ -31,7 +31,7 @@ public class PersonalDiaryEmotionResponse {
     private LocalDateTime updatedAt;
 
     @Builder
-    private PersonalDiaryEmotionResponse(Long emotionId, String userEmail, int joy, int sadness, int anger, int anxiety, int boredom, LocalDate date, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private PersonalDiaryEmotionCreateResponse(Long emotionId, String userEmail, int joy, int sadness, int anger, int anxiety, int boredom, LocalDate date, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.emotionId = emotionId;
         this.userEmail = userEmail;
         this.joy = joy;
@@ -45,8 +45,8 @@ public class PersonalDiaryEmotionResponse {
     }
 
 
-    public static PersonalDiaryEmotionResponse of(PersonalDiaryEmotion personalDiaryEmotion, User user) {
-        return PersonalDiaryEmotionResponse.builder()
+    public static PersonalDiaryEmotionCreateResponse of(PersonalDiaryEmotion personalDiaryEmotion, User user) {
+        return PersonalDiaryEmotionCreateResponse.builder()
                 .emotionId(personalDiaryEmotion.getId())
                 .userEmail(user.getUserEmail())
                 .joy(personalDiaryEmotion.getJoy())

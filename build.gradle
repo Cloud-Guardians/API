@@ -37,32 +37,24 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-validation'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
     implementation 'com.jcraft:jsch:0.1.55'
-
     implementation 'org.apache.sshd:sshd-core:2.7.0'
     implementation 'org.apache.sshd:sshd-common:2.7.0'
     implementation 'org.apache.sshd:sshd-netty:2.7.0'
-
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-
-
     // Database driver
     runtimeOnly 'com.mysql:mysql-connector-j'
-
     // Data Mapping
     // https://mvnrepository.com/artifact/org.modelmapper/modelmapper
     implementation 'org.modelmapper:modelmapper:2.4.4'
-
     // firebase stroage
     implementation group: 'com.google.firebase', name: 'firebase-admin', version: '9.3.0' // 최신 버전 확인 필요
     // implementation 'com.google.firebase:firebase-storage:20.0.0'
-
     // JWT Libraries
     implementation 'com.auth0:java-jwt:3.19.2'
     implementation 'io.jsonwebtoken:jjwt-api:0.11.2'

@@ -5,7 +5,9 @@ import lombok.Data;
 @Data
 public class Message {
     private Object data;
-    private String error;
+
+    private String errorMessage;
+
     private Integer statusCode;
 
     public Message(Object data, Integer statusCode) {
@@ -13,14 +15,14 @@ public class Message {
         this.statusCode = statusCode;
     }
 
-    public Message(String error, Integer statusCode) {
-        this.error = error;
+    public Message(String errorMessage, Integer statusCode) {
+        this.errorMessage = errorMessage;
         this.statusCode = statusCode;
     }
-    
-    public Message(Object data, String error, Integer statusCode) {
-	this.data=data;
-	this.error=error;
-	this.statusCode=statusCode;
+
+    public Message(Object data, String errorMessage, Integer statusCode) {
+        this.data = data;
+        this.errorMessage = errorMessage;
+        this.statusCode = statusCode;
     }
 }

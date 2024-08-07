@@ -18,7 +18,7 @@ import com.google.firebase.cloud.StorageClient;
 public class FirebaseService {
 	
 	private final Storage storage;
-	private final String firebaseBucket = "cloudians-photo.appspot.com";
+	private String firebaseBucket = "cloudians-photo.appspot.com";
 
     public FirebaseService() {
         this.storage = StorageOptions.getDefaultInstance().getService();
@@ -37,14 +37,11 @@ public class FirebaseService {
 	
 
 	// get file url
-    public String getFileUrl(String fileName) {
+    public String getFileUrl(String fileName) throws Exception {
         Blob blob = storage.get(bucket().getName(), fileName.toString());
+        System.out.println(bucket().getName());
         System.out.println(blob.toString()+"들어왔을까..");
-        if (blob != null) {
-            // Blob의 media link를 통해 URL을 가져옵니다.
             return blob.getMediaLink();
-        }
-        return null; // 파일을 찾을 수 없는 경우
     }
     
     
@@ -53,6 +50,13 @@ public class FirebaseService {
 	Blob blob = storage.get(firebaseBucket, filePath);
 	blob.delete();
 	return blob.getMediaLink();
+    }
+    
+    // user folder
+    public String folderPath(String userEmail, String domain) throws Exception {
+	 // 사용자 폴더 경로 설정
+        String folderPath = "user_photos/" + userEmail.toString() + "/"+domain+"/"; // 사용자 ID에 따라 폴더를 생성
+        return folderPath;
     }
 	
 

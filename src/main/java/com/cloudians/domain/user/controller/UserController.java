@@ -2,6 +2,7 @@ package com.cloudians.domain.user.controller;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,8 +19,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudians.domain.user.dto.request.UserRequest;
 import com.cloudians.domain.user.dto.response.UserResponse;
+import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.service.UserService;
 import com.cloudians.global.Message;
+import com.cloudians.global.service.FirebaseService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,11 +36,14 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 	
+	@Autowired
+	private FirebaseService firebaseService;
+	
+
 	public ResponseEntity<Message> errorMessage (Exception e){
 	    Message errorMessage = new Message(e, HttpStatus.BAD_REQUEST.value());
 		return ResponseEntity.status(HttpStatus.OK).body(errorMessage);
 	}
-	
 	public ResponseEntity<Message> successMessage (Object object){
 	    Message message = new Message(object,null,HttpStatus.OK.value());
 	    return ResponseEntity.status(HttpStatus.OK).body(message);
@@ -53,6 +59,7 @@ public class UserController {
 	// 프로필 조회 
 	 @GetMapping("/profile")
 	    public ResponseEntity<Message> userProfile(@RequestParam String userEmail) {
+	     System.out.println("profile search start");
 	        try {
 	            System.out.println(userEmail);
 	            UserResponse user = userService.findByEmail(userEmail);
@@ -66,14 +73,12 @@ public class UserController {
 	    }
 	
 	
-	// 프로필 등록 혹은 삭제
+	// 프로필 등록 및 변경
 		@PutMapping("/profile")
 		public ResponseEntity<Message> userProfileUpdate (@RequestParam String userEmail,
 				@RequestParam("file") MultipartFile file) throws Exception {// 사용자 정보를 업데이트하는 서비스 호출
 	       try {
-		     System.out.println("controller - profile - modify");
-		       UserResponse user = userService.findByEmail(userEmail);
-		   userService.updateUserProfile(userEmail,file);
+		   UserResponse user = userService.updateProfile(userEmail,file);
 		   return successMessage(user.getProfileUrl());
 	       } catch(Exception e) {
 		   return errorMessage(e);
@@ -81,6 +86,8 @@ public class UserController {
 		}
 	
 		
+	
+	// 프로필 삭제
 		@DeleteMapping("/profile")
 		public ResponseEntity<Message> userProfileDelete (@RequestParam String userEmail) throws Exception{
 			UserResponse user = userService.findByEmail(userEmail);

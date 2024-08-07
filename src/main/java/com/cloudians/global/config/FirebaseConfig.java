@@ -29,6 +29,8 @@ public class FirebaseConfig {
 	                connection.setRequestMethod("GET");
 	                InputStream inputStream = connection.getInputStream();
 	                GoogleCredentials credentials = GoogleCredentials.fromStream(inputStream);
+	               
+
 	                
 	                FirebaseOptions options = new FirebaseOptions.Builder()
 	                    .setCredentials(credentials)

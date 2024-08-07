@@ -4,13 +4,18 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.google.cloud.storage.Blob;
+import com.google.cloud.storage.BlobInfo;
 import com.google.cloud.storage.Bucket;
 import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageException;
 import com.google.cloud.storage.StorageOptions;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.cloud.StorageClient;
 
@@ -18,32 +23,45 @@ import com.google.firebase.cloud.StorageClient;
 public class FirebaseService {
 	
 	private final Storage storage;
-	private String firebaseBucket = "cloudians-photo.appspot.com";
+	private final String firebaseBucket = "cloudians-photo.appspot.com";
+	private FirebaseAuth fireAuth = FirebaseAuth.getInstance();
+	
 
-    public FirebaseService() {
-        this.storage = StorageOptions.getDefaultInstance().getService();
-    }
+	    @Autowired
+	    public FirebaseService() {
+	        // Ensure FirebaseApp is initialized before accessing services
+	        if (FirebaseApp.getApps().isEmpty()) {
+	            throw new IllegalStateException("FirebaseApp is not initialized.");
+	        }
+	        this.storage = StorageOptions.getDefaultInstance().getService();
+	        this.fireAuth = FirebaseAuth.getInstance();
+	    }
     
     public Bucket bucket() {
 	return StorageClient.getInstance().bucket(firebaseBucket);
     }
+    
+    // user folder
+    public String folderPath(String userEmail, String domain,String fileName) {
+	 // 사용자 폴더 경로 설정
+	 String folderPath = "users/"+userEmail.toString()+"/"+domain+"/"+fileName.toString(); // 사용자 ID에 따라 폴더를 생성
+        return folderPath;
+    }
 	
 	// upload file
-	public String uploadFiles(MultipartFile file, String nameFile) throws IOException, FirebaseAuthException {
-		InputStream content = new ByteArrayInputStream(file.getBytes());
-		Blob blob = bucket().create(nameFile.toString(), content, file.getContentType());        
-		return blob.getMediaLink();
-	}
+		public String uploadFile(MultipartFile file, String userEmail, String fileName, String domain) throws IOException, FirebaseAuthException {
+		    try (InputStream content = new ByteArrayInputStream(file.getBytes())) {
+		        Blob blob = bucket().create(folderPath(userEmail,domain,fileName),content,file.getContentType());
+		        return blob.getMediaLink();
+		    } catch (StorageException e) {
+		        System.err.println("StorageException: " + e.getMessage());
+		        throw e;
+		    } catch (IOException e) {
+		        System.err.println("IOException: " + e.getMessage());
+		        throw e;
+		    }
+		}
 	
-
-	// get file url
-    public String getFileUrl(String fileName) throws Exception {
-        Blob blob = storage.get(bucket().getName(), fileName.toString());
-        System.out.println(bucket().getName());
-        System.out.println(blob.toString()+"들어왔을까..");
-            return blob.getMediaLink();
-    }
-    
     
     // delete file
     public String deleteFileUrl(String filePath) throws Exception {
@@ -52,13 +70,14 @@ public class FirebaseService {
 	return blob.getMediaLink();
     }
     
-    // user folder
-    public String folderPath(String userEmail, String domain) throws Exception {
-	 // 사용자 폴더 경로 설정
-        String folderPath = "user_photos/" + userEmail.toString() + "/"+domain+"/"; // 사용자 ID에 따라 폴더를 생성
-        return folderPath;
+	// get file url
+    public String getFileUrl(String fileName) throws Exception {
+        Blob blob = storage.get(bucket().getName(), fileName.toString());
+        System.out.println(bucket().getName());
+        System.out.println(blob.toString()+"들어왔을까..");
+            return blob.getMediaLink();
     }
-	
+    
 
 
 }

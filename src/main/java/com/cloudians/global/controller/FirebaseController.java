@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,7 +28,9 @@ public class FirebaseController {
 	private FirebaseAuth fireAuth = FirebaseAuth.getInstance();
 	
 	public ResponseEntity<Message> errorMessage (Exception e){
-	    Message errorMessage = new Message(e, HttpStatus.BAD_REQUEST.value());
+	    System.out.println(e);
+	    
+	    Message errorMessage = new Message(e.toString(), HttpStatus.BAD_REQUEST.value());
 		return ResponseEntity.status(HttpStatus.OK).body(errorMessage);
 	}
 	
@@ -43,9 +46,10 @@ public class FirebaseController {
 	}
 	
 	
+	// custom Token
 	@GetMapping("/token")
 	public ResponseEntity<Message> tokenTest() throws FirebaseAuthException{
-		String uid = "pieeJ3r044hygNP7nqbVTu7LLk13";
+		String uid = "c51e4662168a7a006bf6082dcd7a16ba5ff3fb0b";
 		try {
 			String customToken = FirebaseAuth.getInstance().createCustomToken(uid);
 			return successMessage(customToken);
@@ -55,20 +59,24 @@ public class FirebaseController {
 
 	}
 	
+	// uploadFile
 	@PostMapping("/files")
 	public ResponseEntity<Message> uploadFile(@RequestParam("file") MultipartFile file, String nameFile) throws IOException, FirebaseAuthException {
 	    try {
-		String fileUrl = firebaseService.uploadFiles(file, nameFile);
+		String userEmail = "dencoding@naver.com";
+		String domain = "profile";
+		String fileUrl = firebaseService.uploadFile(file, userEmail, nameFile, domain);
 		return successMessage(fileUrl);
 	    } catch(Exception e) {
 		 return errorMessage(e);
 	    }
 	}
+	
 
 	@GetMapping("/files")
-	public ResponseEntity<Message> viewFile(@RequestParam String fileName) throws IOException, FirebaseAuthException {
+	public ResponseEntity<Message> viewFile(@RequestParam String fileName){
 	    System.out.println(fileName+"은 들어온다.");
-		String idToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjFkYmUwNmI1ZDdjMmE3YzA0NDU2MzA2MWZmMGZlYTM3NzQwYjg2YmMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vY2xvdWRpYW5zLXBob3RvIiwiYXVkIjoiY2xvdWRpYW5zLXBob3RvIiwiYXV0aF90aW1lIjoxNzIyNjAyMzM5LCJ1c2VyX2lkIjoiYzUxZTQ2NjIxNjhhN2EwMDZiZjYwODJkY2Q3YTE2YmE1ZmYzZmIwYiIsInN1YiI6ImM1MWU0NjYyMTY4YTdhMDA2YmY2MDgyZGNkN2ExNmJhNWZmM2ZiMGIiLCJpYXQiOjE3MjI2MDIzMzksImV4cCI6MTcyMjYwNTkzOSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6e30sInNpZ25faW5fcHJvdmlkZXIiOiJjdXN0b20ifX0.EaAFl4zWo9IMZB2oPMKBt6CizouHrpQRAH8ur7W_-5y8gqauFiKPAw8wWUz_xuE2z_HA8Sbo-xI7HCvYZWxmtcgzqNwInmpoDs7yYHdcHodewARC2EwysQxQ79rplyQS3lcF8emsIf9RrcHXLLlVA2Vv5ghTOvXV64AcITgROTrZuhsXEYDDtRhFflLUB2Bx7YHRWWguiVgwlX9N20MZJgpNFDHMM1GhQrL75z3tA0YjBE41-D9n5M46mPmag9Tg01lfI3T9vEZReMz6_m1I7pQavqGa4IYDYPv9TZcegbcKC7H2ShMAd_agNhdwF1Qun-qqeeFKony0rwnuew5z1g";
+		String idToken = "eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJodHRwczovL2lkZW50aXR5dG9vbGtpdC5nb29nbGVhcGlzLmNvbS9nb29nbGUuaWRlbnRpdHkuaWRlbnRpdHl0b29sa2l0LnYxLklkZW50aXR5VG9vbGtpdCIsImV4cCI6MTcyMzAwNDA5MywiaWF0IjoxNzIzMDAwNDkzLCJpc3MiOiJmaXJlYmFzZS1hZG1pbnNkay1wbW85bkBjbG91ZGlhbnMtcGhvdG8uaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1wbW85bkBjbG91ZGlhbnMtcGhvdG8uaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJ1aWQiOiJwaWVlSjNyMDQ0aHlnTlA3bnFiVlR1N0xMazEzIn0.jGKN8ORbbfuQpgWtZcKdT4pM8Sn55YNm-G_y6XHwXNmng2SuiPgOoNQEBUEaPgIy7dwFcwQrqHIqvwobyxF3xGuL8MRWHr8_a0vlbT6hzX5LGk00_tkXVCoCOrnBEY4rkxzy8fxpfZ2TclcfrBMdCyeLgM8ttXhUY3pOrw41FCAJE4bBxVYI79KYoOcLRahHl-hmdUvEeTRC0Dl0-OAPXtmTW26xJzT8yJ-NQUVTL74UZ-d8niHHk5tfNIHmvMr_cySpmwlj-xELCPy2zVrV2KLGgya7HNSQ1hP20uYUbiSbioaOMhkuHpBAj-WWOYGBc9ZZz99kbZC6AuxluhZVmA";
 	    try {
 		FirebaseToken token = fireAuth.verifyIdToken(idToken);
 		System.out.println("일단 토큰은 있음.");

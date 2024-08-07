@@ -21,16 +21,13 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class UserService{
-	@Autowired
+	
 	private FirebaseService firebaseService;
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 	@Autowired
 	private UserRepository userRepository;
-	
-    public UserService(FirebaseService firebaseService) {
-        this.firebaseService = firebaseService;
-    }
+
 
     
     //signup_type
@@ -92,27 +89,22 @@ public class UserService{
 	    return updatedUser.toDto();
 	}
 	
-	public UserResponse updateUserProfile(String userEmail, MultipartFile file) throws Exception{
+	public UserResponse updateProfile(String userEmail, MultipartFile file) throws Exception{
 		Optional<User> optionalUser = userRepository.findByUserEmail(userEmail);
 		System.out.println(optionalUser.toString()+"조회 완료.");
 		if (optionalUser.isEmpty()) {
 	        return null;
 	    }
 		User user = optionalUser.get();
-		// user 가져왔으니까 MultipartFile file 을 Storage에 추가하고, 추가한 Url을 user's profile에 넣어야됨.
-		if(file!=null) {
-			firebaseService.uploadFiles(file, user.getNickname().toString()+"userProfile");
-			String url = "https://firebasestorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/"+user.getNickname().toString()+"userProfile?alt=media";
+		    String domain = "profile";
+			firebaseService.uploadFile(file, user.getNickname().toString(),"profile",domain);
+			String url = firebaseService.uploadFile(file, user.getNickname().toString(),"profile",domain);
 			   user.setProfileUrl(url);
 			   User updatedUser = userRepository.save(user);
 			   return updatedUser.toDto();
-		   } else {
-			   String url = "https://firebaseStorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/noneProfile?alt=media";
-			   user.setProfileUrl(url);
-			   User updatedUser = userRepository.save(user);
-			   return updatedUser.toDto();
-		   }
+
 	}
+	
 	
 	public UserResponse deleteUserProfile(String userEmail) throws Exception{
 		Optional<User> optionalUser = userRepository.findByUserEmail(userEmail);
@@ -123,8 +115,7 @@ public class UserService{
 		User user = optionalUser.get();
 		firebaseService.deleteFileUrl(user.getProfileUrl());
 		user.setProfileUrl(null);
-		  User updatedUser = userRepository.save(user);
-		  
+		  User updatedUser = userRepository.save(user);		  
 		  return updatedUser.toDto();
 	}
 

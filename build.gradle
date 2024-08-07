@@ -42,6 +42,7 @@ dependencies {
 	providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	 implementation 'org.springframework.boot:spring-boot-starter-validation'
 	implementation 'com.jcraft:jsch:0.1.55'
 	
 	implementation 'org.apache.sshd:sshd-core:2.7.0'

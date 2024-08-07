@@ -2,7 +2,6 @@ package com.cloudians.domain.user.controller;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,8 +17,10 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudians.domain.user.dto.request.UserRequest;
+import com.cloudians.domain.user.dto.response.UserLockResponse;
 import com.cloudians.domain.user.dto.response.UserResponse;
-import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.entity.UserLock;
+import com.cloudians.domain.user.service.UserLockService;
 import com.cloudians.domain.user.service.UserService;
 import com.cloudians.global.Message;
 import com.cloudians.global.service.FirebaseService;
@@ -35,13 +36,15 @@ public class UserController {
 	
 	@Autowired
 	private UserService userService;
+	@Autowired
+	private UserLockService userLockService;
 	
 	private FirebaseService firebaseService;
 	
 
 	public ResponseEntity<Message> errorMessage (Exception e){
 	    Message errorMessage = new Message(e, HttpStatus.BAD_REQUEST.value());
-		return ResponseEntity.status(HttpStatus.OK).body(errorMessage);
+		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
 	}
 	public ResponseEntity<Message> successMessage (Object object){
 	    Message message = new Message(object,null,HttpStatus.OK.value());
@@ -146,12 +149,49 @@ public class UserController {
 	
 	
 	
-	// 앱 잠금 설정 생성/삭제
+	// 앱 잠금 설정 생성
+	@PostMapping("/user-lock")
+	ResponseEntity<Message> userLockUpdate(@RequestParam String userEmail, String passcode){
+	    try {
+		// userEmail로 유저 확인
+		UserLockResponse userLock = userLockService.addLock(userEmail, passcode);
+		return successMessage(userLock);				
+	    } catch(Exception e){
+		return errorMessage(e);
+	    }
+	}
+	
 	
 	// 앱 실행 시 잠금 설정 화면
+	@GetMapping("/user-lock")
+	ResponseEntity<Message> userLockCheck(@RequestParam String userEmail, String insertCode){
+	    try {
+		boolean isUnlocked = userLockService.checkLock(userEmail, insertCode);
+		return successMessage(isUnlocked);
+	    } catch(Exception e) {
+		return errorMessage(e);
+	    }
+	}
+	
+	// 앱 잠금삭제 & 비활
+	@DeleteMapping("/user-lock")
+	ResponseEntity<Message> userLockDelete(@RequestParam String userEmail, String insertCode){
+	   UserLock userLock = userLockService.findByEmail(userEmail);
+	    try {
+		boolean isUnlocked = userLockService.checkLock(userEmail, insertCode);
+		if(isUnlocked) {
+		    userLockService.deleteLock(userLock);
+		return successMessage(isUnlocked);
+		} 
+	    } catch(Exception e) {
+		return errorMessage(e);
+	    }
+	    return null;
+	}
+	
+	// 앱 잠금 비활성화
 	
 	
-	// 오류 제보
 	
 
 	

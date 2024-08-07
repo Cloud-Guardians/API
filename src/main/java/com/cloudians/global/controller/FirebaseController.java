@@ -57,8 +57,8 @@ public class FirebaseController {
 	@PostMapping("/files")
 	public ResponseEntity<Message> uploadFile(@RequestParam("file") MultipartFile file, String nameFile) throws IOException, FirebaseAuthException {
 	    try {
-		 firebaseService.uploadFiles(file, nameFile);
-		return successMessage(file);
+		String fileUrl = firebaseService.uploadFiles(file, nameFile);
+		return successMessage(fileUrl);
 	    } catch(Exception e) {
 		 return errorMessage(e);
 	    }

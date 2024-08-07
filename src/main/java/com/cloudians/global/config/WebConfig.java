@@ -17,7 +17,7 @@ public class WebConfig implements WebMvcConfigurer {
         configurer.addPathPrefix(
                 "/api",
                 // x.user_crud 패키지 이하에 존재하는 @RestController Annotation 달린 모든 컨트롤러 경로 앞에 /api 붙여줌
-                HandlerTypePredicate.forBasePackage("together.together_project")
+                HandlerTypePredicate.forBasePackage("com.cloudians")
                         .and(HandlerTypePredicate.forAnnotation(RestController.class))
         );
     }

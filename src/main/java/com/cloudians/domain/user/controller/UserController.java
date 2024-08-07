@@ -33,11 +33,20 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 	
+	public ResponseEntity<Message> errorMessage (Exception e){
+	    Message errorMessage = new Message(e, HttpStatus.BAD_REQUEST.value());
+		return ResponseEntity.status(HttpStatus.OK).body(errorMessage);
+	}
+	
+	public ResponseEntity<Message> successMessage (Object object){
+	    Message message = new Message(object,null,HttpStatus.OK.value());
+	    return ResponseEntity.status(HttpStatus.OK).body(message);
+	}
+	
 	@GetMapping("/test")
 	public ResponseEntity<Message> testEndpoint() {
 	    String result = "Test endpoint working";
-	    Message message = new Message(result,null,HttpStatus.OK.value());
-	    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
+	    return successMessage(result);
 	}
 
 
@@ -50,12 +59,9 @@ public class UserController {
 	            Map<String, String> param = new HashMap<>();
 	            param.put("profile", user.getProfileUrl());
 	            param.put("nickname", user.getNickname());
-	            Message message = new Message(param, HttpStatus.OK.value());
-	            return ResponseEntity.status(HttpStatus.OK).body(message);
+	            return successMessage(param);
 	        } catch (Exception e) {
-	            e.printStackTrace();
-	            Message errorMessage = new Message("An error occurred while fetching the user profile.", HttpStatus.BAD_REQUEST.value());
-	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+	           return errorMessage(e);
 	        }
 	    }
 	
@@ -64,28 +70,26 @@ public class UserController {
 		@PutMapping("/profile")
 		public ResponseEntity<Message> userProfileUpdate (@RequestParam String userEmail,
 				@RequestParam("file") MultipartFile file) throws Exception {// 사용자 정보를 업데이트하는 서비스 호출
-	       System.out.println("controller - profile - modify");
-	       UserResponse user = userService.findByEmail(userEmail);
-	       
-	       if(user != null) {
-	    	   userService.updateUserProfile(userEmail,file);
-	    	Message message = new Message(user,null, HttpStatus.OK.value());
-	            return ResponseEntity.status(HttpStatus.OK).body(message);
+	       try {
+		     System.out.println("controller - profile - modify");
+		       UserResponse user = userService.findByEmail(userEmail);
+		   userService.updateUserProfile(userEmail,file);
+		   return successMessage(user.getProfileUrl());
+	       } catch(Exception e) {
+		   return errorMessage(e);
 	       }
-	       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
 		}
 	
 		
 		@DeleteMapping("/profile")
-		public ResponseEntity<?> userProfileDelete (@RequestParam String userEmail) throws Exception{
+		public ResponseEntity<Message> userProfileDelete (@RequestParam String userEmail) throws Exception{
 			UserResponse user = userService.findByEmail(userEmail);
-		       
-		       if(user != null) {
-		    	   userService.deleteUserProfile(userEmail);
-		    	Message message = new Message(user,null, HttpStatus.OK.value());
-		            return ResponseEntity.status(HttpStatus.OK).body(message);
-		       }
-		       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("");
+			try {
+			    userService.deleteUserProfile(userEmail);
+			    	return successMessage(user);
+			} catch(Exception e) {
+			    return errorMessage(e);
+			}
 		}
 		
 		
@@ -95,13 +99,9 @@ public class UserController {
 		        try {
 		            System.out.println(userRequest.getUserEmail());
 		            UserResponse newUser = userService.userSignup(userRequest);
-		            Message message = new Message(newUser,null, HttpStatus.OK.value());
-		            return ResponseEntity.status(HttpStatus.OK).body(message);
+		            return successMessage(newUser);
 		        } catch (Exception e) {
-		            e.printStackTrace();
-		            Message errorMessage = new Message("An error occurred while fetching the user profile.", HttpStatus.BAD_REQUEST.value());
-		            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
-		
+		            return errorMessage(e);
 		        }
 		    }
 	
@@ -111,12 +111,9 @@ public class UserController {
 		try {
 			System.out.println(userEmail);
 		UserResponse userInfo = userService.findByEmail(userEmail);
-		Message message = new Message(userInfo,null, HttpStatus.OK.value());
-	            return ResponseEntity.status(HttpStatus.OK).body(message);
+		return successMessage(userInfo);
 		} catch(Exception e) {
-		    e.printStackTrace();
-	            Message errorMessage = new Message(e, HttpStatus.BAD_REQUEST.value());
-	            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+		    return errorMessage(e);
 		}
 		
 	}

@@ -6,6 +6,7 @@ import java.io.InputStream;
 
 import javax.annotation.PostConstruct;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import com.google.auth.oauth2.GoogleCredentials;
@@ -19,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FirebaseConfig {
 	
     
-    @PostConstruct
+    @Bean
     public FirebaseApp firebaseApp() throws IOException {
 	System.out.println("현재 firebaseApp의 상태는?");
         if (FirebaseApp.getApps().isEmpty()) {

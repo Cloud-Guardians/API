@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PersonalDiaryController {
     private final PersonalDiaryService personalDiaryService;
-    private FirebaseService firebaseService;
+    private final FirebaseService firebaseService;
 
     // 자가 감정 측정 생성
     @PostMapping("/self-emotions")

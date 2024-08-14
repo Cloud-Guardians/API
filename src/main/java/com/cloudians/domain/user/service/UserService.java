@@ -24,11 +24,10 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class UserService{
 	
-	private FirebaseService firebaseService;
+	private final FirebaseService firebaseService;
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-	@Autowired
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
 
 
     
@@ -52,11 +51,11 @@ public class UserService{
 	
     }
 	
-	public UserResponse findByEmail(String userEmail) throws Exception {
+	public UserResponse findByEmail(String userEmail) throws NullPointerException {
 	    System.out.println("findByEmailService start:"+userEmail);
 		Optional<User> user = userRepository.findById(userEmail);
 		System.out.println(user.get().getUserEmail());
-		if(user.isEmpty()) throw new UserException(UserExceptionType.USER_NOT_FOUND);
+		if(!user.isPresent()) {throw new UserException(UserExceptionType.USER_NOT_FOUND);}
 		UserResponse userResponse = user.get().toDto();
 		return userResponse;
 	}

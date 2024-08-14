@@ -54,15 +54,15 @@ public class PersonalDiary extends BaseTimeEntity {
         this.date = date;
     }
 
-    public PersonalDiary edit(PersonalDiaryUpdateRequest request) {
+    public PersonalDiary edit(PersonalDiaryUpdateRequest request, String photoUrl) {
         if (request.getTitle() != null) {
             this.title = request.getTitle().trim();
         }
         if (request.getContent() != null) {
             this.content = request.getContent().trim();
         }
-        if (request.getPhotoUrl() != null) {
-            this.photoUrl = request.getPhotoUrl();
+        if (photoUrl != null) {
+            this.photoUrl = photoUrl;
         }
 
         return this;

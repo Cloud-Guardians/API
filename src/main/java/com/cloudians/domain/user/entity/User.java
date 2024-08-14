@@ -7,7 +7,6 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import com.cloudians.domain.user.dto.response.UserResponse;
-import com.cloudians.global.entity.BaseTimeEntity;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

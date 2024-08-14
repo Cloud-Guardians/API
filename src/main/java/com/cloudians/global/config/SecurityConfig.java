@@ -8,10 +8,12 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.CorsFilter;
+
+import com.cloudians.global.filter.FirebaseAuthFilter;
 
 
 @Configuration  // IoC 빈 (bean) 등록 
@@ -19,7 +21,9 @@ import org.springframework.web.filter.CorsFilter;
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-
+    @Autowired
+    private FirebaseAuthFilter firebaseAuthFilter;
+    
 	@Bean
 	public BCryptPasswordEncoder encodePassword() {
 		return new BCryptPasswordEncoder();
@@ -33,7 +37,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 	                .antMatchers("/**").permitAll() // 인증 없이 접근 허용
 	                .anyRequest().authenticated() // 나머지 모든 요청은 인증 필요
 	            .and()
-	            .cors(); // CORS 설정 추가
+	            .addFilterBefore(firebaseAuthFilter, UsernamePasswordAuthenticationFilter.class)
+	            .cors();// CORS 설정 추가
 	    }
 	 @Bean
 	    public CorsConfigurationSource corsConfigurationSource() {

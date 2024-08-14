@@ -20,16 +20,13 @@ public class PersonalDiaryCreateRequest {
     @NotBlank(message = "내용을 입력해주세요.")
     private String content;
 
-    private String photoUrl;
-
     @Builder
-    private PersonalDiaryCreateRequest(String title, String content, String photoUrl) {
+    private PersonalDiaryCreateRequest(String title, String content) {
         this.title = title;
         this.content = content;
-        this.photoUrl = photoUrl;
     }
 
-    public PersonalDiary toEntity(User user, PersonalDiaryEmotion emotions) {
+    public PersonalDiary toEntity(User user, PersonalDiaryEmotion emotions, String photoUrl) {
         return PersonalDiary.builder()
                 .user(user)
                 .emotion(emotions)

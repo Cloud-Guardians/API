@@ -12,8 +12,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cloudians.domain.user.dto.request.UserRequest;
 import com.cloudians.domain.user.dto.response.UserResponse;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.exception.UserException;
-import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
 import com.cloudians.global.service.FirebaseService;
 
@@ -23,12 +21,16 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class UserService{
-	
-	private final FirebaseService firebaseService;
+	@Autowired
+	private FirebaseService firebaseService;
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
-	private final UserRepository userRepository;
-
+	@Autowired
+	private UserRepository userRepository;
+	
+    public UserService(FirebaseService firebaseService) {
+        this.firebaseService = firebaseService;
+    }
 
     
     //signup_type
@@ -51,11 +53,9 @@ public class UserService{
 	
     }
 	
-	public UserResponse findByEmail(String userEmail) throws NullPointerException {
-	    System.out.println("findByEmailService start:"+userEmail);
-		Optional<User> user = userRepository.findById(userEmail);
-		System.out.println(user.get().getUserEmail());
-		if(!user.isPresent()) {throw new UserException(UserExceptionType.USER_NOT_FOUND);}
+	public UserResponse findByEmail(String userEmail) {
+		Optional<User> user = userRepository.findByUserEmail(userEmail);
+		if(user.isEmpty()) return null;
 		UserResponse userResponse = user.get().toDto();
 		return userResponse;
 	}
@@ -63,7 +63,7 @@ public class UserService{
 
 	public UserResponse updateUser(String userEmail, UserRequest userRequest) {
 		System.out.println("조회부터 할게염.");
-		Optional<User> optionalUser = userRepository.findById(userEmail);
+		Optional<User> optionalUser = userRepository.findByUserEmail(userEmail);
 		System.out.println(optionalUser.toString()+"조회 완료.");
 		if (optionalUser.isEmpty()) {
 	        return null;
@@ -92,33 +92,39 @@ public class UserService{
 	    return updatedUser.toDto();
 	}
 	
-	public UserResponse updateProfile(String userEmail, MultipartFile file) throws Exception{
-		Optional<User> optionalUser = userRepository.findById(userEmail);
+	public UserResponse updateUserProfile(String userEmail, MultipartFile file) throws Exception{
+		Optional<User> optionalUser = userRepository.findByUserEmail(userEmail);
 		System.out.println(optionalUser.toString()+"조회 완료.");
 		if (optionalUser.isEmpty()) {
 	        return null;
 	    }
 		User user = optionalUser.get();
-		    String domain = "profile";
-			firebaseService.uploadFile(file, user.getNickname().toString(),"profile",domain);
-			String url = firebaseService.uploadFile(file, user.getNickname().toString(),"profile",domain);
+		// user 가져왔으니까 MultipartFile file 을 Storage에 추가하고, 추가한 Url을 user's profile에 넣어야됨.
+		if(file!=null) {
+			firebaseService.uploadFiles(file, user.getNickname().toString()+"userProfile");
+			String url = "https://firebasestorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/"+user.getNickname().toString()+"userProfile?alt=media";
 			   user.setProfileUrl(url);
 			   User updatedUser = userRepository.save(user);
 			   return updatedUser.toDto();
-
+		   } else {
+			   String url = "https://firebaseStorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/noneProfile?alt=media";
+			   user.setProfileUrl(url);
+			   User updatedUser = userRepository.save(user);
+			   return updatedUser.toDto();
+		   }
 	}
 	
-	
 	public UserResponse deleteUserProfile(String userEmail) throws Exception{
-		Optional<User> optionalUser = userRepository.findById(userEmail);
+		Optional<User> optionalUser = userRepository.findByUserEmail(userEmail);
 		System.out.println(optionalUser.toString()+"조회 완료.");
 		if (optionalUser.isEmpty()) {
 	        return null;
 	    }
 		User user = optionalUser.get();
-		firebaseService.deleteFileUrl(userEmail,"profile","123");
+		firebaseService.deleteFileUrl(user.getProfileUrl());
 		user.setProfileUrl(null);
-		  User updatedUser = userRepository.save(user);		  
+		  User updatedUser = userRepository.save(user);
+		  
 		  return updatedUser.toDto();
 	}
 

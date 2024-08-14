@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudians.domain.user.dto.response.UserResponse;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.service.UserService;
@@ -29,7 +30,10 @@ import com.cloudians.global.service.FirebaseService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 
+import lombok.RequiredArgsConstructor;
+
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/global")
 public class FirebaseController {
 	
@@ -55,19 +59,7 @@ public class FirebaseController {
 	    Message message = new Message(object,null,HttpStatus.OK.value());
 	    return ResponseEntity.status(HttpStatus.OK).body(message);
 	}
-	
-//	@GetMapping("/testFiles")
-//	public ResponseEntity<Message> testFiles() throws FirebaseAuthException {
-//try {
-//    firebaseConfig.initialize();
-//    return successMessage("done");
-//} catch(Exception e) {
-//    String uid = "c51e4662168a7a006bf6082dcd7a16ba5ff3fb0b";
-//	  return errorMessage(e);
-//}
-//	    
-//	}
-	
+
 	
 	
 	// id Token
@@ -109,7 +101,7 @@ public class FirebaseController {
 	@DeleteMapping("/delete")
 	public ResponseEntity<Message> deleteFile(@RequestParam String fileName) throws Exception{
 	    System.out.println("Start");
-	    firebaseService.deleteFileUrl("dencoding@naver.com","profile",fileName);
+	    firebaseService.deleteFileUrl("dencodin@naver.com","profile",fileName);
 	    String message = "done";
 		   return successMessage(message);
 	}
@@ -118,6 +110,8 @@ public class FirebaseController {
 	public ResponseEntity<Message> getFile(@RequestParam String fileName) throws Exception {
 	    System.out.println("Start");
 	    String userEmail = "dencoding@naver.com";
+	    UserResponse user = userService.findByEmail(userEmail);
+	    if(user == null) {throw new UserException(UserExceptionType.USER_NOT_FOUND);}
 	    String message=  firebaseService.getFileUrl(userEmail,"profile",fileName);
 		   return successMessage(message);
 	}

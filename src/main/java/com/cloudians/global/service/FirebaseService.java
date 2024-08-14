@@ -12,10 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.exception.UserException;
-import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
-import com.cloudians.domain.user.service.UserService;
 import com.cloudians.global.exception.FirebaseException;
 import com.cloudians.global.exception.FirebaseExceptionType;
 import com.google.cloud.storage.Blob;
@@ -24,7 +21,6 @@ import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
 import com.google.cloud.storage.StorageOptions;
 import com.google.firebase.FirebaseApp;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.cloud.StorageClient;
 
@@ -33,9 +29,8 @@ public class FirebaseService {
 	
 	private final Storage storage;
 	private final String firebaseBucket = "cloudians-photo.appspot.com";
-	private UserService userService;
+	@Autowired
 	private UserRepository userRepository;
-	private FirebaseAuth fireAuth;
 	
 
 	    @Autowired
@@ -45,8 +40,6 @@ public class FirebaseService {
 	            throw new IllegalStateException("FirebaseApp is not initialized.");
 	        }
 	        this.storage = StorageOptions.getDefaultInstance().getService();
-	        this.userRepository=userRepository;
-	        this.fireAuth = FirebaseAuth.getInstance();
 	    }
     
     public Bucket bucket() {
@@ -64,13 +57,10 @@ public class FirebaseService {
     public String folderPath(String userEmail, String domain,String fileName) {
 	 // 사용자 폴더 경로 설정
 	System.out.println(userEmail);
-	Optional<User> user =userRepository.findById(userEmail);
-	if(user.isEmpty()) {
-	    throw new UserException(UserExceptionType.USER_NOT_FOUND);
-	} else {
+	Optional<User> user =userRepository.findByUserEmail(userEmail);
 	    String folderPath = "users/"+userEmail+"/"+domain+"/"+fileName.toString(); // 사용자 ID에 따라 폴더를 생성
 	        return folderPath; 
-	}
+
     }
     
    

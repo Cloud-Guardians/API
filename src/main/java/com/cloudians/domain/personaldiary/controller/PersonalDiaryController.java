@@ -4,7 +4,6 @@ import javax.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +12,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,6 +20,7 @@ import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryAnalyzeResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionCreateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionUpdateResponse;
@@ -63,16 +64,25 @@ public class PersonalDiaryController {
 
     // 일기 내용 생성
     @PostMapping("/it")
-    public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,
-                                                       @Valid @RequestBody PersonalDiaryCreateRequest request,
-                                                       @RequestParam("file") MultipartFile file) throws Exception {
-	System.out.println("gg");
-	String fileName = StringUtils.cleanPath(file.getOriginalFilename());
-	System.out.println(fileName);
-	String photoUrl = firebaseService.uploadFile(file,userEmail,fileName,"diary");
-        PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, userEmail);
+    public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,                                                      
+                                                       @RequestPart @Valid PersonalDiaryCreateRequest request,
+                                                       @RequestPart(value = "file", required = false) MultipartFile file) throws Exception {
+        PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, userEmail, file);
+
         Message message = new Message(response, HttpStatus.CREATED.value());
 
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(message);
+    }
+
+    // 일기 내용 분석
+    @PostMapping("/{personal-diary-id}/analyses")
+    public ResponseEntity<Message> analyze(@RequestParam String userEmail,
+                                           @PathVariable("personal-diary-id") Long personalDiaryId) throws Exception{
+        PersonalDiaryAnalyzeResponse response = personalDiaryService.analyzePersonalDiary(userEmail, personalDiaryId);
+
+        // 메시지 생성 및 반환
+        Message message = new Message(response, HttpStatus.CREATED.value());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(message);
     }
@@ -92,8 +102,9 @@ public class PersonalDiaryController {
     @PutMapping("/{personal-diary-id}")
     public ResponseEntity<Message> editPersonalDiary(@RequestParam String userEmail,
                                                      @PathVariable("personal-diary-id") Long personalDiaryId,
-                                                     @Valid @RequestBody PersonalDiaryUpdateRequest request) {
-        PersonalDiaryResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, userEmail);
+                                                     @RequestPart @Valid PersonalDiaryUpdateRequest request,
+                                                     @RequestPart(value = "file", required = false) MultipartFile file) throws Exception {
+        PersonalDiaryResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, userEmail, file);
         Message message = new Message(response, HttpStatus.OK.value());
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -104,7 +115,7 @@ public class PersonalDiaryController {
     // 자가 감정 및 일기 삭제
     @DeleteMapping("/{personal-diary-id}")
     public ResponseEntity<Message> deletePersonalDiary(@RequestParam String userEmail,
-                                                       @PathVariable("personal-diary-id") Long personalDiaryId) {
+                                                       @PathVariable("personal-diary-id") Long personalDiaryId) throws Exception {
         personalDiaryService.deletePersonalDiary(userEmail, personalDiaryId);
 
         Message message = new Message(null, HttpStatus.OK.value());

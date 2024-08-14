@@ -83,8 +83,8 @@ public class PersonalDiaryService {
         //감정들 임시저장소에서 삭제
         removeTempEmotion(user.getUserEmail());
 
-        String photoUrl = getPhotoUrl(userEmail, file);
-        PersonalDiary personalDiary = request.toEntity(user, emotions, photoUrl);
+//        String photoUrl = getPhotoUrl(userEmail, file);
+        PersonalDiary personalDiary = request.toEntity(user, emotions, null);
         PersonalDiary savedPersonalDiary = personalDiaryRepository.save(personalDiary);
 
         return PersonalDiaryCreateResponse.of(savedPersonalDiary, user, emotions);
@@ -142,9 +142,10 @@ public class PersonalDiaryService {
         return PersonalDiaryAnalyzeResponse.of(personalDiaryAnalysis, user);
     }
 
-    private String[] analyzeDiaryWithChatGPT(PersonalDiary personalDiary, User user) throws Exception {
+    private String[] analyzeDiaryWithChatGPT(PersonalDiary personalDiary, User user) {
         String answer = chatGptService.askQuestion(personalDiary, user);
         System.out.println("answer = " + answer);
+
         return new String[]{
                 answer.split("\n")[0].split(": ")[1],  // elementName
                 answer.split("\n")[1].split(": ")[1],  // fortuneDetail
@@ -161,7 +162,7 @@ public class PersonalDiaryService {
 
     private String getHarmonyTipsJson() throws Exception {
         List<HarmonyTip> harmonyTips = harmonyTipRepository.findRandomTipsByTags("#활동적", "#차분한", "#창의적");
-            List<HarmonyTipsResponse> harmonyTipsResponse = harmonyTips.stream()
+        List<HarmonyTipsResponse> harmonyTipsResponse = harmonyTips.stream()
                 .map(HarmonyTipsResponse::of)
                 .collect(Collectors.toList());
         ObjectMapper objectMapper = new ObjectMapper();

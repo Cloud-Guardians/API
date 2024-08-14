@@ -3,7 +3,6 @@ package com.cloudians.domain.personaldiary.service;
 import com.cloudians.domain.personaldiary.dto.request.ChatGptRequest;
 import com.cloudians.domain.personaldiary.dto.response.ChatGptResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
-import com.cloudians.domain.personaldiary.entity.analysis.ChatMessage;
 import com.cloudians.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.sql.Date;
-import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -31,37 +29,19 @@ public class ChatGptService {
     @Value("${chatgpt.temperature}")
     private double temperature;
 
-    public String askQuestion(PersonalDiary personalDiary, User user) throws Exception{
+    public String askQuestion(PersonalDiary personalDiary, User user) {
         String userPrompt = getUserPrompt(personalDiary);
         String systemPrompt = getSystemPrompt(user);
-
-
-        List<ChatMessage> messages = new ArrayList<>();
-        messages.add(ChatMessage.builder()
-                .role("user")
-                .content(userPrompt)
-                .build());
-        messages.add(ChatMessage.builder()
-                .role("system")
-                .content(systemPrompt)
-                .build());
 
         ChatGptRequest request = ChatGptRequest.builder()
                 .model(model)
                 .maxTokens(maxToken)
                 .temperature(temperature)
-                .messages(messages)
+                .userPrompt(userPrompt)
+                .systemPrompt(systemPrompt)
                 .build();
 
         ChatGptResponse response = restTemplate.postForObject(apiUrl, request, ChatGptResponse.class);
-        if (response == null || response.getChoices() == null || response.getChoices().isEmpty()) {
-            throw new RuntimeException("Invalid response from ChatGPT API");
-        }
-        for (ChatGptResponse.Choice choice : response.getChoices()) {
-            if (choice.getMessage() == null) {
-                throw new RuntimeException("text null");
-            }
-        }
         return response.getChoices().get(0).getMessage().getContent();
     }
 
@@ -75,7 +55,7 @@ public class ChatGptService {
         return String.format(text, title, content);
     }
 
-     private String getSystemPrompt(User user) {
+    private String getSystemPrompt(User user) {
         Date birthdate = user.getBirthdate();
         String birthTime = user.getBirthTime();
 
@@ -84,6 +64,6 @@ public class ChatGptService {
                 "총운: [3-4문장으로 내일의 운세 설명]\n" +
                 "조언: [3-4문장으로 주어질 조언]\n";
 
-         return String.format(text, birthdate, birthTime);
+        return String.format(text, birthdate, birthTime);
     }
 }

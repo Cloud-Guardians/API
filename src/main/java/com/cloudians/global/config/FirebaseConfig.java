@@ -1,9 +1,8 @@
 package com.cloudians.global.config;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
 
 import javax.annotation.PostConstruct;
 
@@ -19,31 +18,27 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FirebaseConfig {
 	
-	 @PostConstruct
-	    public void initialize() {
-	        if (FirebaseApp.getApps().isEmpty()) {
-	            try {
-	                String fileUrl = "https://firebasestorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/key%2Fcloudians-photo-key.json?alt=media&token=f80216aa-07c3-49a3-97d8-c1c1127c9bb1";
-	                URL url = new URL(fileUrl);
-	                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-	                connection.setRequestMethod("GET");
-	                InputStream inputStream = connection.getInputStream();
-	                GoogleCredentials credentials = GoogleCredentials.fromStream(inputStream);
-	               
-
-	                
-	                FirebaseOptions options = new FirebaseOptions.Builder()
-	                    .setCredentials(credentials)
-	                    .build();
-	                FirebaseApp.initializeApp(options);	                
-	                log.info("Firebase initialized successfully.");
-	                inputStream.close();                
-	            } catch (IOException e) {
-	                log.error("Error initializing Firebase: ", e);
-	            }
-	        } else {
-	            log.info("Firebase is already initialized.");
-	        }
-	    }
+    
+    @PostConstruct
+    public FirebaseApp firebaseApp() throws IOException {
+	System.out.println("현재 firebaseApp의 상태는?");
+        if (FirebaseApp.getApps().isEmpty()) {
+            System.out.println("firebaseApp가 존재하지 않기 때문에 생성해드리겠습니다.");
+            try (InputStream inputStream = new FileInputStream("src/main/resources/cloudians-photo-key.json")) {
+                GoogleCredentials credentials = GoogleCredentials.fromStream(inputStream);
+                FirebaseOptions options = new FirebaseOptions.Builder()
+                        .setCredentials(credentials)
+                        .build();
+                return FirebaseApp.initializeApp(options);
+            } catch (IOException e) {
+                log.error("Error initializing Firebase: ", e);
+                throw e;
+            }
+        } else {
+            System.out.println(!FirebaseApp.getInstance().toString().isEmpty());
+            System.out.println("firebaseApp가 정상적으로 존재합니다.");
+            return FirebaseApp.getInstance();
+        }
+    }
 
 }

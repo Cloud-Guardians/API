@@ -1,32 +1,49 @@
 package com.cloudians.global.controller;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudians.domain.user.exception.UserException;
+import com.cloudians.domain.user.exception.UserExceptionType;
+import com.cloudians.domain.user.service.UserService;
 import com.cloudians.global.Message;
 import com.cloudians.global.service.FirebaseService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
 
 @RestController
-@RequestMapping("/api/global")
+@RequestMapping("/global")
 public class FirebaseController {
 	
-	@Autowired
+    private static final String FIREBASE_API_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyCRa6O8ERHxL_9CmWJeJyUKcxMgDxH65-A";
 	private FirebaseService firebaseService;
-	private FirebaseAuth fireAuth = FirebaseAuth.getInstance();
+	private UserService userService;
+	private FirebaseAuth fireAuth;
 	
+	@Autowired
+	    public FirebaseController(FirebaseService firebaseService) {
+	        this.firebaseService = firebaseService;
+	        this.userService = userService;
+	        this.fireAuth = FirebaseAuth.getInstance(); // Initialize FirebaseAuth here
+	    }
 	public ResponseEntity<Message> errorMessage (Exception e){
 	    System.out.println(e);
 	    
@@ -39,24 +56,70 @@ public class FirebaseController {
 	    return ResponseEntity.status(HttpStatus.OK).body(message);
 	}
 	
-	@GetMapping("/testFiles")
-	public ResponseEntity<Message> testFiles() throws FirebaseAuthException {
-	    String uid = "c51e4662168a7a006bf6082dcd7a16ba5ff3fb0b";
-	  return successMessage(uid);
-	}
+//	@GetMapping("/testFiles")
+//	public ResponseEntity<Message> testFiles() throws FirebaseAuthException {
+//try {
+//    firebaseConfig.initialize();
+//    return successMessage("done");
+//} catch(Exception e) {
+//    String uid = "c51e4662168a7a006bf6082dcd7a16ba5ff3fb0b";
+//	  return errorMessage(e);
+//}
+//	    
+//	}
 	
 	
-	// custom Token
+	
+	// id Token
 	@GetMapping("/token")
 	public ResponseEntity<Message> tokenTest() throws FirebaseAuthException{
 		String uid = "c51e4662168a7a006bf6082dcd7a16ba5ff3fb0b";
+		
 		try {
 			String customToken = FirebaseAuth.getInstance().createCustomToken(uid);
-			return successMessage(customToken);
+		Map<String, Object> firebaseRequest = new HashMap<>();
+		firebaseRequest.put("token",customToken);
+		firebaseRequest.put("returnSecureToken",true);
+		
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+		
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<Map<String,Object>> entity = new HttpEntity<>(firebaseRequest,headers);
+		
+		ResponseEntity<Map> response = restTemplate.exchange(
+			FIREBASE_API_URL,
+			HttpMethod.POST,
+			entity,
+			Map.class);
+		
+		Map<String,String> responseBody = new HashMap<>();
+		if(response.getBody() != null) {
+		    String idToken = (String) response.getBody().get("idToken");
+		    responseBody.put("idToken",idToken);
+		    return successMessage(idToken);
+		} 
+		return successMessage("none");
 		} catch(Exception e) {
 		    return errorMessage(e);
 		}
 
+	}
+	
+	@DeleteMapping("/delete")
+	public ResponseEntity<Message> deleteFile(@RequestParam String fileName) throws Exception{
+	    System.out.println("Start");
+	    firebaseService.deleteFileUrl("dencoding@naver.com","profile",fileName);
+	    String message = "done";
+		   return successMessage(message);
+	}
+	
+	@GetMapping("/get")
+	public ResponseEntity<Message> getFile(@RequestParam String fileName) throws Exception {
+	    System.out.println("Start");
+	    String userEmail = "dencoding@naver.com";
+	    String message=  firebaseService.getFileUrl(userEmail,"profile",fileName);
+		   return successMessage(message);
 	}
 	
 	// uploadFile
@@ -76,15 +139,16 @@ public class FirebaseController {
 	@GetMapping("/files")
 	public ResponseEntity<Message> viewFile(@RequestParam String fileName){
 	    System.out.println(fileName+"은 들어온다.");
-		String idToken = "eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOiJodHRwczovL2lkZW50aXR5dG9vbGtpdC5nb29nbGVhcGlzLmNvbS9nb29nbGUuaWRlbnRpdHkuaWRlbnRpdHl0b29sa2l0LnYxLklkZW50aXR5VG9vbGtpdCIsImV4cCI6MTcyMzAwNDA5MywiaWF0IjoxNzIzMDAwNDkzLCJpc3MiOiJmaXJlYmFzZS1hZG1pbnNkay1wbW85bkBjbG91ZGlhbnMtcGhvdG8uaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1wbW85bkBjbG91ZGlhbnMtcGhvdG8uaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJ1aWQiOiJwaWVlSjNyMDQ0aHlnTlA3bnFiVlR1N0xMazEzIn0.jGKN8ORbbfuQpgWtZcKdT4pM8Sn55YNm-G_y6XHwXNmng2SuiPgOoNQEBUEaPgIy7dwFcwQrqHIqvwobyxF3xGuL8MRWHr8_a0vlbT6hzX5LGk00_tkXVCoCOrnBEY4rkxzy8fxpfZ2TclcfrBMdCyeLgM8ttXhUY3pOrw41FCAJE4bBxVYI79KYoOcLRahHl-hmdUvEeTRC0Dl0-OAPXtmTW26xJzT8yJ-NQUVTL74UZ-d8niHHk5tfNIHmvMr_cySpmwlj-xELCPy2zVrV2KLGgya7HNSQ1hP20uYUbiSbioaOMhkuHpBAj-WWOYGBc9ZZz99kbZC6AuxluhZVmA";
-	    try {
-		FirebaseToken token = fireAuth.verifyIdToken(idToken);
+	        try {
 		System.out.println("일단 토큰은 있음.");
-		String url = firebaseService.getFileUrl(fileName);
-		return successMessage(url);
+		 String url = firebaseService.getFileUrl("dencoding","profile",fileName);
+		URL url2 = new URL(url);
+		return successMessage(url.toString());
 	    } catch(Exception e) {
+
 		 return errorMessage(e);
 	    }
+	        
 	}
 	
 

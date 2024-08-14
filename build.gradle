@@ -62,6 +62,7 @@ implementation 'org.apache.sshd:sshd-netty:2.7.0'
 
 	// firebase stroage
 	     implementation group: 'com.google.firebase', name: 'firebase-admin', version: '9.3.0' // 최신 버전 확인 필요
+	  implementation 'com.fasterxml.jackson.core:jackson-core:2.16.1'
     // implementation 'com.google.firebase:firebase-storage:20.0.0'
 
 	// JWT Libraries

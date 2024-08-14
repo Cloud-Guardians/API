@@ -7,19 +7,17 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 
 import com.cloudians.domain.user.dto.response.UserResponse;
+import com.cloudians.global.entity.BaseTimeEntity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
 
 
-@Builder
+
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 public class User {
 

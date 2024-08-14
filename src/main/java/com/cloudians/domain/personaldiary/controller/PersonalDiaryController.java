@@ -4,6 +4,7 @@ import javax.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreateRequest;
@@ -24,6 +26,7 @@ import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionUpdat
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.global.Message;
+import com.cloudians.global.service.FirebaseService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class PersonalDiaryController {
     private final PersonalDiaryService personalDiaryService;
+    private FirebaseService firebaseService;
 
     // 자가 감정 측정 생성
     @PostMapping("/self-emotions")
@@ -58,10 +62,14 @@ public class PersonalDiaryController {
     }
 
     // 일기 내용 생성
-    @PostMapping()
+    @PostMapping("/it")
     public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,
-                                                       @Valid @RequestBody PersonalDiaryCreateRequest request) {
-
+                                                       @Valid @RequestBody PersonalDiaryCreateRequest request,
+                                                       @RequestParam("file") MultipartFile file) throws Exception {
+	System.out.println("gg");
+	String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+	System.out.println(fileName);
+	String photoUrl = firebaseService.uploadFile(file,userEmail,fileName,"diary");
         PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, userEmail);
         Message message = new Message(response, HttpStatus.CREATED.value());
 

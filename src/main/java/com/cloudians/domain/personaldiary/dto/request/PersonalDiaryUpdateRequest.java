@@ -12,5 +12,4 @@ public class PersonalDiaryUpdateRequest {
 
     private String content;
 
-    private String photoUrl;
 }

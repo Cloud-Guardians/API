@@ -17,7 +17,7 @@ import static lombok.AccessLevel.*;
 
 @Entity
 @Getter
-@NoArgsConstructor(access = PROTECTED)
+@NoArgsConstructor
 public class PersonalDiary extends BaseTimeEntity {
 
     @Id

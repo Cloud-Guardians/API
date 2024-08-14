@@ -8,18 +8,15 @@ import javax.persistence.Id;
 
 import com.cloudians.domain.user.dto.response.UserResponse;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
 
 
-@Builder
+
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 @Entity
 public class User {
 

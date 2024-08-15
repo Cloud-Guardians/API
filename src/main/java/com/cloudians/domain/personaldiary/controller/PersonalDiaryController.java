@@ -1,42 +1,25 @@
 package com.cloudians.domain.personaldiary.controller;
 
-import javax.validation.Valid;
-
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryCreateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryAnalyzeResponse;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionCreateResponse;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryEmotionUpdateResponse;
-import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
+import com.cloudians.domain.personaldiary.dto.response.*;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.global.Message;
-import com.cloudians.global.service.FirebaseService;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.validation.Valid;
 
 @RequestMapping("/diaries")
 @RestController
 @RequiredArgsConstructor
 public class PersonalDiaryController {
     private final PersonalDiaryService personalDiaryService;
-    private final FirebaseService firebaseService;
 
     // 자가 감정 측정 생성
     @PostMapping("/self-emotions")
@@ -63,8 +46,8 @@ public class PersonalDiaryController {
     }
 
     // 일기 내용 생성
-    @PostMapping("/it")
-    public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,                                                      
+    @PostMapping()
+    public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,
                                                        @RequestPart @Valid PersonalDiaryCreateRequest request,
                                                        @RequestPart(value = "file", required = false) MultipartFile file) throws Exception {
         PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, userEmail, file);
@@ -78,7 +61,7 @@ public class PersonalDiaryController {
     // 일기 내용 분석
     @PostMapping("/{personal-diary-id}/analyses")
     public ResponseEntity<Message> analyze(@RequestParam String userEmail,
-                                           @PathVariable("personal-diary-id") Long personalDiaryId) throws Exception{
+                                           @PathVariable("personal-diary-id") Long personalDiaryId) throws Exception {
         PersonalDiaryAnalyzeResponse response = personalDiaryService.analyzePersonalDiary(userEmail, personalDiaryId);
 
         // 메시지 생성 및 반환
@@ -115,8 +98,19 @@ public class PersonalDiaryController {
     // 자가 감정 및 일기 삭제
     @DeleteMapping("/{personal-diary-id}")
     public ResponseEntity<Message> deletePersonalDiary(@RequestParam String userEmail,
-                                                       @PathVariable("personal-diary-id") Long personalDiaryId) throws Exception {
+                                                       @PathVariable("personal-diary-id") Long personalDiaryId) {
         personalDiaryService.deletePersonalDiary(userEmail, personalDiaryId);
+
+        Message message = new Message(null, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+    //일기 사진 삭제
+    @DeleteMapping("/{personal-diary-id}/photos")
+    public ResponseEntity<Message> deletePersonalDiaryPhoto(@RequestParam String userEmail,
+                                                            @PathVariable("personal-diary-id") Long personalDiaryId) {
+        personalDiaryService.deletePersonalDiaryPhoto(userEmail, personalDiaryId);
 
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)

@@ -7,7 +7,10 @@ import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest
 import com.cloudians.domain.personaldiary.dto.response.*;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
-import com.cloudians.domain.personaldiary.entity.analysis.*;
+import com.cloudians.domain.personaldiary.entity.analysis.FiveElement;
+import com.cloudians.domain.personaldiary.entity.analysis.FiveElementCharacter;
+import com.cloudians.domain.personaldiary.entity.analysis.HarmonyTip;
+import com.cloudians.domain.personaldiary.entity.analysis.PersonalDiaryAnalysis;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.*;
@@ -24,7 +27,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,6 +53,7 @@ public class PersonalDiaryService {
 
     private Map<String, PersonalDiaryEmotion> tempEmotions = new HashMap<>();
     public static String DOMAIN = "diary";
+    public static String FILE_NAME_FORMAT = "YYYYMMdd";
 
     public PersonalDiaryEmotionCreateResponse createTempSelfEmotions(PersonalDiaryEmotionCreateRequest request, String userEmail) {
         User user = findUserByUserEmail(userEmail);
@@ -70,7 +79,6 @@ public class PersonalDiaryService {
     }
 
     public PersonalDiaryCreateResponse createPersonalDiary(PersonalDiaryCreateRequest request, String userEmail, MultipartFile file) throws Exception {
-        //TODO: throw Exception 지우기
         User user = findUserByUserEmail(userEmail);
         //감정 수치 가져오기
         PersonalDiaryEmotion emotions = getTempEmotion(user.getUserEmail());
@@ -78,23 +86,16 @@ public class PersonalDiaryService {
         validateEmotionsExistenceAndThrow(emotions);
         //이미 해당날짜에 일기 썼는지 확인
         validateDuplicateDateDiaryAndThrow(user, emotions);
-
+        //감정들 저장 및 임시저장소에서 삭제
         personalDiaryEmotionRepository.save(emotions);
-        //감정들 임시저장소에서 삭제
         removeTempEmotion(user.getUserEmail());
-
-//        String photoUrl = getPhotoUrl(userEmail, file);
-        PersonalDiary personalDiary = request.toEntity(user, emotions, null);
+        //사진 업로드
+        String photoUrl = uploadPhoto(userEmail, file, emotions.getDate());
+        PersonalDiary personalDiary = request.toEntity(user, emotions, photoUrl);
+        //일기 저장
         PersonalDiary savedPersonalDiary = personalDiaryRepository.save(personalDiary);
 
         return PersonalDiaryCreateResponse.of(savedPersonalDiary, user, emotions);
-    }
-
-    private String getPhotoUrl(String userEmail, MultipartFile file) throws IOException, FirebaseAuthException {
-        return file != null
-                //TODO: fileName설정
-                ? firebaseService.uploadFile(file, userEmail, file.getOriginalFilename(), DOMAIN)
-                : null;
     }
 
     public PersonalDiaryResponse getPersonalDiary(String userEmail, Long personalDiaryId) {
@@ -108,23 +109,34 @@ public class PersonalDiaryService {
         User user = findUserByUserEmail(userEmail);
         // 수정할 일기가 있는지 확인
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
-        String photoUrl = getPhotoUrl(userEmail, file);
-        if (photoUrl != null) {
-//            firebaseService.deleteFileUrl(personalDiary.getPhotoUrl());
+        //파일이 있으면 새로운 사진으로 수정 및 기존 사진 삭제, 파일이 없으면 그대로
+        String updatedPhotoUrl = personalDiary.getPhotoUrl();
+        if (file != null) {
+            firebaseService.deleteFileUrl(userEmail, DOMAIN, getFileName(personalDiary.getDate()));
+            updatedPhotoUrl = uploadPhoto(userEmail, file, personalDiary.getDate());
         }
-        PersonalDiary editedPersonalDiary = personalDiary.edit(request, photoUrl);
+        PersonalDiary editedPersonalDiary = personalDiary.edit(request, updatedPhotoUrl);
 
         return PersonalDiaryResponse.of(editedPersonalDiary);
     }
 
     public void deletePersonalDiary(String userEmail, Long personalDiaryId) {
         User user = findUserByUserEmail(userEmail);
-
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
-//        firebaseService.deleteFileUrl("users/dencoding@naver.com/diary/Screenshot 2024-08-09 at 15.48.00.png");
+
+        deletePhotoIfExists(userEmail, personalDiary);
         personalDiaryRepository.delete(personalDiary);
         personalDiaryEmotionRepository.delete(personalDiary.getEmotion());
     }
+
+    public void deletePersonalDiaryPhoto(String userEmail, Long personalDiaryId) {
+        User user = findUserByUserEmail(userEmail);
+        PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
+
+        deletePhotoIfExists(userEmail, personalDiary);
+        personalDiary.deletePhotoUrl();
+    }
+
 
     public PersonalDiaryAnalyzeResponse analyzePersonalDiary(String userEmail, Long personalDiaryId) throws Exception {
         User user = findUserByUserEmail(userEmail);
@@ -132,6 +144,7 @@ public class PersonalDiaryService {
 
         String[] analysisResults = analyzeDiaryWithChatGPT(personalDiary, user);
         FiveElement element = fiveElementRepository.findByName(analysisResults[0]);
+        //TODO: element와 관련된 사진링크 2개(element사진+ 전체조화 사진) 가져오기
         List<String> characters = getElementCharacters(element);
 
         String harmonyTipsJson = getHarmonyTipsJson();
@@ -182,6 +195,29 @@ public class PersonalDiaryService {
                 .fortuneDetail(analysisResults[1])
                 .advice(analysisResults[2])
                 .build();
+    }
+
+    private void deletePhotoIfExists(String userEmail, PersonalDiary personalDiary) {
+        validateIfPhotoExistsOrThrow(personalDiary);
+        if (personalDiary.getPhotoUrl() != null) {
+            firebaseService.deleteFileUrl(userEmail, DOMAIN, getFileName(personalDiary.getDate()));
+        }
+    }
+
+    private void validateIfPhotoExistsOrThrow(PersonalDiary personalDiary) {
+        if (personalDiary.getPhotoUrl() == null) {
+            throw new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY_PHOTO);
+        }
+    }
+
+    private String uploadPhoto(String userEmail, MultipartFile file, LocalDate diaryDate) throws IOException, FirebaseAuthException {
+        return file != null
+                ? firebaseService.uploadFile(file, userEmail, getFileName(diaryDate), DOMAIN)
+                : null;
+    }
+
+    private String getFileName(LocalDate diaryDate) {
+        return diaryDate.format(DateTimeFormatter.ofPattern(FILE_NAME_FORMAT));
     }
 
     private PersonalDiary getPersonalDiaryOrThrow(Long personalDiaryId, User user) {

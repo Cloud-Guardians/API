@@ -8,12 +8,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-
 import java.time.LocalDate;
 
 import static javax.persistence.FetchType.LAZY;
-import static javax.persistence.GenerationType.*;
-import static lombok.AccessLevel.*;
+import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
@@ -66,5 +64,9 @@ public class PersonalDiary extends BaseTimeEntity {
         }
 
         return this;
+    }
+
+    public void deletePhotoUrl() {
+        this.photoUrl = null;
     }
 }

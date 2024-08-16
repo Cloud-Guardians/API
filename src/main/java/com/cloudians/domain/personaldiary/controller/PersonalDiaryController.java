@@ -58,17 +58,6 @@ public class PersonalDiaryController {
                 .body(message);
     }
 
-    // 일기 내용 분석
-    @PostMapping("/{personal-diary-id}/analyses")
-    public ResponseEntity<Message> analyze(@RequestParam String userEmail,
-                                           @PathVariable("personal-diary-id") Long personalDiaryId) throws Exception {
-        PersonalDiaryAnalyzeResponse response = personalDiaryService.analyzePersonalDiary(userEmail, personalDiaryId);
-
-        // 메시지 생성 및 반환
-        Message message = new Message(response, HttpStatus.CREATED.value());
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(message);
-    }
 
     // 일기 내용 조회
     @GetMapping("/{personal-diary-id}")
@@ -103,6 +92,28 @@ public class PersonalDiaryController {
 
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+    // 일기 내용 분석
+    @PostMapping("/{personal-diary-id}/analyses")
+    public ResponseEntity<Message> analyze(@RequestParam String userEmail,
+                                           @PathVariable("personal-diary-id") Long personalDiaryId) {
+        PersonalDiaryAnalyzeResponse response = personalDiaryService.analyzePersonalDiary(userEmail, personalDiaryId);
+
+        Message message = new Message(response, HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(message);
+    }
+
+    // 일기 내용 분석
+    @PutMapping("/{personal-diary-id}/analyses")
+    public ResponseEntity<Message> editAnalyze(@RequestParam String userEmail,
+                                               @PathVariable("personal-diary-id") Long personalDiaryId) {
+        PersonalDiaryAnalyzeResponse response = personalDiaryService.analyzeEditedPersonalDiary(userEmail, personalDiaryId);
+
+        Message message = new Message(response, HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(message);
     }
 

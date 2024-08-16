@@ -1,6 +1,7 @@
 package com.cloudians.domain.personaldiary.entity;
 
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
+import com.cloudians.domain.personaldiary.entity.analysis.PersonalDiaryAnalysis;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.entity.BaseTimeEntity;
 import lombok.Builder;
@@ -26,6 +27,10 @@ public class PersonalDiary extends BaseTimeEntity {
     @ManyToOne
     @JoinColumn(name = "user_email")
     private User user;
+
+    @OneToOne(fetch = LAZY)
+    @JoinColumn(name = "personal_diary_analysis_id")
+    private PersonalDiaryAnalysis personalDiaryAnalysis;
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "emotion_id")
@@ -68,5 +73,9 @@ public class PersonalDiary extends BaseTimeEntity {
 
     public void deletePhotoUrl() {
         this.photoUrl = null;
+    }
+
+    public void linkPersonalDiaryAnalysis(PersonalDiaryAnalysis personalDiaryAnalysis) {
+        this.personalDiaryAnalysis = personalDiaryAnalysis;
     }
 }

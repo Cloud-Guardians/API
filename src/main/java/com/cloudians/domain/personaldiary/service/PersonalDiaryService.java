@@ -140,14 +140,6 @@ public class PersonalDiaryService {
         personalDiaryAnalysisRepository.delete(personalDiary.getPersonalDiaryAnalysis());
     }
 
-    public void deletePersonalDiaryPhoto(String userEmail, Long personalDiaryId) {
-        User user = findUserByUserEmail(userEmail);
-        PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
-
-        deletePhotoIfExists(userEmail, personalDiary);
-        personalDiary.deletePhotoUrl();
-    }
-
 
     public PersonalDiaryAnalyzeResponse analyzePersonalDiary(String userEmail, Long personalDiaryId) {
         User user = findUserByUserEmail(userEmail);
@@ -165,7 +157,15 @@ public class PersonalDiaryService {
         return PersonalDiaryAnalyzeResponse.of(personalDiaryAnalysis, user);
     }
 
-    public PersonalDiaryAnalyzeResponse analyzeEditedPersonalDiary(String userEmail, Long personalDiaryId) {
+    public PersonalDiaryAnalyzeResponse getAnalyze(String userEmail, Long personalDiaryId, Long diaryAnalysisId) {
+        User user = findUserByUserEmail(userEmail);
+        getPersonalDiaryOrThrow(personalDiaryId, user);
+        PersonalDiaryAnalysis personalDiaryAnalysis = getPersonalDiaryAnalysisOrThrow(diaryAnalysisId);
+
+        return PersonalDiaryAnalyzeResponse.of(personalDiaryAnalysis, user);
+    }
+
+    public PersonalDiaryAnalyzeResponse analyzeEditedPersonalDiary(String userEmail, Long personalDiaryId, Long diaryAnalysisId) {
         User user = findUserByUserEmail(userEmail);
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
 
@@ -174,13 +174,21 @@ public class PersonalDiaryService {
         List<String> characters = getElementCharacters(element);
         String harmonyTipsJson = getHarmonyTipsJson();
 
-        PersonalDiaryAnalysis personalDiaryAnalysis = getPersonalDiaryAnalysisOrThrow(personalDiary);
+        PersonalDiaryAnalysis personalDiaryAnalysis = getPersonalDiaryAnalysisOrThrow(diaryAnalysisId);
         PersonalDiaryAnalysis editedPersonalDiaryAnalysis = personalDiaryAnalysis.edit(user, personalDiary, element, characters, harmonyTipsJson, analysisResults);
         return PersonalDiaryAnalyzeResponse.of(editedPersonalDiaryAnalysis, user);
     }
 
-    private PersonalDiaryAnalysis getPersonalDiaryAnalysisOrThrow(PersonalDiary personalDiary) {
-        return personalDiaryAnalysisRepository.findById(personalDiary.getPersonalDiaryAnalysis().getId())
+    public void deletePersonalDiaryPhoto(String userEmail, Long personalDiaryId) {
+        User user = findUserByUserEmail(userEmail);
+        PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
+
+        deletePhotoIfExists(userEmail, personalDiary);
+        personalDiary.deletePhotoUrl();
+    }
+
+    private PersonalDiaryAnalysis getPersonalDiaryAnalysisOrThrow(Long diaryAnalysisId) {
+        return personalDiaryAnalysisRepository.findById(diaryAnalysisId)
                 .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY_ANALYSIS));
     }
 

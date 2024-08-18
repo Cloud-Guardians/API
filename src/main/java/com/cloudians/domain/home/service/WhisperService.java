@@ -1,0 +1,91 @@
+package com.cloudians.domain.home.service;
+
+import com.cloudians.domain.home.dto.request.WhisperMessageRequest;
+import com.cloudians.domain.home.dto.response.WhisperMessageResponse;
+import com.cloudians.domain.home.dto.response.WhisperResponse;
+import com.cloudians.domain.home.entity.SenderType;
+import com.cloudians.domain.home.entity.ThankYouMessage;
+import com.cloudians.domain.home.entity.WhisperMessage;
+import com.cloudians.domain.home.entity.WhisperQuestion;
+import com.cloudians.domain.home.exception.WhisperException;
+import com.cloudians.domain.home.exception.WhisperExceptionType;
+import com.cloudians.domain.home.repository.ThankYouMessageRepository;
+import com.cloudians.domain.home.repository.WhisperMessageRepository;
+import com.cloudians.domain.home.repository.WhisperQuestionRepository;
+import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.exception.UserException;
+import com.cloudians.domain.user.exception.UserExceptionType;
+import com.cloudians.domain.user.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Random;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class WhisperService {
+    private final WhisperQuestionRepository whisperQuestionRepository;
+    private final ThankYouMessageRepository thankYouMessageRepository;
+    private final WhisperMessageRepository whisperMessageRepository;
+
+    private final UserRepository userRepository;
+
+    public WhisperResponse createAnswer(String userEmail, Long whisperQuestionId, WhisperMessageRequest request) {
+        User user = findUserByUserEmail(userEmail);
+        WhisperQuestion whisperQuestion = getWhisperQuestion(whisperQuestionId);
+
+        LocalDateTime questionDateTime = whisperQuestion.getDate().atStartOfDay();
+        LocalDateTime twentyFourHoursLater = questionDateTime.plusHours(24);
+        validateAnswerTime(user, questionDateTime, twentyFourHoursLater);
+
+        WhisperMessageResponse userChatMessageResponse = getUserChatMessageResponse(request, user);
+        WhisperMessageResponse systemChatMessageResponse = getSystemChatMessageResponse(user);
+
+        return WhisperResponse.of(userChatMessageResponse, systemChatMessageResponse);
+    }
+
+    public List<WhisperMessage> getChatHistory(User user) {
+        return whisperMessageRepository.findByUserOrderByTimestamp(user);
+    }
+
+    private void validateAnswerTime(User user, LocalDateTime questionDateTime, LocalDateTime twentyFourHoursLater) {
+        if (whisperMessageRepository.existsByUserAndSenderAndTimestampBetween(user, SenderType.USER, questionDateTime, twentyFourHoursLater)) {
+            throw new WhisperException(WhisperExceptionType.ALREADY_EXIST_MESSAGE);
+        }
+    }
+
+    private WhisperQuestion getWhisperQuestion(Long whisperQuestionId) {
+        return whisperQuestionRepository.findById(whisperQuestionId)
+                .orElseThrow(() -> new WhisperException(WhisperExceptionType.NON_EXIST_WHISPER_QUESTION));
+    }
+
+    private WhisperMessageResponse getSystemChatMessageResponse(User user) {
+        List<ThankYouMessage> thankYouMessages = thankYouMessageRepository.findAll();
+
+        String systemContent = getRandomSystemContent(thankYouMessages);
+        WhisperMessage systemChatMessage = WhisperMessage.createChatMessage(user, systemContent, LocalDateTime.now(), SenderType.SYSTEM);
+        whisperMessageRepository.save(systemChatMessage);
+        return WhisperMessageResponse.of(systemChatMessage);
+    }
+
+    private String getRandomSystemContent(List<ThankYouMessage> thankYouMessages) {
+        Random random = new Random();
+        return thankYouMessages.get(random.nextInt(thankYouMessages.size())).getContent();
+    }
+
+    private WhisperMessageResponse getUserChatMessageResponse(WhisperMessageRequest request, User user) {
+        WhisperMessage userChatMessage = request.toEntity(user, request.getContent(), LocalDateTime.now(), SenderType.USER);
+        whisperMessageRepository.save(userChatMessage);
+        return WhisperMessageResponse.of(userChatMessage);
+    }
+
+
+    private User findUserByUserEmail(String userEmail) {
+        return userRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+    }
+}

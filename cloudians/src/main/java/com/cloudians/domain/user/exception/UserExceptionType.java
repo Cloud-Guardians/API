@@ -1,15 +1,11 @@
 package com.cloudians.domain.user.exception;
 
+import com.cloudians.global.exception.BaseExceptionType;
 import org.springframework.http.HttpStatus;
 
-import com.cloudians.global.exception.BaseExceptionType;
-
 public enum UserExceptionType implements BaseExceptionType {
-    USER_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 이메일을 가진 사용자 조회에 실패하였습니다."),
-    TOKEN_NOT_FOUND(404, HttpStatus.NOT_FOUND, "토큰 조회에 실패하였습니다."),
-    TOKEN_EXPIRED(401, HttpStatus.UNAUTHORIZED,"토큰 유효 기간이 만료되었습니다."),
-    LOCK_PASSWORD_INCORRECT(401, HttpStatus.UNAUTHORIZED, "록 암호가 올바르지 않습니다.");
-    
+    USER_NOT_FOUND(401, HttpStatus.UNAUTHORIZED, "존재하지 않는 회원입니다.");
+
 
 
 

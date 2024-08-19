@@ -69,11 +69,6 @@ public class WhisperService {
         }
     }
 
-    private WhisperQuestion getWhisperQuestion(Long whisperQuestionId) {
-        return whisperQuestionRepository.findById(whisperQuestionId)
-                .orElseThrow(() -> new WhisperException(WhisperExceptionType.NON_EXIST_WHISPER_QUESTION));
-    }
-
     private WhisperMessageResponse getSystemChatMessageResponse(User user) {
         List<ThankYouMessage> thankYouMessages = thankYouMessageRepository.findAll();
 
@@ -82,7 +77,6 @@ public class WhisperService {
         whisperMessageRepository.save(systemChatMessage);
         return WhisperMessageResponse.of(systemChatMessage);
     }
-
 
     private String getRandomSystemContent(List<ThankYouMessage> thankYouMessages) {
         Random random = new Random();
@@ -105,5 +99,4 @@ public class WhisperService {
         return whisperQuestionRepository.findByDate(today)
                 .orElseThrow(() -> new WhisperException(WhisperExceptionType.NON_EXIST_WHISPER_QUESTION));
     }
-
 }

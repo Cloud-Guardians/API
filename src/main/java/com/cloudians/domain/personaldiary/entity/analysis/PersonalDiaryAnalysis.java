@@ -2,6 +2,9 @@ package com.cloudians.domain.personaldiary.entity.analysis;
 
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.user.entity.User;
+import com.cloudians.global.entity.BaseTimeEntity;
+import com.cloudians.global.exception.JsonException;
+import com.cloudians.global.exception.JsonExceptionType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.Builder;
@@ -9,17 +12,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-
-import java.util.Map;
+import java.util.List;
 
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
-import static lombok.AccessLevel.PROTECTED;
 
 @Entity
 @Getter
 @NoArgsConstructor
-public class PersonalDiaryAnalysis {
+public class PersonalDiaryAnalysis extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -57,5 +58,44 @@ public class PersonalDiaryAnalysis {
         this.harmonyTips = harmonyTips;
         this.fortuneDetail = fortuneDetail;
         this.advice = advice;
+    }
+
+    public static PersonalDiaryAnalysis createPersonalDiaryAnalysis(User user, PersonalDiary personalDiary, FiveElement element, List<String> characters, String harmonyTipsJson, String[] analysisResults) {
+        String elementCharactersJson = getCharactersJson(characters);
+
+        return PersonalDiaryAnalysis.builder()
+                .user(user)
+                .personalDiary(personalDiary)
+                .fiveElement(element)
+                .elementCharacters(elementCharactersJson)
+                .harmonyTips(harmonyTipsJson)
+                .fortuneDetail(analysisResults[1])
+                .advice(analysisResults[2])
+                .build();
+    }
+
+    private static String getCharactersJson(List<String> characters) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        String elementCharactersJson;
+        try {
+            elementCharactersJson = objectMapper.writeValueAsString(characters);
+        } catch (JsonProcessingException e) {
+            throw new JsonException(JsonExceptionType.INVALID_JSON_FORMAT);
+        }
+        return elementCharactersJson;
+    }
+
+
+    public PersonalDiaryAnalysis edit(User user, PersonalDiary personalDiary, FiveElement element, List<String> characters, String harmonyTipsJson, String[] analysisResults) {
+        String elementCharactersJson = getCharactersJson(characters);
+
+        this.user = user;
+        this.personalDiary = personalDiary;
+        this.fiveElement = element;
+        this.elementCharacters = elementCharactersJson;
+        this.harmonyTips = harmonyTipsJson;
+        this.fortuneDetail = analysisResults[1];
+        this.advice = analysisResults[2];
+        return this;
     }
 }

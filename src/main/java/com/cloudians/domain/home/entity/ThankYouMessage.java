@@ -1,4 +1,4 @@
-package com.cloudians.domain.personaldiary.entity.analysis;
+package com.cloudians.domain.home.entity;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,19 +13,12 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @Getter
 @NoArgsConstructor
-public class FiveElement {
+public class ThankYouMessage {
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "element_id")
-    private Long id;
+    @Column(name = "thank_you_message_id")
+    Long id;
 
-    private String name;
-
-    private String elementPhotoUrl;
-
-    private String fiveElementsPhotoUrl;
-
-    private String plusElement;
-
-    private String minusElement;
+    private String content;
 }

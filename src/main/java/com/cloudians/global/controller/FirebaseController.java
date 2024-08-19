@@ -38,16 +38,10 @@ import lombok.RequiredArgsConstructor;
 public class FirebaseController {
 	
     private static final String FIREBASE_API_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyCRa6O8ERHxL_9CmWJeJyUKcxMgDxH65-A";
-	private FirebaseService firebaseService;
+	private final FirebaseService firebaseService;
 	private UserService userService;
 	private FirebaseAuth fireAuth;
 	
-	@Autowired
-	    public FirebaseController(FirebaseService firebaseService) {
-	        this.firebaseService = firebaseService;
-	        this.userService = userService;
-	        this.fireAuth = FirebaseAuth.getInstance(); // Initialize FirebaseAuth here
-	    }
 	public ResponseEntity<Message> errorMessage (Exception e){
 	    System.out.println(e);
 	    

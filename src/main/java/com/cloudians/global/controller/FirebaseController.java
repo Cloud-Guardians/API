@@ -5,7 +5,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -24,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cloudians.domain.user.dto.response.UserResponse;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
+import com.cloudians.domain.user.service.FcmNotificationService;
 import com.cloudians.domain.user.service.UserService;
 import com.cloudians.global.Message;
 import com.cloudians.global.service.FirebaseService;
@@ -38,16 +38,11 @@ import lombok.RequiredArgsConstructor;
 public class FirebaseController {
 	
     private static final String FIREBASE_API_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyCRa6O8ERHxL_9CmWJeJyUKcxMgDxH65-A";
-	private FirebaseService firebaseService;
+	private final FirebaseService firebaseService;
+	private final FcmNotificationService notiService;
 	private UserService userService;
 	private FirebaseAuth fireAuth;
-	
-	@Autowired
-	    public FirebaseController(FirebaseService firebaseService) {
-	        this.firebaseService = firebaseService;
-	        this.userService = userService;
-	        this.fireAuth = FirebaseAuth.getInstance(); // Initialize FirebaseAuth here
-	    }
+
 	public ResponseEntity<Message> errorMessage (Exception e){
 	    System.out.println(e);
 	    
@@ -144,6 +139,8 @@ public class FirebaseController {
 	    }
 	        
 	}
+	
+	
 	
 
 

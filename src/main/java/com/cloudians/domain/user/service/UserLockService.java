@@ -1,7 +1,5 @@
 package com.cloudians.domain.user.service;
 
-import java.util.Optional;
-
 import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +9,8 @@ import com.cloudians.domain.user.dto.request.UserLockRequest;
 import com.cloudians.domain.user.dto.response.UserLockResponse;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.entity.UserLock;
+import com.cloudians.domain.user.exception.UserException;
+import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserLockRepository;
 import com.cloudians.domain.user.repository.UserRepository;
 
@@ -20,49 +20,69 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @Transactional
 public class UserLockService {
+    
     @Autowired
 	private UserRepository userRepository;
+    
     @Autowired
     	private UserLockRepository userLockRepository;
     
-    public UserLock findByEmail(String userEmail) {
-	Optional<UserLock> userLock = userLockRepository.findByUserEmail(userEmail);
-	return userLock.get();
+    private UserLock findUserLockByUserEmail(String userEmail) {
+	UserLock userLock = userLockRepository.findByUserEmail(userEmail)
+		.orElseThrow(()-> new UserException(UserExceptionType. USER_LOCK_NOT_FOUND));
+	return userLock;
     }
-    
+    private User findUseByUserEmail(String userEmail) {
+	User user = userRepository.findByUserEmail(userEmail)
+		.orElseThrow(()-> new UserException(UserExceptionType. USER_NOT_FOUND));
+	return user;
+    }
     // lock 입력 화면
     public boolean checkLock(String userEmail, String insertCode) {
-	Optional<UserLock> userLock = userLockRepository.findByUserEmail(userEmail);
-	if(userLock.get().getPasscode().equals(insertCode)) {
+	UserLock userLock = findUserLockByUserEmail(userEmail);
+	if(insertCode == null) throw new UserException(UserExceptionType. USER_LOCK_NOT_NULL);
+	if(insertCode.length()<4) throw  new UserException(UserExceptionType. USER_LOCK_LENGTH_INVALID);
+	if(userLock.getPasscode().equals(insertCode)) {
 	    return true;
-	} return false;
+	} else throw  new UserException(UserExceptionType.LOCK_PASSWORD_INCORRECT);
     }
    
     
     // lock 등록
-    public UserLockResponse addLock(String userEmail, String passcode) {
-	Optional<User> user = userRepository.findByUserEmail(userEmail);
-	if(!user.isEmpty()) {
-	    Optional<UserLock> userLock = userLockRepository.findByUserEmail(userEmail);
-	    UserLock newUserLock = new UserLock();
-	    if(userLock.isEmpty()) {
-		newUserLock.setUserEmail(userEmail);
-		newUserLock.setPasscode(passcode);
-		newUserLock.setStatus(true);
-		userLockRepository.save(newUserLock);
-		return newUserLock.toDto();
-	    } else return null;
-	} return null;
+    public UserLockResponse addNewLock(UserLockRequest request) {
+	User user = findUseByUserEmail(request.getUserEmail());
+	    UserLock userLock = new UserLock();
+	     userLock.setUserEmail(request.getUserEmail());
+		   userLock.setPasscode(request.getPasscode());
+		   userLock.setStatus(true);
+		   userLockRepository.save(userLock);
+		   return userLock.toDto();
     }
     
     // lock 삭제
-    public void deleteLock(UserLock userLockRequest) {
-	Optional<UserLock> userLock = userLockRepository.findByUserEmail(userLockRequest.getUserEmail());
-	userLockRepository.delete(userLock.get());
+    public void deleteLock(String userEmail, String insertCode) {
+	UserLock userLock = findUserLockByUserEmail(userEmail);
+	if(userLock.getPasscode().equals(insertCode)) {
+	userLockRepository.delete(userLock);}
+	else throw new UserException(UserExceptionType.USER_LOCK_DEACTIVATION_FAILED);
     }
     
 
     // lock 수정
+    public UserLockResponse changeLock(String userEmail, String insertCode) {
+	UserLock userLock = findUserLockByUserEmail(userEmail);
+	userLock.setPasscode(insertCode);
+	userLockRepository.save(userLock);
+	return userLock.toDto();
+    }
+    
+    // lock toggle on, off 
+    public boolean toggleLock(String userEmail) {
+	UserLock userLock = findUserLockByUserEmail(userEmail);
+	userLock.setStatus(!userLock.getStatus());
+	userLockRepository.save(userLock);
+	return userLock.getStatus();
+    }
    
   
 }

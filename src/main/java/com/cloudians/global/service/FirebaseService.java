@@ -61,11 +61,12 @@ public class FirebaseService {
 	Blob blob = bucket().get(folderPath);
 	if(blob != null) {
 		blob.delete();
-	} 
+	} else throw new FirebaseException(FirebaseExceptionType.PHOTO_VALUE_NOT_FOUND);
+	
     }
     
 	// get file url
-    public String getFileUrl(String userEmail, String domain, String fileName) throws Exception {
+    public String getFileUrl(String userEmail, String domain, String fileName) {
 	    String folderPath = folderPath(userEmail,domain,fileName);
         Blob blob = bucket().get(folderPath);
             if(blob != null) {

@@ -105,8 +105,6 @@ public class FirebaseController {
 	public ResponseEntity<Message> getFile(@RequestParam String fileName) throws Exception {
 	    System.out.println("Start");
 	    String userEmail = "dencoding@naver.com";
-	    UserResponse user = userService.findByEmail(userEmail);
-	    if(user == null) {throw new UserException(UserExceptionType.USER_NOT_FOUND);}
 	    String message=  firebaseService.getFileUrl(userEmail,"profile",fileName);
 		   return successMessage(message);
 	}

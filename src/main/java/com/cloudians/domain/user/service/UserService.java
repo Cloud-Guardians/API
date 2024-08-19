@@ -1,5 +1,7 @@
 package com.cloudians.domain.user.service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
@@ -12,9 +14,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.cloudians.domain.user.dto.request.UserRequest;
 import com.cloudians.domain.user.dto.response.UserResponse;
 import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.entity.UserToken;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
+import com.cloudians.domain.user.repository.UserTokenRepository;
 import com.cloudians.global.service.FirebaseService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,9 +32,30 @@ public class UserService{
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 	private final UserRepository userRepository;
+	private final UserTokenRepository userTokenRepository;
 
-
+	public User findUserByEmailOrThrow(String userEmail) {
+	   User user = userRepository.findByUserEmail(userEmail)
+			 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+	   return user;
+	}
     
+	// login test
+	public void userLogin(String userEmail, String password, String fcmToken) {
+	        User user = findUserByEmailOrThrow(userEmail);
+	        if (!user.getPassword().equals(password)) {
+	            throw new UserException(UserExceptionType.USER_NOT_FOUND);
+	        }
+	        // FCM 토큰을 데이터베이스에 저장
+	        UserToken userToken = new UserToken();
+	        userToken.setUserEmail(userEmail);
+	        userToken.setTokenType("fcm");
+	        userToken.setTokenValue(fcmToken);
+	        userTokenRepository.save(userToken);
+
+	    }
+	    
+
     //signup_type
     public UserResponse userSignup(UserRequest userRequest) {
 	Optional<User> user = userRepository.findByUserEmail(userRequest.getUserEmail());
@@ -47,30 +72,20 @@ public class UserService{
 	    User NewUser = userRepository.save(join);
 	    return NewUser.toDto();
 	} else return null;
-	
-	
+    }
+    
+    // user info
+    public UserResponse userInfo(String userEmail) {
+	User user = findUserByEmailOrThrow(userEmail);
+	return user.toDto();
     }
 	
-	public UserResponse findByEmail(String userEmail) throws NullPointerException {
-	    System.out.println("findByEmailService start:"+userEmail);
-		Optional<User> user = userRepository.findById(userEmail);
-		System.out.println(user.get().getUserEmail());
-		if(!user.isPresent()) {throw new UserException(UserExceptionType.USER_NOT_FOUND);}
-		UserResponse userResponse = user.get().toDto();
-		return userResponse;
-	}
 
-
+	// 프로필 제외한 개인 정보 변경
 	public UserResponse updateUser(String userEmail, UserRequest userRequest) {
 		System.out.println("조회부터 할게염.");
-		Optional<User> optionalUser = userRepository.findById(userEmail);
-		System.out.println(optionalUser.toString()+"조회 완료.");
-		if (optionalUser.isEmpty()) {
-	        return null;
-	    }
-		
-		User user = optionalUser.get();
-		System.out.println(user.getUserEmail()+"변환 완뇨.");
+		User user = findUserByEmailOrThrow(userEmail);
+			 
 	    if (userRequest.getName() != null) {
 	        user.setName(userRequest.getName());
 	    }
@@ -92,34 +107,38 @@ public class UserService{
 	    return updatedUser.toDto();
 	}
 	
-	public UserResponse updateProfile(String userEmail, MultipartFile file) throws Exception{
-		Optional<User> optionalUser = userRepository.findById(userEmail);
-		System.out.println(optionalUser.toString()+"조회 완료.");
-		if (optionalUser.isEmpty()) {
-	        return null;
-	    }
-		User user = optionalUser.get();
+	// user profile 
+	public UserResponse updateProfile(String userEmail, MultipartFile file) {
+	    User user = findUserByEmailOrThrow(userEmail);
 		    String domain = "profile";
-			firebaseService.uploadFile(file, user.getNickname().toString(),"profile",domain);
-			String url = firebaseService.uploadFile(file, user.getNickname().toString(),"profile",domain);
-			   user.setProfileUrl(url);
+			firebaseService.uploadFile(file, userEmail,domain,domain);
+			   user.setProfileUrl(firebaseService.getFileUrl(userEmail,domain,domain));
 			   User updatedUser = userRepository.save(user);
 			   return updatedUser.toDto();
 
 	}
 	
-	
-	public UserResponse deleteUserProfile(String userEmail) throws Exception{
-		Optional<User> optionalUser = userRepository.findById(userEmail);
-		System.out.println(optionalUser.toString()+"조회 완료.");
-		if (optionalUser.isEmpty()) {
-	        return null;
-	    }
-		User user = optionalUser.get();
-		firebaseService.deleteFileUrl(userEmail,"profile","123");
+	// user profile delete 
+	public UserResponse deleteUserProfile(String userEmail) {
+	    User user = findUserByEmailOrThrow(userEmail);
+	    String domain = "profile";
+		firebaseService.deleteFileUrl(userEmail,domain,domain);
 		user.setProfileUrl(null);
 		  User updatedUser = userRepository.save(user);		  
 		  return updatedUser.toDto();
 	}
+	
+	// user profile & nickname search
+	public Map<String, String> getProfileAndNickname(String userEmail){
+	    User user = findUserByEmailOrThrow(userEmail);
+	    String profileUrl = user.getProfileUrl();
+	    String nickname = user.getNickname();
+	    Map<String, String> params = new HashMap<>();
+	    params.put("profileUrl",profileUrl);
+	    params.put("nickname",nickname);
+	    return params;
+	}
+	
+
 
 }

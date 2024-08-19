@@ -16,14 +16,16 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudians.domain.user.dto.request.UserLockRequest;
 import com.cloudians.domain.user.dto.request.UserRequest;
 import com.cloudians.domain.user.dto.response.UserLockResponse;
 import com.cloudians.domain.user.dto.response.UserResponse;
-import com.cloudians.domain.user.entity.UserLock;
+import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.service.UserLockService;
 import com.cloudians.domain.user.service.UserService;
 import com.cloudians.global.Message;
-import com.cloudians.global.service.FirebaseService;
+import com.google.api.core.ApiFuture;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,14 +41,13 @@ public class UserController {
 	@Autowired
 	private UserLockService userLockService;
 	
-	private FirebaseService firebaseService;
 	
 
 	public ResponseEntity<Message> errorMessage (Exception e){
 	    Message errorMessage = new Message(e, HttpStatus.BAD_REQUEST.value());
 		return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
 	}
-	public ResponseEntity<Message> successMessage (Object object){
+	private ResponseEntity<Message> successMessage (Object object){
 	    Message message = new Message(object,null,HttpStatus.OK.value());
 	    return ResponseEntity.status(HttpStatus.OK).body(message);
 	}
@@ -56,75 +57,80 @@ public class UserController {
 	    String result = "Test endpoint working";
 	    return successMessage(result);
 	}
+	
+	@PostMapping("/login")
+	    public ResponseEntity<Map<String, String>> loginTest(@RequestBody Map<String, Object> request) {
+	        // 로그인 로직을 여기에 추가합니다.
+	        boolean loginSuccessful = true; // 실제 로그인 로직을 구현하여 결과를 기반으로 설정해야 합니다.
+	        Map<String, Object> userRequestMap = (Map<String, Object>) request.get("userRequest");
+	        String userEmail = (String) userRequestMap.get("userEmail");
+	        String password = (String) userRequestMap.get("password");
+	        String fcmToken = (String) request.get("fcmToken");
+	        
+	        System.out.println("request:"+request.toString());
+	        System.out.println(userEmail);
+	        System.out.println(password);
+	        if (loginSuccessful) {
+	            try {
+	                // FCM 토큰 발급
+	        	System.out.println("user 조회 시작");
+	        	User user = userService.findUserByEmailOrThrow(userEmail);
+
+	                userService.userLogin(user.getUserEmail(),user.getPassword(),fcmToken);
+	                // 콘솔에 토큰을 출력
+	                System.out.println("Generated FCM Token: " + fcmToken);
+
+	                // 클라이언트에게 FCM 토큰을 반환
+	                Map<String, String> response = new HashMap<>();
+	                response.put("fcmToken", fcmToken);
+	                return ResponseEntity.ok(response);
+	            } catch (Exception e) {
+	                e.printStackTrace();
+	                return ResponseEntity.status(500).body(Map.of("error", "Failed to generate FCM token"));
+	            }
+	        } else {
+	            // 로그인 실패 시
+	            return ResponseEntity.status(401).body(Map.of("error", "Login failed!"));
+	        }
+	    }
 
 
 	// 프로필 조회 
 	 @GetMapping("/profile")
 	    public ResponseEntity<Message> userProfile(@RequestParam String userEmail) {
-	     System.out.println("profile search start");
-	        try {
-	            System.out.println(userEmail);
-	            UserResponse user = userService.findByEmail(userEmail);
-	            Map<String, String> param = new HashMap<>();
-	            param.put("profile", user.getProfileUrl());
-	            param.put("nickname", user.getNickname());
-	            return successMessage(param);
-	        } catch (Exception e) {
-	           return errorMessage(e);
-	        }
+	     Map<String, String> params = userService.getProfileAndNickname(userEmail);
+	     return successMessage(params);
 	    }
 	
 	
-	// 프로필 등록 및 변경
+	// 프로필 변경
 		@PutMapping("/profile")
 		public ResponseEntity<Message> userProfileUpdate (@RequestParam String userEmail,
-				@RequestParam("file") MultipartFile file) throws Exception {// 사용자 정보를 업데이트하는 서비스 호출
-	       try {
+				@RequestParam("file") MultipartFile file) {// 사용자 정보를 업데이트하는 서비스 호출
 		   UserResponse user = userService.updateProfile(userEmail,file);
 		   return successMessage(user.getProfileUrl());
-	       } catch(Exception e) {
-		   return errorMessage(e);
-	       }
 		}
-	
-		
 	
 	// 프로필 삭제
 		@DeleteMapping("/profile")
 		public ResponseEntity<Message> userProfileDelete (@RequestParam String userEmail) throws Exception{
-			UserResponse user = userService.findByEmail(userEmail);
-			try {
-			    userService.deleteUserProfile(userEmail);
-			    	return successMessage(user);
-			} catch(Exception e) {
-			    return errorMessage(e);
-			}
+			UserResponse user = userService.deleteUserProfile(userEmail);
+			return successMessage(user);
 		}
 		
 		
 	// 회원 가입
 		  @PostMapping("/join")
 		    public ResponseEntity<Message> userJoin(@RequestBody UserRequest userRequest) {
-		        try {
-		            System.out.println(userRequest.getUserEmail());
-		            UserResponse newUser = userService.userSignup(userRequest);
-		            return successMessage(newUser);
-		        } catch (Exception e) {
-		            return errorMessage(e);
-		        }
+		      UserResponse user = userService.userSignup(userRequest);
+		      return successMessage(user);
 		    }
 	
 	// 내 정보 조회
 	@GetMapping("/user-info")
 	public ResponseEntity<Message> userInfo(@RequestParam String userEmail){
-		try {
-			System.out.println(userEmail);
-		UserResponse userInfo = userService.findByEmail(userEmail);
-		return successMessage(userInfo);
-		} catch(Exception e) {
-		    return errorMessage(e);
-		}
-		
+	    UserResponse user = userService.userInfo(userEmail);
+	    return successMessage(user);
 	}
 	
 	// 내 정보 수정
@@ -133,64 +139,53 @@ public class UserController {
             @RequestBody UserRequest userRequest){// 사용자 정보를 업데이트하는 서비스 호출
        System.out.println("controller - modify");
 		UserResponse updatedUser = userService.updateUser(userEmail, userRequest);
-        if (updatedUser == null) {
-            Message message = new Message(updatedUser,null, HttpStatus.OK.value());
-            return ResponseEntity.status(HttpStatus.OK).body(message);
-        }
-        Message errorMessage = new Message("An error occurred while fetching the user profile.", HttpStatus.BAD_REQUEST.value());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+        return successMessage(updatedUser);
 	}
-	
-	
-	
-	// 유저 작성글 조회
-	
-	// 유저 댓글 조회
-	
-	
 	
 	// 앱 잠금 설정 생성
 	@PostMapping("/user-lock")
-	ResponseEntity<Message> userLockUpdate(@RequestParam String userEmail, String passcode){
-	    try {
-		// userEmail로 유저 확인
-		UserLockResponse userLock = userLockService.addLock(userEmail, passcode);
-		return successMessage(userLock);				
-	    } catch(Exception e){
-		return errorMessage(e);
-	    }
+	ResponseEntity<Message> userLockUpdate(@RequestBody UserLockRequest request){
+	UserLockResponse response= userLockService.addNewLock(request);
+	return successMessage(response);
 	}
 	
 	
 	// 앱 실행 시 잠금 설정 화면
 	@GetMapping("/user-lock")
 	ResponseEntity<Message> userLockCheck(@RequestParam String userEmail, String insertCode){
-	    try {
-		boolean isUnlocked = userLockService.checkLock(userEmail, insertCode);
-		return successMessage(isUnlocked);
-	    } catch(Exception e) {
-		return errorMessage(e);
-	    }
+	   boolean isChecked = userLockService.checkLock(userEmail, insertCode);
+	   return successMessage(isChecked);
 	}
 	
 	// 앱 잠금삭제 & 비활
 	@DeleteMapping("/user-lock")
 	ResponseEntity<Message> userLockDelete(@RequestParam String userEmail, String insertCode){
-	   UserLock userLock = userLockService.findByEmail(userEmail);
-	    try {
-		boolean isUnlocked = userLockService.checkLock(userEmail, insertCode);
-		if(isUnlocked) {
-		    userLockService.deleteLock(userLock);
-		return successMessage(isUnlocked);
-		} 
-	    } catch(Exception e) {
-		return errorMessage(e);
-	    }
-	    return null;
+	  userLockService.deleteLock(userEmail, insertCode);
+	  return successMessage("done"); 
 	}
 	
-	// 앱 잠금 비활성화
+	// 앱 잠금 번호 변경
+		@PutMapping("user-lock")
+		ResponseEntity<Message> userLockChange(@RequestParam String userEmail, String insertCode){
+		    UserLockResponse user = userLockService.changeLock(userEmail,insertCode);
+		    return successMessage(user);
+		    
+		}
 	
+	// 앱 잠금 비활성화
+	@PutMapping("/user-lock-toggle")
+	ResponseEntity<Message> userLockToggle(@RequestParam String userEmail){
+		  userLockService.toggleLock(userEmail);
+		 return successMessage("done");
+		}
+	
+	
+	
+	
+	
+	// 유저 작성글 조회
+	
+	// 유저 댓글 조회
 	
 	
 
@@ -200,9 +195,15 @@ public class UserController {
 	// 커뮤니티 알림 조회
 	
 	
-	// 홈 알림 생성/삭제
+	// 홈 알림 호출
+	
+	// 홈 알림 등록
+	
+	
+	// 홈 알림 삭제
 	
 	// 홈 알림 수정
+
 	
 	
 

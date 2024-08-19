@@ -20,7 +20,8 @@ import javax.validation.Valid;
 @RequiredArgsConstructor
 public class PersonalDiaryController {
     private final PersonalDiaryService personalDiaryService;
-
+    private final FirebaseService firebaseService;
+  
     // 자가 감정 측정 생성
     @PostMapping("/self-emotions")
     public ResponseEntity<Message> createSelfEmotions(@RequestParam String userEmail,

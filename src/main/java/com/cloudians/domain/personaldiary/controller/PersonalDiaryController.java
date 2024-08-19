@@ -95,35 +95,11 @@ public class PersonalDiaryController {
                 .body(message);
     }
 
-    // 일기 내용 분석
-    @PostMapping("/{personal-diary-id}/analyses")
-    public ResponseEntity<Message> analyze(@RequestParam String userEmail,
-                                           @PathVariable("personal-diary-id") Long personalDiaryId) {
-        PersonalDiaryAnalyzeResponse response = personalDiaryService.analyzePersonalDiary(userEmail, personalDiaryId);
-
-        Message message = new Message(response, HttpStatus.CREATED.value());
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(message);
-    }
-
     //분석 조회
-    @GetMapping("/{personal-diary-id}/analyses/{diary-analysis-id}")
+    @GetMapping("/{personal-diary-id}/analyses")
     public ResponseEntity<Message> getAnalyze(@RequestParam String userEmail,
-                                              @PathVariable("personal-diary-id") Long personalDiaryId,
-                                              @PathVariable("diary-analysis-id") Long diaryAnalysisId) {
-        PersonalDiaryAnalyzeResponse response = personalDiaryService.getAnalyze(userEmail, personalDiaryId, diaryAnalysisId);
-
-        Message message = new Message(response, HttpStatus.OK.value());
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(message);
-    }
-
-    // 일기 분석 수정
-    @PutMapping("/{personal-diary-id}/analyses/{diary-analysis-id}")
-    public ResponseEntity<Message> editAnalyze(@RequestParam String userEmail,
-                                               @PathVariable("personal-diary-id") Long personalDiaryId,
-                                               @PathVariable("diary-analysis-id") Long diaryAnalysisId) {
-        PersonalDiaryAnalyzeResponse response = personalDiaryService.analyzeEditedPersonalDiary(userEmail, personalDiaryId, diaryAnalysisId);
+                                              @PathVariable("personal-diary-id") Long personalDiaryId) {
+        PersonalDiaryAnalyzeResponse response = personalDiaryService.getAnalyze(userEmail, personalDiaryId);
 
         Message message = new Message(response, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)

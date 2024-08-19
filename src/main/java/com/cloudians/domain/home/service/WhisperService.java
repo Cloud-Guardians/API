@@ -18,6 +18,8 @@ import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,12 +31,26 @@ import java.util.Random;
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class WhisperService {
     private final WhisperQuestionRepository whisperQuestionRepository;
     private final ThankYouMessageRepository thankYouMessageRepository;
     private final WhisperMessageRepositoryImpl whisperMessageRepository;
 
     private final UserRepository userRepository;
+
+    @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
+    public void createWhisperQuestion() {
+        log.info("스케쥴러 실행");
+
+        LocalDate today = LocalDate.now();
+        List<User> users = userRepository.findAll();
+
+        for (User user : users) {
+            log.info("유저에게 오늘의 질문 보내기: " + user.getUserEmail() + ", Date: " + today);
+            sendQuestion(user, today);
+        }
+    }
 
     public void sendQuestion(User user, LocalDate today) {
         WhisperQuestion whisperQuestion = getQuestionIfExistsOrThrow(today);

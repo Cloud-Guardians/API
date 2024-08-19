@@ -1,19 +1,19 @@
 package com.cloudians.domain.personaldiary.dto.request;
 
-import java.time.LocalDate;
+import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
+import com.cloudians.domain.user.entity.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
-
-import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
-import com.cloudians.domain.user.entity.User;
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import lombok.Builder;
-import lombok.Getter;
+import java.time.LocalDate;
 
 @Getter
+@NoArgsConstructor
 public class PersonalDiaryEmotionCreateRequest {
 
     @Min(value = 0, message = "최소 0에서 최대 100사이의 값을 입력해주세요.")
@@ -36,7 +36,7 @@ public class PersonalDiaryEmotionCreateRequest {
     @Max(value = 100, message = "최소 0에서 최대 100사이의 값을 입력해주세요.")
     private int boredom;
 
-    @NotNull( message = "날짜를 입력해주세요.")
+    @NotNull(message = "날짜를 입력해주세요.")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate date;
 

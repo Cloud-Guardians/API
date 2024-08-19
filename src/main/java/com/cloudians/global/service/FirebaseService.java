@@ -1,29 +1,23 @@
 package com.cloudians.global.service;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.repository.UserRepository;
 import com.cloudians.global.exception.FirebaseException;
 import com.cloudians.global.exception.FirebaseExceptionType;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.Storage;
 import com.google.cloud.storage.StorageException;
-import com.google.cloud.storage.StorageOptions;
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.cloud.StorageClient;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -38,10 +32,10 @@ public class FirebaseService {
     }
 
     // file name unique
-    public String generateUniqueFileName(String originalFileName) {
-        String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
-        return uniqueFileName;
-    }
+//    public String generateUniqueFileName(String originalFileName) {
+//        String uniqueFileName = UUID.randomUUID().toString() + "_" + originalFileName;
+//        return uniqueFileName;
+//    }
 
 
     // user folder
@@ -58,7 +52,7 @@ public class FirebaseService {
     // upload file & fileName 파일 이름 unique
     public String uploadFile(MultipartFile file, String userEmail, String fileName, String domain) throws IOException, FirebaseAuthException {
         try (InputStream content = new ByteArrayInputStream(file.getBytes())) {
-            Blob blob = bucket().create(folderPath(userEmail, domain, generateUniqueFileName(fileName)), content, file.getContentType());
+            Blob blob = bucket().create(folderPath(userEmail, domain, fileName), content, file.getContentType());
             return blob.getMediaLink();
         } catch (StorageException e) {
             System.err.println("StorageException: " + e.getMessage());

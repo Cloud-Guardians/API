@@ -61,6 +61,10 @@ public class WhisperMessageRepositoryImpl {
                 .fetch();
     }
 
+    public List<WhisperMessage> findByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime TimeOfStartMonth, LocalDateTime TimeOfEndMonth) {
+        return whisperMessageJpaRepository.findByUserAndSenderAndTimestampBetween(user, sender, TimeOfStartMonth, TimeOfEndMonth);
+    }
+
     private BooleanExpression getLt(Long cursor) {
         return cursor == null ? null : whisperMessage.id.lt(cursor);
     }

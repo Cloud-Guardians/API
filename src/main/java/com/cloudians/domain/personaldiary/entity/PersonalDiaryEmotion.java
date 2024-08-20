@@ -13,7 +13,6 @@ import javax.persistence.*;
 import java.time.LocalDate;
 
 import static javax.persistence.GenerationType.IDENTITY;
-import static lombok.AccessLevel.PROTECTED;
 
 @Entity
 @Getter

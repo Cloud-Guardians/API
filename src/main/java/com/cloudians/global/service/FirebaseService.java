@@ -71,4 +71,9 @@ public class FirebaseService {
             return dap;
         } else throw new FirebaseException(FirebaseExceptionType.PHOTO_VALUE_NOT_FOUND);
     }
+
+    public Blob getBlob(String userEmail, String domain, String fileName) {
+        String folderPath = folderPath(userEmail, domain, fileName);
+        return bucket().get(folderPath);
+    }
 }

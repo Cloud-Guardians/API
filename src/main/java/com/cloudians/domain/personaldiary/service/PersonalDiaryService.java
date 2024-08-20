@@ -24,6 +24,7 @@ import com.cloudians.global.exception.JsonExceptionType;
 import com.cloudians.global.service.FirebaseService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.cloud.storage.Blob;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -132,8 +133,10 @@ public class PersonalDiaryService {
     private String updateDiaryPhoto(String userEmail, MultipartFile file, PersonalDiary personalDiary) {
         String fileName = getFileName(personalDiary.getDate());
         try {
-            firebaseService.getFileUrl(userEmail, DOMAIN, fileName);
-            firebaseService.deleteFileUrl(userEmail, DOMAIN, fileName);
+            Blob existingBlob = firebaseService.getBlob(userEmail, DOMAIN, fileName);
+            if (existingBlob != null && existingBlob.exists()) {
+                firebaseService.deleteFileUrl(userEmail, DOMAIN, fileName);
+            }
         } catch (FirebaseException ignored) {
         }
         return uploadPhoto(userEmail, file, personalDiary.getDate());
@@ -173,6 +176,7 @@ public class PersonalDiaryService {
         User user = findUserByUserEmail(userEmail);
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
 
+        validateIfPhotoExistsOrThrow(personalDiary);
         deletePhotoIfExists(userEmail, personalDiary);
         personalDiary.deletePhotoUrl();
     }
@@ -209,7 +213,7 @@ public class PersonalDiaryService {
     }
 
     private String extractValue(String[] lines, int index) {
-        if (lines.length <= index || !lines[index].contains(ANSWER_START_REGEX)) {
+        if (lines.length <= index) {
             throw new PersonalDiaryException(PersonalDiaryExceptionType.WRONG_CHATGPT_ANSWER_FORMAT);
         }
         return lines[index].split(ANSWER_START_REGEX)[1].trim();
@@ -232,7 +236,6 @@ public class PersonalDiaryService {
     }
 
     private void deletePhotoIfExists(String userEmail, PersonalDiary personalDiary) {
-        validateIfPhotoExistsOrThrow(personalDiary);
         if (personalDiary.getPhotoUrl() != null) {
             firebaseService.deleteFileUrl(userEmail, DOMAIN, getFileName(personalDiary.getDate()));
         }
@@ -245,7 +248,7 @@ public class PersonalDiaryService {
     }
 
     private String uploadPhoto(String userEmail, MultipartFile file, LocalDate diaryDate) {
-        return file != null ? firebaseService.uploadFile(file, userEmail, getFileName(diaryDate), DOMAIN) : null;
+        return file != null ? firebaseService.uploadFile(file, userEmail, DOMAIN, getFileName(diaryDate)) : null;
     }
 
     private String getFileName(LocalDate diaryDate) {

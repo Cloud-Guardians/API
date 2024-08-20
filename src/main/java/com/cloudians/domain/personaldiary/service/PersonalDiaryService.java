@@ -24,13 +24,11 @@ import com.cloudians.global.exception.JsonExceptionType;
 import com.cloudians.global.service.FirebaseService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.firebase.auth.FirebaseAuthException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -88,7 +86,7 @@ public class PersonalDiaryService {
         return PersonalDiaryEmotionUpdateResponse.of(editedEmotions);
     }
 
-    public PersonalDiaryCreateResponse createPersonalDiary(PersonalDiaryCreateRequest request, String userEmail, MultipartFile file) throws Exception {
+    public PersonalDiaryCreateResponse createPersonalDiary(PersonalDiaryCreateRequest request, String userEmail, MultipartFile file) {
         User user = findUserByUserEmail(userEmail);
         //감정 수치 가져오기
         PersonalDiaryEmotion emotions = getTempEmotion(user.getUserEmail());
@@ -116,7 +114,7 @@ public class PersonalDiaryService {
         return PersonalDiaryResponse.of(personalDiary);
     }
 
-    public PersonalDiaryResponse editPersonalDiary(PersonalDiaryUpdateRequest request, Long personalDiaryId, String userEmail, MultipartFile file) throws Exception {
+    public PersonalDiaryResponse editPersonalDiary(PersonalDiaryUpdateRequest request, Long personalDiaryId, String userEmail, MultipartFile file) {
         User user = findUserByUserEmail(userEmail);
         // 수정할 일기가 있는지 확인
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
@@ -131,7 +129,7 @@ public class PersonalDiaryService {
         return PersonalDiaryResponse.of(editedPersonalDiary);
     }
 
-    private String updateDiaryPhoto(String userEmail, MultipartFile file, PersonalDiary personalDiary) throws Exception {
+    private String updateDiaryPhoto(String userEmail, MultipartFile file, PersonalDiary personalDiary) {
         String fileName = getFileName(personalDiary.getDate());
         try {
             firebaseService.getFileUrl(userEmail, DOMAIN, fileName);
@@ -246,7 +244,7 @@ public class PersonalDiaryService {
         }
     }
 
-    private String uploadPhoto(String userEmail, MultipartFile file, LocalDate diaryDate) throws IOException, FirebaseAuthException {
+    private String uploadPhoto(String userEmail, MultipartFile file, LocalDate diaryDate) {
         return file != null ? firebaseService.uploadFile(file, userEmail, getFileName(diaryDate), DOMAIN) : null;
     }
 

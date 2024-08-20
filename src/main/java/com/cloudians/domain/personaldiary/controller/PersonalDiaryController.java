@@ -49,7 +49,7 @@ public class PersonalDiaryController {
     @PostMapping()
     public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,
                                                        @RequestPart @Valid PersonalDiaryCreateRequest request,
-                                                       @RequestPart(value = "file", required = false) MultipartFile file) throws Exception {
+                                                       @RequestPart(value = "file", required = false) MultipartFile file) {
         PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, userEmail, file);
 
         Message message = new Message(response, HttpStatus.CREATED.value());
@@ -75,7 +75,7 @@ public class PersonalDiaryController {
     public ResponseEntity<Message> editPersonalDiary(@RequestParam String userEmail,
                                                      @PathVariable("personal-diary-id") Long personalDiaryId,
                                                      @RequestPart @Valid PersonalDiaryUpdateRequest request,
-                                                     @RequestPart(value = "file", required = false) MultipartFile file) throws Exception {
+                                                     @RequestPart(value = "file", required = false) MultipartFile file) {
         PersonalDiaryResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, userEmail, file);
         Message message = new Message(response, HttpStatus.OK.value());
 

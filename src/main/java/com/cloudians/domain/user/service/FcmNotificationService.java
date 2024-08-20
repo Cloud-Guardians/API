@@ -59,40 +59,6 @@ public class FcmNotificationService {
     private final TaskScheduler taskScheduler; 
     private  boolean updated = false;
     
-
- 
-private Map<Object, Object> findByUserEmail(String userEmail){
-   	User user = userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
-   	List<Notification> notification =  notificationRepository.findByUserEmail(userEmail)
-                   .orElseThrow(() -> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
-   	List<UserToken> tokenList = userTokenRepository.findByUserEmail(userEmail)
-   		 .orElseThrow(() -> new UserException(UserExceptionType.TOKEN_NOT_FOUND));
-   	
-   	UserToken token = new UserToken();
-   	
-   	for(UserToken tok : tokenList) {
-   	    if(tok.getTokenType().equals("fcm")) 
-   		token = tok;}
-   	    
-   	Map<Object, Object> param = new HashMap<>();
-   	param.put("notification",notification);
-   	param.put("user",user);
-   	param.put("token",token);
-   	return param;
-       }
-
-	private  List<Notification> findNotificationListByUserEmail(String userEmail) {
-	    List<Notification> notification =  notificationRepository.findByUserEmail(userEmail)
-	                   .orElseThrow(() -> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
-	    return notification;
-	}
-	
-	private User findUserByUserEmail(String userEmail) {
-	    User user = userRepository.findByUserEmail(userEmail)
-	                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
-	    return user;
-	}
 	
 	// uesr home notification insert O
 	public NotificationResponse insertHomeNotification(String userEmail, Time time) {
@@ -151,7 +117,7 @@ private Map<Object, Object> findByUserEmail(String userEmail){
 	
 	
 // 매일  12:00에 자동으로 실행시켜 줌
-@Scheduled(cron = "0 * * * * *")
+// @Scheduled(cron = "0 * * * * *")
 public void sendHomeNotificationToAll() {
     List<Notification> notifications = notificationRepository.findAll();
     for(Notification notification:notifications) {
@@ -357,6 +323,36 @@ public void sendHomeNotificationToAll() {
         // TODO: Implement token storage logic, e.g., saving to a database
         System.out.println("Received token: " + token);
     }
+    private Map<Object, Object> findByUserEmail(String userEmail){
+   	User user = findUserByUserEmail(userEmail);
+   	List<Notification> notification =  notificationRepository.findByUserEmail(userEmail)
+                   .orElseThrow(() -> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
+   	List<UserToken> tokenList = userTokenRepository.findByUserEmail(userEmail)
+   		 .orElseThrow(() -> new UserException(UserExceptionType.TOKEN_NOT_FOUND));
+   	
+   	UserToken token = new UserToken();
+   	
+   	for(UserToken tok : tokenList) {
+   	    if(tok.getTokenType().equals("fcm")) 
+   		token = tok;}
+   	    
+   	Map<Object, Object> param = new HashMap<>();
+   	param.put("notification",notification);
+   	param.put("user",user);
+   	param.put("token",token);
+   	return param;
+       }
 
+	private  List<Notification> findNotificationListByUserEmail(String userEmail) {
+	    List<Notification> notification =  notificationRepository.findByUserEmail(userEmail)
+	                   .orElseThrow(() -> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
+	    return notification;
+	}
+	
+	private User findUserByUserEmail(String userEmail) {
+	    User user = userRepository.findByUserEmail(userEmail)
+	                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+	    return user;
+	}
     
 }

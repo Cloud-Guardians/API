@@ -8,6 +8,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -33,8 +34,29 @@ public class WhisperMessageRepositoryImpl {
 
     public List<WhisperMessage> findByUserOrderByTimeStampDesc(User user, Long cursor, Long count) {
         return q.selectFrom(whisperMessage)
-                .where(whisperMessage.user.eq(user))
-                .where(getLt(cursor)).limit(count + 1)
+                .where(whisperMessage.user.eq(user)
+                        .and(getLt(cursor)))
+                .limit(count + 1)
+                .orderBy(whisperMessage.timestamp.desc())
+                .fetch();
+    }
+
+    public List<WhisperMessage> findBySearchKeywordOrderByTimeStampDesc(User user, Long cursor, Long count, String keyword) {
+        return q.selectFrom(whisperMessage)
+                .where(whisperMessage.user.eq(user)
+                        .and(whisperMessage.message.containsIgnoreCase(keyword))
+                        .and(getLt(cursor)))
+                .limit(count + 1)
+                .orderBy(whisperMessage.timestamp.desc())
+                .fetch();
+    }
+
+    public List<WhisperMessage> findByDateOrderByTimestampDesc(User user, Long cursor, Long count, LocalDate date) {
+        return q.selectFrom(whisperMessage)
+                .where(whisperMessage.user.eq(user)
+                        .and(whisperMessage.timestamp.between(date.atStartOfDay(), date.plusDays(1).atStartOfDay()))
+                        .and(getLt(cursor)))
+                .limit(count + 1)
                 .orderBy(whisperMessage.timestamp.desc())
                 .fetch();
     }

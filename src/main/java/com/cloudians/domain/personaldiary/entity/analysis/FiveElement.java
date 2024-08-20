@@ -1,14 +1,14 @@
 package com.cloudians.domain.personaldiary.entity.analysis;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import static javax.persistence.GenerationType.IDENTITY;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 
-import static javax.persistence.GenerationType.IDENTITY;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Getter

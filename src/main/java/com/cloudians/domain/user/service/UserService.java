@@ -22,8 +22,10 @@ import com.cloudians.domain.user.repository.UserTokenRepository;
 import com.cloudians.global.service.FirebaseService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional
 public class UserService{
@@ -35,6 +37,9 @@ public class UserService{
 	private final UserTokenRepository userTokenRepository;
 
 	public User findUserByEmailOrThrow(String userEmail) {
+	    log.info(userEmail+" 들어왔고요.");
+	    Optional<User> us = userRepository.findByUserEmail(userEmail);
+	    log.info(us.toString());
 	   User user = userRepository.findByUserEmail(userEmail)
 			 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
 	   return user;

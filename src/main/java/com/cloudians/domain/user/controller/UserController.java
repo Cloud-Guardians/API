@@ -36,10 +36,8 @@ import lombok.extern.slf4j.Slf4j;
 @RequestMapping("/users")
 public class UserController {
 	
-	@Autowired
-	private UserService userService;
-	@Autowired
-	private UserLockService userLockService;
+	private final UserService userService;
+	private final UserLockService userLockService;
 	
 	
 
@@ -97,7 +95,7 @@ public class UserController {
 
 	// 프로필 조회 
 	 @GetMapping("/profile")
-	    public ResponseEntity<Message> userProfile(@RequestParam String userEmail) {
+	    public ResponseEntity<Message> userProfile(@RequestParam("userEmail") String userEmail) {
 	     Map<String, String> params = userService.getProfileAndNickname(userEmail);
 	     return successMessage(params);
 	    }
@@ -105,7 +103,7 @@ public class UserController {
 	
 	// 프로필 변경
 		@PutMapping("/profile")
-		public ResponseEntity<Message> userProfileUpdate (@RequestParam String userEmail,
+		public ResponseEntity<Message> userProfileUpdate (@RequestParam("userEmail") String userEmail,
 				@RequestParam("file") MultipartFile file) {// 사용자 정보를 업데이트하는 서비스 호출
 		   UserResponse user = userService.updateProfile(userEmail,file);
 		   return successMessage(user.getProfileUrl());
@@ -113,7 +111,7 @@ public class UserController {
 	
 	// 프로필 삭제
 		@DeleteMapping("/profile")
-		public ResponseEntity<Message> userProfileDelete (@RequestParam String userEmail) throws Exception{
+		public ResponseEntity<Message> userProfileDelete (@RequestParam("userEmail") String userEmail) throws Exception{
 			UserResponse user = userService.deleteUserProfile(userEmail);
 			return successMessage(user);
 		}
@@ -128,14 +126,15 @@ public class UserController {
 	
 	// 내 정보 조회
 	@GetMapping("/user-info")
-	public ResponseEntity<Message> userInfo(@RequestParam String userEmail){
+	public ResponseEntity<Message> userInfo(@RequestParam("userEmail") String userEmail){
+	    log.info("조회 시작.");
 	    UserResponse user = userService.userInfo(userEmail);
 	    return successMessage(user);
 	}
 	
 	// 내 정보 수정
 	@PutMapping("/user-info")
-	public ResponseEntity<Message> userInfoUpdate(@RequestParam String userEmail,
+	public ResponseEntity<Message> userInfoUpdate(@RequestParam("userEmail") String userEmail,
             @RequestBody UserRequest userRequest){// 사용자 정보를 업데이트하는 서비스 호출
        System.out.println("controller - modify");
 		UserResponse updatedUser = userService.updateUser(userEmail, userRequest);
@@ -152,21 +151,21 @@ public class UserController {
 	
 	// 앱 실행 시 잠금 설정 화면
 	@GetMapping("/user-lock")
-	ResponseEntity<Message> userLockCheck(@RequestParam String userEmail, String insertCode){
+	ResponseEntity<Message> userLockCheck(@RequestParam("userEmail") String userEmail, String insertCode){
 	   boolean isChecked = userLockService.checkLock(userEmail, insertCode);
 	   return successMessage(isChecked);
 	}
 	
 	// 앱 잠금삭제 & 비활
 	@DeleteMapping("/user-lock")
-	ResponseEntity<Message> userLockDelete(@RequestParam String userEmail, String insertCode){
+	ResponseEntity<Message> userLockDelete(@RequestParam("userEmail") String userEmail, String insertCode){
 	  userLockService.deleteLock(userEmail, insertCode);
 	  return successMessage("done"); 
 	}
 	
 	// 앱 잠금 번호 변경
 		@PutMapping("user-lock")
-		ResponseEntity<Message> userLockChange(@RequestParam String userEmail, String insertCode){
+		ResponseEntity<Message> userLockChange(@RequestParam("userEmail") String userEmail, String insertCode){
 		    UserLockResponse user = userLockService.changeLock(userEmail,insertCode);
 		    return successMessage(user);
 		    
@@ -174,7 +173,7 @@ public class UserController {
 	
 	// 앱 잠금 비활성화
 	@PutMapping("/user-lock-toggle")
-	ResponseEntity<Message> userLockToggle(@RequestParam String userEmail){
+	ResponseEntity<Message> userLockToggle(@RequestParam("userEmail") String userEmail){
 		  userLockService.toggleLock(userEmail);
 		 return successMessage("done");
 		}

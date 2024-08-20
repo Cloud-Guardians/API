@@ -4,9 +4,7 @@ import javax.transaction.Transactional;
 
 import org.springframework.stereotype.Service;
 
-import com.cloudians.domain.user.repository.UserRepository;
 import com.cloudians.domain.user.repository.UserTokenRepository;
-import com.cloudians.global.service.FirebaseService;
 
 import lombok.RequiredArgsConstructor;
 

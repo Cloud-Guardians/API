@@ -18,6 +18,7 @@ import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
+import com.cloudians.global.exception.FirebaseException;
 import com.cloudians.global.exception.JsonException;
 import com.cloudians.global.exception.JsonExceptionType;
 import com.cloudians.global.service.FirebaseService;
@@ -80,8 +81,7 @@ public class PersonalDiaryService {
     public PersonalDiaryEmotionUpdateResponse editSelfEmotions(PersonalDiaryEmotionUpdateRequest request, Long emotionId, String userEmail) {
         User user = findUserByUserEmail(userEmail);
         // 수정할 감정이 있는지 확인
-        PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findByIdAndUser(emotionId, user)
-                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findByIdAndUser(emotionId, user).orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
         //수정
         PersonalDiaryEmotion editedEmotions = emotions.edit(request);
 
@@ -104,6 +104,7 @@ public class PersonalDiaryService {
         PersonalDiary personalDiary = request.toEntity(user, emotions, photoUrl);
         //일기 저장
         PersonalDiary savedPersonalDiary = personalDiaryRepository.save(personalDiary);
+        analyzePersonalDiary(user, savedPersonalDiary);
 
         return PersonalDiaryCreateResponse.of(savedPersonalDiary, user, emotions);
     }
@@ -122,12 +123,33 @@ public class PersonalDiaryService {
         //파일이 있으면 새로운 사진으로 수정 및 기존 사진 삭제, 파일이 없으면 그대로
         String updatedPhotoUrl = personalDiary.getPhotoUrl();
         if (file != null) {
-            firebaseService.deleteFileUrl(userEmail, DOMAIN, getFileName(personalDiary.getDate()));
-            updatedPhotoUrl = uploadPhoto(userEmail, file, personalDiary.getDate());
+            updatedPhotoUrl = updateDiaryPhoto(userEmail, file, personalDiary);
         }
         PersonalDiary editedPersonalDiary = personalDiary.edit(request, updatedPhotoUrl);
+        analyzeEditedPersonalDiary(user, editedPersonalDiary);
 
         return PersonalDiaryResponse.of(editedPersonalDiary);
+    }
+
+    private String updateDiaryPhoto(String userEmail, MultipartFile file, PersonalDiary personalDiary) throws Exception {
+        String fileName = getFileName(personalDiary.getDate());
+        try {
+            firebaseService.getFileUrl(userEmail, DOMAIN, fileName);
+            firebaseService.deleteFileUrl(userEmail, DOMAIN, fileName);
+        } catch (FirebaseException ignored) {
+        }
+        return uploadPhoto(userEmail, file, personalDiary.getDate());
+    }
+
+    public void analyzeEditedPersonalDiary(User user, PersonalDiary editedPersonalDiary) {
+
+        String[] analysisResults = analyzeDiaryWithChatGPT(editedPersonalDiary, user);
+        FiveElement element = getElementOrThrow(analysisResults);
+        List<String> characters = getElementCharacters(element);
+        String harmonyTipsJson = getHarmonyTipsJson();
+
+        PersonalDiaryAnalysis personalDiaryAnalysis = getPersonalDiaryAnalysisOrThrow(editedPersonalDiary.getPersonalDiaryAnalysis().getId());
+        personalDiaryAnalysis.edit(user, editedPersonalDiary, element, characters, harmonyTipsJson, analysisResults);
     }
 
     public void deletePersonalDiary(String userEmail, Long personalDiaryId) {
@@ -141,42 +163,12 @@ public class PersonalDiaryService {
     }
 
 
-    public PersonalDiaryAnalyzeResponse analyzePersonalDiary(String userEmail, Long personalDiaryId) {
+    public PersonalDiaryAnalyzeResponse getAnalyze(String userEmail, Long personalDiaryId) {
         User user = findUserByUserEmail(userEmail);
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
-
-        String[] analysisResults = analyzeDiaryWithChatGPT(personalDiary, user);
-        FiveElement element = getElementOrThrow(analysisResults);
-        List<String> characters = getElementCharacters(element);
-        String harmonyTipsJson = getHarmonyTipsJson();
-
-        PersonalDiaryAnalysis personalDiaryAnalysis = PersonalDiaryAnalysis.createPersonalDiaryAnalysis(user, personalDiary, element, characters, harmonyTipsJson, analysisResults);
-        personalDiaryAnalysisRepository.save(personalDiaryAnalysis);
-        personalDiary.linkPersonalDiaryAnalysis(personalDiaryAnalysis);
+        PersonalDiaryAnalysis personalDiaryAnalysis = getPersonalDiaryAnalysisOrThrow(personalDiary.getPersonalDiaryAnalysis().getId());
 
         return PersonalDiaryAnalyzeResponse.of(personalDiaryAnalysis, user);
-    }
-
-    public PersonalDiaryAnalyzeResponse getAnalyze(String userEmail, Long personalDiaryId, Long diaryAnalysisId) {
-        User user = findUserByUserEmail(userEmail);
-        getPersonalDiaryOrThrow(personalDiaryId, user);
-        PersonalDiaryAnalysis personalDiaryAnalysis = getPersonalDiaryAnalysisOrThrow(diaryAnalysisId);
-
-        return PersonalDiaryAnalyzeResponse.of(personalDiaryAnalysis, user);
-    }
-
-    public PersonalDiaryAnalyzeResponse analyzeEditedPersonalDiary(String userEmail, Long personalDiaryId, Long diaryAnalysisId) {
-        User user = findUserByUserEmail(userEmail);
-        PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
-
-        String[] analysisResults = analyzeDiaryWithChatGPT(personalDiary, user);
-        FiveElement element = getElementOrThrow(analysisResults);
-        List<String> characters = getElementCharacters(element);
-        String harmonyTipsJson = getHarmonyTipsJson();
-
-        PersonalDiaryAnalysis personalDiaryAnalysis = getPersonalDiaryAnalysisOrThrow(diaryAnalysisId);
-        PersonalDiaryAnalysis editedPersonalDiaryAnalysis = personalDiaryAnalysis.edit(user, personalDiary, element, characters, harmonyTipsJson, analysisResults);
-        return PersonalDiaryAnalyzeResponse.of(editedPersonalDiaryAnalysis, user);
     }
 
     public void deletePersonalDiaryPhoto(String userEmail, Long personalDiaryId) {
@@ -187,14 +179,24 @@ public class PersonalDiaryService {
         personalDiary.deletePhotoUrl();
     }
 
+    private void analyzePersonalDiary(User user, PersonalDiary personalDiary) {
+
+        String[] analysisResults = analyzeDiaryWithChatGPT(personalDiary, user);
+        FiveElement element = getElementOrThrow(analysisResults);
+        List<String> characters = getElementCharacters(element);
+        String harmonyTipsJson = getHarmonyTipsJson();
+
+        PersonalDiaryAnalysis personalDiaryAnalysis = PersonalDiaryAnalysis.createPersonalDiaryAnalysis(user, personalDiary, element, characters, harmonyTipsJson, analysisResults);
+        personalDiaryAnalysisRepository.save(personalDiaryAnalysis);
+        personalDiary.linkPersonalDiaryAnalysis(personalDiaryAnalysis);
+    }
+
     private PersonalDiaryAnalysis getPersonalDiaryAnalysisOrThrow(Long diaryAnalysisId) {
-        return personalDiaryAnalysisRepository.findById(diaryAnalysisId)
-                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY_ANALYSIS));
+        return personalDiaryAnalysisRepository.findById(diaryAnalysisId).orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY_ANALYSIS));
     }
 
     private FiveElement getElementOrThrow(String[] analysisResults) {
-        return fiveElementRepository.findByName(analysisResults[0])
-                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.COUDNT_FOUND_ELEMENT));
+        return fiveElementRepository.findByName(analysisResults[0]).orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.COUDNT_FOUND_ELEMENT));
     }
 
     private String[] analyzeDiaryWithChatGPT(PersonalDiary personalDiary, User user) {
@@ -202,8 +204,7 @@ public class PersonalDiaryService {
         System.out.println("answer = " + answer);
         String[] lines = answer.split(NEW_LINE_REGEX);
 
-        return new String[]{
-                extractValue(lines, 0),  // elementName
+        return new String[]{extractValue(lines, 0),  // elementName
                 extractValue(lines, 1),  // fortuneDetail
                 extractValue(lines, 2)   // advice
         };
@@ -217,17 +218,12 @@ public class PersonalDiaryService {
     }
 
     private List<String> getElementCharacters(FiveElement element) {
-        return fiveElementCharacterRepository.findRandomCharactersByElementId(element.getId())
-                .stream()
-                .map(FiveElementCharacter::getCharacter)
-                .collect(Collectors.toList());
+        return fiveElementCharacterRepository.findRandomCharactersByElementId(element.getId()).stream().map(FiveElementCharacter::getCharacter).collect(Collectors.toList());
     }
 
     private String getHarmonyTipsJson() {
         List<HarmonyTip> harmonyTips = harmonyTipRepository.findRandomTipsByTags(ACTIVITY_TAG1, ACTIVITY_TAG2, ACTIVITY_TAG3);
-        List<HarmonyTipsResponse> harmonyTipsResponse = harmonyTips.stream()
-                .map(HarmonyTipsResponse::of)
-                .collect(Collectors.toList());
+        List<HarmonyTipsResponse> harmonyTipsResponse = harmonyTips.stream().map(HarmonyTipsResponse::of).collect(Collectors.toList());
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -251,9 +247,7 @@ public class PersonalDiaryService {
     }
 
     private String uploadPhoto(String userEmail, MultipartFile file, LocalDate diaryDate) throws IOException, FirebaseAuthException {
-        return file != null
-                ? firebaseService.uploadFile(file, userEmail, getFileName(diaryDate), DOMAIN)
-                : null;
+        return file != null ? firebaseService.uploadFile(file, userEmail, getFileName(diaryDate), DOMAIN) : null;
     }
 
     private String getFileName(LocalDate diaryDate) {
@@ -261,18 +255,11 @@ public class PersonalDiaryService {
     }
 
     private PersonalDiary getPersonalDiaryOrThrow(Long personalDiaryId, User user) {
-        return personalDiaryRepository.findByIdAndUser(personalDiaryId, user)
-                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        return personalDiaryRepository.findByIdAndUser(personalDiaryId, user).orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
     }
 
     private void validateEmotionsValue(PersonalDiaryEmotionCreateRequest request) {
-        List<Integer> emotions = Arrays.asList(
-                request.getJoy(),
-                request.getSadness(),
-                request.getAnger(),
-                request.getAnxiety(),
-                request.getBoredom()
-        );
+        List<Integer> emotions = Arrays.asList(request.getJoy(), request.getSadness(), request.getAnger(), request.getAnxiety(), request.getBoredom());
         emotions.forEach(this::validateEmotionValue);
     }
 
@@ -305,7 +292,6 @@ public class PersonalDiaryService {
     }
 
     private User findUserByUserEmail(String userEmail) {
-        return userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+        return userRepository.findByUserEmail(userEmail).orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
     }
 }

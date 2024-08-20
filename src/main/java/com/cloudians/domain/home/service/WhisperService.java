@@ -79,6 +79,20 @@ public class WhisperService {
         return GeneralPaginatedResponse.of(messages, count, WhisperMessage::getId, WhisperMessageResponse::of);
     }
 
+    public GeneralPaginatedResponse<WhisperMessageResponse> getMessagesByKeyword(String userEmail, Long cursor, Long count, String keyword) {
+        User user = findUserByUserEmail(userEmail);
+
+        List<WhisperMessage> messages = whisperMessageRepository.findBySearchKeywordOrderByTimeStampDesc(user, cursor, count, keyword);
+        return GeneralPaginatedResponse.of(messages, count, WhisperMessage::getId, WhisperMessageResponse::of);
+    }
+
+    public GeneralPaginatedResponse<WhisperMessageResponse> getMessagesByDate(String userEmail, Long cursor, Long count, LocalDate date) {
+        User user = findUserByUserEmail(userEmail);
+
+        List<WhisperMessage> messages = whisperMessageRepository.findByDateOrderByTimestampDesc(user, cursor, count, date);
+        return GeneralPaginatedResponse.of(messages, count, WhisperMessage::getId, WhisperMessageResponse::of);
+    }
+
     private void validateAnswerTime(User user, LocalDateTime questionDateTime, LocalDateTime twentyFourHoursLater) {
         if (whisperMessageRepository.existsByUserAndSenderAndTimestampBetween(user, SenderType.USER, questionDateTime, twentyFourHoursLater)) {
             throw new WhisperException(WhisperExceptionType.ALREADY_EXIST_MESSAGE);

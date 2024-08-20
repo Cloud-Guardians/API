@@ -6,7 +6,10 @@ import com.cloudians.domain.home.entity.SenderType;
 import com.cloudians.domain.home.exception.CalenderException;
 import com.cloudians.domain.home.exception.CalenderExceptionType;
 import com.cloudians.domain.home.repository.WhisperMessageRepositoryImpl;
+import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
+import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
+import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
@@ -17,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
@@ -44,6 +48,18 @@ public class CalendarService {
         return getCalendarResponses(diaries, whisperMessageDates);
     }
 
+    public PersonalDiaryResponse getPersonalDiary(String userEmail, LocalDate date) {
+        User user = findUserByUserEmail(userEmail);
+        PersonalDiary personalDiary = getPersonalDiaryOrThrow(user, date);
+
+        return PersonalDiaryResponse.of(personalDiary);
+    }
+
+    private PersonalDiary getPersonalDiaryOrThrow(User user, LocalDate date) {
+        return personalDiaryRepository.findByUserAndDate(user, date)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+    }
+
     private List<CalendarResponse> getCalendarResponses(List<PersonalDiary> diaries, Set<LocalDate> whisperMessageDates) {
         return diaries.stream()
                 .map(diary -> {
@@ -56,7 +72,7 @@ public class CalendarService {
 
     private Set<LocalDate> getWhisperMessageDates(User user, LocalDate startOfMonth, LocalDate endOfMonth) {
         return whisperMessageRepository.findByUserAndSenderAndTimestampBetween(
-                        user, SenderType.USER, startOfMonth.atStartOfDay(), endOfMonth.atTime(23, 59, 59))
+                        user, SenderType.USER, startOfMonth.atStartOfDay(), endOfMonth.atTime(LocalTime.MAX))
                 .stream()
                 .map(message -> message.getTimestamp().toLocalDate())
                 .collect(Collectors.toSet());

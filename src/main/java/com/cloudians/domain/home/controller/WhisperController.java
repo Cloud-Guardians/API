@@ -7,11 +7,13 @@ import com.cloudians.domain.home.dto.response.WhisperResponse;
 import com.cloudians.domain.home.service.WhisperService;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.time.LocalDate;
 
 @RequestMapping("/home/whisper")
 @RestController
@@ -30,13 +32,29 @@ public class WhisperController {
     }
 
     @GetMapping()
-    public ResponseEntity<Message> getRecentMessages(@RequestParam String userEmail,
-                                                     @RequestParam(required = false) Long cursor,
-                                                     @RequestParam(defaultValue = "10") Long count) {
-        GeneralPaginatedResponse<WhisperMessageResponse> response = whisperService.getRecentMessages(userEmail, cursor, count);
-        Message message = new Message(response, HttpStatus.OK.value());
+    public ResponseEntity<Message> getMessages(@RequestParam String userEmail,
+                                               @RequestParam(required = false) Long cursor,
+                                               @RequestParam(defaultValue = "10") Long count,
+                                               @RequestParam(required = false) String keyword,
+                                               @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        GeneralPaginatedResponse<WhisperMessageResponse> response;
+        // keyword 검색 처리
+        if (keyword != null && !keyword.isEmpty()) {
+            response = whisperService.getMessagesByKeyword(userEmail, cursor, count, keyword);
+            return createGetMessagesResponseEntity(response);
+        }
+        // 날짜 검색 처리
+        if (date != null) {
+            response = whisperService.getMessagesByDate(userEmail, cursor, count, date);
+            return createGetMessagesResponseEntity(response);
+        }
+        // 기본 최근 메시지 조회
+        response = whisperService.getRecentMessages(userEmail, cursor, count);
+        return createGetMessagesResponseEntity(response);
+    }
 
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(message);
+    private ResponseEntity<Message> createGetMessagesResponseEntity(GeneralPaginatedResponse<WhisperMessageResponse> response) {
+        Message message = new Message(response, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 }

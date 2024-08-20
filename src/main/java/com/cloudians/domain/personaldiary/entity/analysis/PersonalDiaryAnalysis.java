@@ -24,7 +24,7 @@ public class PersonalDiaryAnalysis extends BaseTimeEntity {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "diary_analysis_id")
+    @Column(name = "personal_diary_analysis_id")
     Long id;
 
     @ManyToOne

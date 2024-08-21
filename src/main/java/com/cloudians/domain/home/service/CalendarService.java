@@ -3,8 +3,8 @@ package com.cloudians.domain.home.service;
 import com.cloudians.domain.home.dto.response.CalendarResponse;
 import com.cloudians.domain.home.dto.response.EmotionsResponse;
 import com.cloudians.domain.home.entity.SenderType;
-import com.cloudians.domain.home.exception.CalenderException;
-import com.cloudians.domain.home.exception.CalenderExceptionType;
+import com.cloudians.domain.home.exception.CalendarException;
+import com.cloudians.domain.home.exception.CalendarExceptionType;
 import com.cloudians.domain.home.repository.WhisperMessageRepositoryImpl;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
@@ -80,7 +80,7 @@ public class CalendarService {
 
     private List<PersonalDiary> getPersonalDiariesOrThrow(User user, LocalDate startOfMonth, LocalDate endOfMonth) {
         return personalDiaryRepository.findPersonalDiaryByUserAndDateBetweenOrderByDate(user, startOfMonth, endOfMonth)
-                .orElseThrow(() -> new CalenderException(CalenderExceptionType.NO_MORE_DATA));
+                .orElseThrow(() -> new CalendarException(CalendarExceptionType.NO_MORE_DATA));
     }
 
     private User findUserByUserEmail(String userEmail) {

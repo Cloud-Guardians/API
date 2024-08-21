@@ -5,7 +5,7 @@ import com.cloudians.global.exception.BaseExceptionType;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class CalenderException extends BaseException {
+public class CalendarException extends BaseException {
 
     private final BaseExceptionType exceptionType;
 

@@ -34,14 +34,6 @@ public class PrincipalDetails implements UserDetails, OAuth2User{
 		this.user = user;
 	}
 	
-//	public PrincipalDetails(String username, String password) {
-//		Securityuser user = new Securityuser();
-//		user.setUsername(username);
-//		user.setPassword(password);
-//		PrincipalDetails prin = new PrincipalDetails(user);
-//		
-//		
-//	}
 	//OAuth 로그인
 	public PrincipalDetails(UserAuthRequest user, Map<String, Object> attributes) {
 		this.user = user;
@@ -113,6 +105,10 @@ public class PrincipalDetails implements UserDetails, OAuth2User{
 		return null;
 		// sub는 곧 id
 	}
+	
+	public String getOAuthEmail() {
+        return (String) attributes.get("email"); // OAuth2에서 가져온 이메일
+    }
 
 	
 }

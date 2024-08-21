@@ -15,27 +15,29 @@ public class MyFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-			throws IOException, ServletException {
-		
-		HttpServletRequest req = (HttpServletRequest) request;
-		HttpServletResponse res = (HttpServletResponse) response;
-		
-		// 토큰: cos 만들어 줘야 함. id, pw 정상적으로 들어와서 로그인이 완료되면 토큰 만들어 주고 응답함
-		// 요청할 마다 header에 Authorization에 value값으로 토큰 가지고 옴
-		// 그때 토큰이 넘어오면 이 토큰이 내가 만든토큰인지 검증하면 됨 (RSA, HS256)
-		if(req.getMethod().equals("POST")) {
-		System.out.println("POST 요청됨");
-		String headerAuth = req.getHeader("Authorization");
-		System.out.println(headerAuth);
-		System.out.println("필터1");
-		
-		if(headerAuth.equals("cos")) {
-			chain.doFilter(req, res);
-		}else {
-			PrintWriter out = res.getWriter();
-			out.println("sorry");
-		}
-		}
-	}
+	        throws IOException, ServletException {
+	    
+	    HttpServletRequest req = (HttpServletRequest) request;
+	    HttpServletResponse res = (HttpServletResponse) response;
 
+	    if (req.getMethod().equals("POST")) {
+	        System.out.println("POST 요청됨");
+	        String headerAuth = req.getHeader("Authorization");
+	        System.out.println("Authorization Header: " + headerAuth);
+	        
+	        // 헤더가 없거나 "cos"인 경우
+	        if (headerAuth == null || headerAuth.equals("cos")) {
+	            // Authorization 헤더가 없거나 cos인 경우에는 필터 체인 계속 진행
+	            chain.doFilter(req, res);
+	        } else {
+	            // Authorization 헤더가 있지만, 올바르지 않은 경우
+	            PrintWriter out = res.getWriter();
+	            res.setStatus(HttpServletResponse.SC_UNAUTHORIZED); // 401 Unauthorized
+	            out.println("Unauthorized: Invalid Authorization header.");
+	        }
+	    } else {
+	        // POST가 아닐 경우 다음 필터로 진행
+	        chain.doFilter(req, res);
+	    }
+	}
 }

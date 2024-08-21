@@ -11,10 +11,6 @@ import com.cloudians.domain.auth.dto.request.UserAuthRequest;
 public interface UserAuthRepository extends JpaRepository<UserAuthRequest, Integer> {
 
     Optional<UserAuthRequest> findByUserEmail(String userEmail);
-	
-    // UserAuthRequest findByUsername(String userEmail);
- //   Optional<UserAuthRequest> findByUsername(String userEmail);
-	// Optional<UserAuthRequest> findBy(String provider, String providerId);
-}
+	}
 
 

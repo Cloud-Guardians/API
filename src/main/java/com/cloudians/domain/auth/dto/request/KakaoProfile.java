@@ -1,5 +1,8 @@
 package com.cloudians.domain.auth.dto.request;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import lombok.Data;
 
 @Data
@@ -36,4 +39,11 @@ public class KakaoProfile {
             public Boolean is_default_image;
         }
     }
+
+	public Map<String, Object> getAttributes() {
+		Map<String, Object> attributes = new HashMap<>();
+        attributes.put("profile_image", this.properties.profile_image);
+        attributes.put("email", this.kakao_account.email);
+        return attributes;
+	}
 }

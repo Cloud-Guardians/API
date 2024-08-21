@@ -26,26 +26,31 @@ public class SecurityConfig {
     private final UserAuthRepository userAuthRepository;
 
     @Bean
-    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
-        AuthenticationManagerBuilder authenticationManagerBuilder = 
-                http.getSharedObject(AuthenticationManagerBuilder.class);
-        return authenticationManagerBuilder.build();
-    }
-    
-    @Bean
-    public SecurityFilterChain oauth2FilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationManager authenticationManager) throws Exception {
         http.csrf().disable()
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and().addFilter(corsFilter)
+            .and()
+            .addFilter(corsFilter)
+            .addFilterBefore(new JwtAuthenticationFilter(authenticationManager), UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(new JwtAuthorizationFilter(authenticationManager, userAuthRepository), UsernamePasswordAuthenticationFilter.class)
             .authorizeRequests(authroize -> authroize
-                .antMatchers("/oauth2/authorization/google").permitAll()
-                .antMatchers("/auth/login/google").permitAll()
-                .antMatchers("/auth/login/google/redirect").permitAll()
-                .antMatchers("/api/auth/loginview").permitAll()
-                .anyRequest().permitAll())
+                .antMatchers("/oauth2/authorization/google",
+                		"/oauth2/authorization/kakao",
+                		"/auth/login/google",
+                		"/auth/login/google/redirect",
+                		"/api/auth/login",
+                		"/api/auth/signup",
+                		"/login/oauth2/code/google",
+                		"/api/auth/kakao",
+                		"/api/oauth/token",
+                		"/auth/kakao/callback",
+                		"/api/auth/kakao/callback").permitAll()
+                .antMatchers("/api/users/**").hasAnyAuthority("USER", "ADMIN")
+                .antMatchers("/api/admin/**").hasAuthority("ADMIN")
+                .anyRequest().authenticated())
             .formLogin().disable()
             .httpBasic().disable()
-            .oauth2Login() // OAuth2 로그인 설정
+            .oauth2Login()
             .defaultSuccessUrl("/") // 로그인 성공 후 이동할 URL
             .userInfoEndpoint()
             .userService(principalOauth2UserService); // 사용자 정보 서비스 설정
@@ -54,22 +59,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain jwtFilterChain(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-            .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            .and()
-            .addFilter(corsFilter)
-            .addFilterBefore(new JwtAuthenticationFilter(authenticationManager(http)), UsernamePasswordAuthenticationFilter.class)
-            .addFilterAfter(new JwtAuthorizationFilter(authenticationManager(http), userAuthRepository), UsernamePasswordAuthenticationFilter.class)
-            .authorizeRequests(authroize -> authroize
-                .antMatchers("/api/auth/signup").permitAll() // 회원가입 요청 허용
-                .antMatchers("/api/auth/login").permitAll() // 로그인 요청 허용
-                .antMatchers("/api/users/**").hasAnyAuthority("USER", "ADMIN")
-                .antMatchers("/api/admin/**").hasAuthority("ADMIN")
-                .anyRequest().permitAll()) // 나머지 요청은 허용
-            .formLogin().disable()
-            .httpBasic().disable();
-
-        return http.build();
+    public AuthenticationManager authenticationManager(HttpSecurity http) throws Exception {
+        AuthenticationManagerBuilder authenticationManagerBuilder = 
+                http.getSharedObject(AuthenticationManagerBuilder.class);
+        return authenticationManagerBuilder.build();
     }
 }

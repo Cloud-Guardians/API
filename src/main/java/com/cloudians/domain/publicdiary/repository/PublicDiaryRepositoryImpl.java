@@ -1,8 +1,8 @@
 package com.cloudians.domain.publicdiary.repository;
 
-import com.cloudians.domain.publicdiary.entity.PublicDiary;
-import com.cloudians.domain.publicdiary.entity.SearchCondition;
-import com.cloudians.domain.publicdiary.entity.SearchType;
+import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
+import com.cloudians.domain.publicdiary.entity.diary.SearchCondition;
+import com.cloudians.domain.publicdiary.entity.diary.SearchType;
 import com.cloudians.domain.user.entity.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.cloudians.domain.publicdiary.entity.QPublicDiary.publicDiary;
+import static com.cloudians.domain.publicdiary.entity.diary.QPublicDiary.publicDiary;
 
 @Repository
 @RequiredArgsConstructor
@@ -40,7 +40,7 @@ public class PublicDiaryRepositoryImpl {
     }
 
     public Optional<PublicDiary> findByIdAndUser(Long publicDiaryId, User user) {
-        return publicDiaryJpaRepository.findByIdAndUser(publicDiaryId, user);
+        return publicDiaryJpaRepository.findByIdAndAuthor(publicDiaryId, user);
     }
 
     public List<PublicDiary> searchByTypeAndKeywordOrderByTimestampDesc(SearchCondition condition, Long cursor, Long count) {
@@ -102,7 +102,7 @@ public class PublicDiaryRepositoryImpl {
     }
 
     private BooleanExpression containsAuthor(String content) {
-        return publicDiary.user.nickname.eq(content);
+        return publicDiary.author.nickname.eq(content);
     }
 
     private BooleanExpression containsTitle(String content) {

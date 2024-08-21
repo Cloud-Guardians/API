@@ -1,6 +1,6 @@
 package com.cloudians.domain.publicdiary.dto.response;
 
-import com.cloudians.domain.publicdiary.entity.PublicDiary;
+import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.user.entity.User;
 import lombok.Builder;
 import lombok.Getter;

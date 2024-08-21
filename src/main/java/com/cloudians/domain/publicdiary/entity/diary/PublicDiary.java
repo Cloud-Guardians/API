@@ -1,4 +1,4 @@
-package com.cloudians.domain.publicdiary.entity;
+package com.cloudians.domain.publicdiary.entity.diary;
 
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.user.entity.User;
@@ -24,7 +24,7 @@ public class PublicDiary extends BaseTimeEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_email")
-    private User user;
+    private User author;
 
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "personal_diary_id")
@@ -37,8 +37,8 @@ public class PublicDiary extends BaseTimeEntity {
     private Long likes;
 
     @Builder
-    private PublicDiary(User user, PersonalDiary personalDiary) {
-        this.user = user;
+    private PublicDiary(User author, PersonalDiary personalDiary) {
+        this.author = author;
         this.personalDiary = personalDiary;
         this.views = 0L;
         this.likes = 0L;
@@ -46,7 +46,7 @@ public class PublicDiary extends BaseTimeEntity {
 
     public static PublicDiary createPublicDiary(User user, PersonalDiary personalDiary) {
         return PublicDiary.builder()
-                .user(user)
+                .author(user)
                 .personalDiary(personalDiary)
                 .build();
     }

@@ -1,6 +1,6 @@
 package com.cloudians.domain.publicdiary.dto.response;
 
-import com.cloudians.domain.publicdiary.entity.PublicDiary;
+import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -40,7 +40,7 @@ public class PublicDiaryThumbnailResponse {
         return PublicDiaryThumbnailResponse.builder()
                 .title(publicDiary.getPersonalDiary().getTitle())
                 .content(publicDiary.getPersonalDiary().getContent())
-                .author(publicDiary.getUser().getNickname())
+                .author(publicDiary.getAuthor().getNickname())
                 .timestamp(publicDiary.getCreatedAt())
                 .photoUrl(publicDiary.getPersonalDiary().getPhotoUrl())
                 .views(publicDiary.getViews())

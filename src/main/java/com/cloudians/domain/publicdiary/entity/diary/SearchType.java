@@ -1,4 +1,4 @@
-package com.cloudians.domain.publicdiary.entity;
+package com.cloudians.domain.publicdiary.entity.diary;
 
 import java.util.Arrays;
 

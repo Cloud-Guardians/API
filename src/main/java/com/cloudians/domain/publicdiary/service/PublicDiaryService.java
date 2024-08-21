@@ -7,10 +7,12 @@ import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryThumbnailResponse;
-import com.cloudians.domain.publicdiary.entity.PublicDiary;
-import com.cloudians.domain.publicdiary.entity.SearchCondition;
+import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
+import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
+import com.cloudians.domain.publicdiary.entity.diary.SearchCondition;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
+import com.cloudians.domain.publicdiary.repository.PublicDiaryCommentRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
@@ -27,6 +29,7 @@ import java.util.List;
 @Transactional
 public class PublicDiaryService {
     private final PublicDiaryRepositoryImpl publicDiaryRepository;
+    private final PublicDiaryCommentRepositoryImpl publicDiaryCommentRepository;
     private final PersonalDiaryRepository personalDiaryRepository;
 
     private final UserRepository userRepository;
@@ -70,6 +73,8 @@ public class PublicDiaryService {
         PublicDiary publicDiary = getPublicDiaryOrThrow(publicDiaryId, user);
 
         publicDiaryRepository.delete(publicDiary);
+        List<PublicDiaryComment> commentsInPublicDiary = publicDiaryCommentRepository.findByPublicDiary(publicDiary);
+        publicDiaryCommentRepository.deleteAll(commentsInPublicDiary);
     }
 
     private void validateIfPublicDiaryExists(Long personalDiaryId) {

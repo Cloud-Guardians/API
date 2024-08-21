@@ -37,6 +37,13 @@ public class PublicDiaryService {
         return PublicDiaryCreateResponse.of(publicDiary, user);
     }
 
+    public void deletePublicDiary(String userEmail, Long publicDiaryId) {
+        User user = findUserByUserEmail(userEmail);
+        PublicDiary publicDiary = getPublicDiaryOrThrow(publicDiaryId, user);
+
+        publicDiaryRepository.delete(publicDiary);
+    }
+
     private void validateIfPublicDiaryExists(Long personalDiaryId) {
         if (publicDiaryRepository.existsByPersonalDiaryId(personalDiaryId)) {
             throw new PublicDiaryException(PublicDiaryExceptionType.PUBLIC_DIARY_ALREADY_EXIST);
@@ -44,10 +51,17 @@ public class PublicDiaryService {
     }
 
     private PersonalDiary getPersonalDiaryOrThrow(Long personalDiaryId, User user) {
-        return personalDiaryRepository.findByIdAndUser(personalDiaryId, user).orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        return personalDiaryRepository.findByIdAndUser(personalDiaryId, user)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+    }
+
+    private PublicDiary getPublicDiaryOrThrow(Long publicDiaryId, User user) {
+        return publicDiaryRepository.findByIdAndUser(publicDiaryId, user)
+                .orElseThrow(() -> new PublicDiaryException(PublicDiaryExceptionType.NON_EXIST_PUBLIC_DIARY));
     }
 
     private User findUserByUserEmail(String userEmail) {
-        return userRepository.findByUserEmail(userEmail).orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+        return userRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
     }
 }

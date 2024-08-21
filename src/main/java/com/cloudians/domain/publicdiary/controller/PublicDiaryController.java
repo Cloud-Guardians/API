@@ -6,10 +6,7 @@ import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/public-diaries")
 @RestController
@@ -18,12 +15,22 @@ public class PublicDiaryController {
     private final PublicDiaryService publicDiaryService;
 
     @PostMapping()
-    public ResponseEntity<Message> createPersonalDiary(@RequestParam String userEmail,
-                                                       @RequestParam Long personalDiaryId) {
+    public ResponseEntity<Message> createPublicDiary(@RequestParam String userEmail,
+                                                     @RequestParam Long personalDiaryId) {
         PublicDiaryCreateResponse response = publicDiaryService.createPublicDiary(userEmail, personalDiaryId);
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED)
+                .body(message);
+    }
+
+    @DeleteMapping("/{public-diary-id}")
+    public ResponseEntity<Message> deletePublicDiary(@RequestParam String userEmail,
+                                                     @PathVariable("public-diary-id") Long publicDiaryId) {
+        publicDiaryService.deletePublicDiary(userEmail, publicDiaryId);
+
+        Message message = new Message(null, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
     }
 }

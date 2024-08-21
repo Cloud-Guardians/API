@@ -57,6 +57,14 @@ public class PublicDiaryService {
         return GeneralPaginatedResponse.of(publicDiaries, count, PublicDiary::getId, PublicDiaryThumbnailResponse::of);
     }
 
+    public PublicDiaryResponse getPublicDiary(String userEmail, Long publicDiaryId) {
+        User user = findUserByUserEmail(userEmail);
+
+        PublicDiary publicDiary = findByIdOrThrow(publicDiaryId);
+        publicDiary.updateView(publicDiary.getViews());
+        return PublicDiaryResponse.of(publicDiary, user);
+    }
+
     public void deletePublicDiary(String userEmail, Long publicDiaryId) {
         User user = findUserByUserEmail(userEmail);
         PublicDiary publicDiary = getPublicDiaryOrThrow(publicDiaryId, user);
@@ -83,14 +91,6 @@ public class PublicDiaryService {
     private User findUserByUserEmail(String userEmail) {
         return userRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
-    }
-
-    public PublicDiaryResponse getPublicDiary(String userEmail, Long publicDiaryId) {
-        User user = findUserByUserEmail(userEmail);
-
-        PublicDiary publicDiary = findByIdOrThrow(publicDiaryId);
-        publicDiary.updateView(publicDiary.getViews());
-        return PublicDiaryResponse.of(publicDiary, user);
     }
 
     private PublicDiary findByIdOrThrow(Long publicDiaryId) {

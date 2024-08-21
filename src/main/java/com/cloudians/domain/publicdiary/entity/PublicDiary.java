@@ -30,10 +30,18 @@ public class PublicDiary extends BaseTimeEntity {
     @JoinColumn(name = "personal_diary_id")
     private PersonalDiary personalDiary;
 
+    @Column(nullable = false)
+    private Long views;
+
+    @Column(nullable = false)
+    private Long likes;
+
     @Builder
     private PublicDiary(User user, PersonalDiary personalDiary) {
         this.user = user;
         this.personalDiary = personalDiary;
+        this.views = 0L;
+        this.likes = 0L;
     }
 
     public static PublicDiary createPublicDiary(User user, PersonalDiary personalDiary) {
@@ -41,5 +49,13 @@ public class PublicDiary extends BaseTimeEntity {
                 .user(user)
                 .personalDiary(personalDiary)
                 .build();
+    }
+
+    public void decreaseLikeCount() {
+        likes--;
+    }
+
+    public void increaseLikeCount() {
+        likes++;
     }
 }

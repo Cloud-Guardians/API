@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface PublicDiaryRepository extends JpaRepository<PublicDiary, Long> {
+public interface PublicDiaryJpaRepository extends JpaRepository<PublicDiary, Long> {
     boolean existsByPersonalDiaryId(Long personalDiaryId);
 
     Optional<PublicDiary> findByIdAndUser(Long publicDiaryId, User user);

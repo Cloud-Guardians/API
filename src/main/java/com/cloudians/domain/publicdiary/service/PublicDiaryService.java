@@ -1,14 +1,17 @@
 package com.cloudians.domain.publicdiary.service;
 
+import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryCreateResponse;
+import com.cloudians.domain.publicdiary.dto.response.PublicDiaryThumbnailResponse;
 import com.cloudians.domain.publicdiary.entity.PublicDiary;
+import com.cloudians.domain.publicdiary.entity.SearchCondition;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
-import com.cloudians.domain.publicdiary.repository.PublicDiaryRepository;
+import com.cloudians.domain.publicdiary.repository.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
@@ -17,11 +20,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class PublicDiaryService {
-    private final PublicDiaryRepository publicDiaryRepository;
+    private final PublicDiaryRepositoryImpl publicDiaryRepository;
     private final PersonalDiaryRepository personalDiaryRepository;
 
     private final UserRepository userRepository;
@@ -35,6 +40,21 @@ public class PublicDiaryService {
         publicDiaryRepository.save(publicDiary);
 
         return PublicDiaryCreateResponse.of(publicDiary, user);
+    }
+
+    public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getPublicDiariesByKeyword(String userEmail, Long cursor, Long count, String searchType, String keyword) {
+        findUserByUserEmail(userEmail);
+        SearchCondition condition = SearchCondition.of(searchType, keyword);
+        List<PublicDiary> searchedPublicDiaries = publicDiaryRepository.searchByTypeAndKeywordOrderByTimestampDesc(condition, cursor, count);
+
+        return GeneralPaginatedResponse.of(searchedPublicDiaries, count, PublicDiary::getId, PublicDiaryThumbnailResponse::of);
+    }
+
+    public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getAllPublicDiaries(String userEmail, Long cursor, Long count) {
+        findUserByUserEmail(userEmail);
+        List<PublicDiary> publicDiaries = publicDiaryRepository.findPublicDiariesOrderByCreatedAtDescWithTop3Diaries(cursor, count);
+
+        return GeneralPaginatedResponse.of(publicDiaries, count, PublicDiary::getId, PublicDiaryThumbnailResponse::of);
     }
 
     public void deletePublicDiary(String userEmail, Long publicDiaryId) {

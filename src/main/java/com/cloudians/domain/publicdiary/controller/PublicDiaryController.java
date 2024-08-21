@@ -1,6 +1,8 @@
 package com.cloudians.domain.publicdiary.controller;
 
+import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryCreateResponse;
+import com.cloudians.domain.publicdiary.dto.response.PublicDiaryThumbnailResponse;
 import com.cloudians.domain.publicdiary.service.PublicDiaryService;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
@@ -15,22 +17,37 @@ public class PublicDiaryController {
     private final PublicDiaryService publicDiaryService;
 
     @PostMapping()
-    public ResponseEntity<Message> createPublicDiary(@RequestParam String userEmail,
-                                                     @RequestParam Long personalDiaryId) {
+    public ResponseEntity<Message> createPublicDiary(@RequestParam String userEmail, @RequestParam Long personalDiaryId) {
         PublicDiaryCreateResponse response = publicDiaryService.createPublicDiary(userEmail, personalDiaryId);
         Message message = new Message(response, HttpStatus.CREATED.value());
 
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(message);
+        return ResponseEntity.status(HttpStatus.CREATED).body(message);
+    }
+
+    @GetMapping()
+    public ResponseEntity<Message> getPublicDiaries(@RequestParam String userEmail, @RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") Long count, @RequestParam(required = false) String searchType, @RequestParam(required = false) String keyword) {
+        GeneralPaginatedResponse<PublicDiaryThumbnailResponse> response;
+        // keyword 검색
+        if (keyword != null && !keyword.isEmpty()) {
+            response = publicDiaryService.getPublicDiariesByKeyword(userEmail, cursor, count, searchType, keyword);
+            return createGetMessagesResponseEntity(response);
+        }
+
+        // 전체 게시글 조회
+        response = publicDiaryService.getAllPublicDiaries(userEmail, cursor, count);
+        return createGetMessagesResponseEntity(response);
     }
 
     @DeleteMapping("/{public-diary-id}")
-    public ResponseEntity<Message> deletePublicDiary(@RequestParam String userEmail,
-                                                     @PathVariable("public-diary-id") Long publicDiaryId) {
+    public ResponseEntity<Message> deletePublicDiary(@RequestParam String userEmail, @PathVariable("public-diary-id") Long publicDiaryId) {
         publicDiaryService.deletePublicDiary(userEmail, publicDiaryId);
 
         Message message = new Message(null, HttpStatus.OK.value());
-        return ResponseEntity.status(HttpStatus.OK)
-                .body(message);
+        return ResponseEntity.status(HttpStatus.OK).body(message);
+    }
+
+    private ResponseEntity<Message> createGetMessagesResponseEntity(GeneralPaginatedResponse<PublicDiaryThumbnailResponse> response) {
+        Message message = new Message(response, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 }

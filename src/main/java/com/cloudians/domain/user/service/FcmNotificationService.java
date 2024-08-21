@@ -4,7 +4,7 @@ package com.cloudians.domain.user.service;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.sql.Time;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,6 +29,7 @@ import com.cloudians.domain.user.dto.request.FcmNotificationRequest;
 import com.cloudians.domain.user.dto.response.FcmNotificationResponse;
 import com.cloudians.domain.user.dto.response.NotificationResponse;
 import com.cloudians.domain.user.entity.Notification;
+import com.cloudians.domain.user.entity.NotificationType;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.entity.UserToken;
 import com.cloudians.domain.user.exception.NotificationException;
@@ -60,25 +61,27 @@ public class FcmNotificationService {
     private  boolean updated = false;
     
 	
-	// uesr home notification insert O
-	public NotificationResponse insertHomeNotification(String userEmail, Time time) {
-	    System.out.println("일단 들어옴");
-	    // time 형식 21:00:00 .. 이렇게 해야 댐
-	    User user = findUserByUserEmail(userEmail);
-	    Notification notification = new Notification();
-	    notification.setUserEmail(userEmail);
-	    notification.setNotificationDiaryTime((Time)time);
-	    notification.setNotificationType(1);
-	    notification.setNotificationStatus(true);
-	    notification.setNotificationIsRead(true);   
-	    notificationRepository.save(notification);
-	    return notification.toDto();	}
+ // uesr home notification insert O
+ 	public NotificationResponse insertHomeNotification(String userEmail, NotificationType type, LocalTime time) {
+ 	    System.out.println("일단 들어옴");
+ 	    // time 형식 21:00:00 .. 이렇게 해야 댐
+ 	    User user = findUserByUserEmail(userEmail);
+ 	    Notification notification = new Notification();
+ 	    notification.setUserEmail(userEmail);
+ 	    notification.setNotificationDiaryTime(time);
+ 	    notification.setNotificationType(type.toString());
+ 	    notification.setNotificationStatus(true);
+ 	    notification.setNotificationIsRead(true);   
+ 	    notificationRepository.save(notification);
+ 	    return notification.toDto();	}
+    
+    
 	
 	// user home notification time change O
-	public void changeHomeNotification(String userEmail, Time time) {
+	public void changeHomeNotification(String userEmail, NotificationType type, LocalTime time) {
 	    List<Notification> notifications = findNotificationListByUserEmail(userEmail);
 	    for(Notification not : notifications) {
-		if(not.getNotificationType()==1) {
+		if(not.getNotificationType().equals(type.toString())) {
 		    not.setNotificationDiaryTime(time);
 		    notificationRepository.save(not);
 		    updated = true;
@@ -87,10 +90,10 @@ public class FcmNotificationService {
 	}
 	
 	 // home toggle on, off 
-	    public boolean toggleHomeNotification(String userEmail) {
+	    public boolean toggleHomeNotification(String userEmail,NotificationType type) {
 		List<Notification> notifications = findNotificationListByUserEmail(userEmail);
 		    for(Notification not : notifications) {
-			if(not.getNotificationType()==1) {
+			if(not.getNotificationType().equals(type.toString())) {
 			    not.setNotificationStatus(!not.isNotificationStatus());
 			    notificationRepository.save(not);
 			    updated = true;
@@ -103,10 +106,10 @@ public class FcmNotificationService {
 	    }
 	    
 	// user home notification time delete
-	public void deleteHomeNotification(String userEmail) {
+	public void deleteHomeNotification(String userEmail,NotificationType type) {
 	    List<Notification> notifications = findNotificationListByUserEmail(userEmail);
 	    for(Notification not : notifications) {
-		if(not.getNotificationType()==1) {
+		if(not.getNotificationType().equals(type.toString())) {
 		    notificationRepository.delete(not);
 		    updated = true;
 		} 
@@ -117,18 +120,20 @@ public class FcmNotificationService {
 	
 	
 // 매일  12:00에 자동으로 실행시켜 줌
-// @Scheduled(cron = "0 * * * * *")
+ @Scheduled(cron = "0 0 0 * * *", zone = "Asia/Seoul")
 public void sendHomeNotificationToAll() {
     List<Notification> notifications = notificationRepository.findAll();
     for(Notification notification:notifications) {
-	if(notification.getNotificationType()==1) {
-	    sendHomeNotification(notification.getUserEmail());
+	if(notification.getNotificationType().equals(NotificationType.DIARY.toString())) {
+	    sendHomeNotification(notification.getUserEmail(),NotificationType.DIARY);
+	} else if(notification.getNotificationType().equals(NotificationType.WHISPER.toString())) {
+	    sendHomeNotification(notification.getUserEmail(),NotificationType.WHISPER);
 	}
     }
 }
 
 
-    public void sendHomeNotification(String userEmail) {
+    public void sendHomeNotification(String userEmail, NotificationType type) {
 	// notification entity에서 값을 받아와 가지고, 알림 타입과 알림 상태가 일치하면 지정 알림 시간을 등록하여, 알림을 전송 
 	Map<Object, Object> param =  findByUserEmail(userEmail);
 	User user = (User)param.get("user");
@@ -136,31 +141,32 @@ public void sendHomeNotificationToAll() {
 	Notification notification = new Notification();
 	
 	for(Notification not : notifications) {
-	    if(not.getNotificationType()==1 && not.isNotificationStatus()) {
+	    if(not.getNotificationType().equals(type.toString()) && not.isNotificationStatus()) {
 		notification= not;
 		updated = true;
-	    }
+	    } 
 	} 
 	  if(!updated) throw new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND);
-	  
-	  System.out.println(notification.toString());
 	  
 	String hours = notification.getNotificationDiaryTime().toString().split(":")[0];
 	String minutes = notification.getNotificationDiaryTime().toString().split(":")[1];
 	String cronText = minutes+" "+hours+" * * * *";
+
 	// cronText : 0 0 1 2 * *로 나타나고, 매일 정각 열두시를 의미
 	UserToken token = (UserToken)param.get("token");
 	
-	FcmNotificationRequest diary = new FcmNotificationRequest().sendForDiary(token.getTokenValue());
-	FcmNotificationRequest whisper = new FcmNotificationRequest().sendForWhisper(token.getTokenValue());
+	FcmNotificationRequest request = new FcmNotificationRequest();
+	if(type==NotificationType.DIARY) {
+	    request.sendForDiary(token.getTokenValue());
+	} else if(type==NotificationType.WHISPER) {
+	    request.sendForWhisper(token.getTokenValue());
+	}
 
 	taskScheduler.schedule(() -> {
             try {
         	log.info("ing");
-                sendMessageTo(diary);
-                log.info(diary.getTitle()+":"+diary.getBody());
-                sendMessageTo(whisper);
-                log.info(whisper.getTitle()+":"+whisper.getBody());
+                sendMessageTo(request);
+                log.info(request.getTitle()+":"+request.getBody());
             } catch (Exception e) {
                 Message message = new Message(e,null);
               System.out.println("error:"+message);
@@ -171,14 +177,14 @@ public void sendHomeNotificationToAll() {
     }
     
     // diary only 
-    public void dailyDiaryNotification(String userEmail) {
+    public void dailyDiaryNotification(String userEmail, NotificationType type) {
 	// notification entity에서 값을 받아와 가지고, 알림 타입과 알림 상태가 일치하면 지정 알림 시간을 등록하여, 알림을 전송 
 	Map<Object, Object> param =  findByUserEmail(userEmail);
 	List<Notification> notifications = (List<Notification>)param.get("notification");
 	Notification notification = new Notification();
 	
 	for(Notification not : notifications) {
-	    if(not.getNotificationType()==1) {
+	    if(not.getNotificationType().equals(type.toString())) {
 		notification= not;
 	    }
 	}
@@ -201,12 +207,12 @@ public void sendHomeNotificationToAll() {
     }
     
     // 댓글과 좋아요 알림  ... 수정중 
-    public void communityNotificationPush(String userEmail) {
+    public void communityNotificationPush(String userEmail, NotificationType type) {
 	Map<Object, Object> param =  findByUserEmail(userEmail);
 	List<Notification> notifications = (List<Notification>)param.get("notification");
 	Notification notification = new Notification();
 	for(Notification not : notifications) {
-	    if(not.getNotificationType()==2 && not.isNotificationStatus()) {
+	    if(not.getNotificationType().equals(type.toString()) && not.isNotificationStatus()) {
 		notification = not;
 	    }
 	}

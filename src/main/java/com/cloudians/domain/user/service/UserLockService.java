@@ -21,11 +21,9 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class UserLockService {
     
-    @Autowired
-	private UserRepository userRepository;
+	private final UserRepository userRepository;
     
-    @Autowired
-    	private UserLockRepository userLockRepository;
+    	private final UserLockRepository userLockRepository;
     
     private UserLock findUserLockByUserEmail(String userEmail) {
 	UserLock userLock = userLockRepository.findByUserEmail(userEmail)

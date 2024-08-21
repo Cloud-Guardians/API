@@ -1,6 +1,6 @@
 package com.cloudians.domain.user.dto.request;
 
-import java.sql.Time;
+import java.time.LocalTime;
 
 import com.cloudians.domain.user.entity.Notification;
 
@@ -16,8 +16,8 @@ import lombok.NoArgsConstructor;
 public class NotificationRequest {
     private Long notificationId;
     private String userEmail;
-    private Time notificationDiaryTime;
-    private int notificationType;
+    private LocalTime notificationDiaryTime;
+    private String notificationType;
     private String notificationContent;
     private boolean notificationStatus;
     private boolean notificationIsRead;

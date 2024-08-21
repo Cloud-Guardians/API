@@ -1,13 +1,22 @@
 package com.cloudians.global.config;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
-@Configuration
-@EnableAsync
+import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
+import org.springframework.stereotype.Component;
+
+import com.cloudians.domain.home.service.WhisperService;
+import com.cloudians.domain.user.repository.UserRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+@Component
+@Slf4j
+@RequiredArgsConstructor
+@EnableScheduling
 public class SchedulerConfig {
 
     @Bean
@@ -22,4 +31,5 @@ public class SchedulerConfig {
         scheduler.initialize();
         return scheduler;
     }
+    
 }

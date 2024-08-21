@@ -2,8 +2,7 @@ package com.cloudians.domain.user.entity;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-import java.sql.Date;
-import java.sql.Time;
+import java.time.LocalTime;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -30,10 +29,10 @@ public class Notification {
     private String userEmail;
     
     @Column(name="notification_diary_time")
-    private  Time notificationDiaryTime;
+    private  LocalTime notificationDiaryTime;
     
     @Column(name="notification_type")
-    private int notificationType;
+    private String notificationType;
     
     @Column(name="notification_content")
     private  String notificationContent;
@@ -45,7 +44,7 @@ public class Notification {
     private boolean notificationIsRead;
     
     @Builder
-    public Notification(Long notificationId, String userEmail, Time notificationDiaryTime, int notificationType, String notificationContent, boolean notificationStatus, boolean notificationIsRead) {
+    public Notification(Long notificationId, String userEmail, LocalTime notificationDiaryTime, String notificationType, String notificationContent, boolean notificationStatus, boolean notificationIsRead) {
 	this.notificationId=notificationId;
 	this.userEmail=userEmail;
 	this.notificationDiaryTime=notificationDiaryTime;

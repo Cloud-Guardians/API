@@ -23,6 +23,11 @@ public class WhisperMessageRepositoryImpl {
     public void save(WhisperMessage whisperMessage) {
         whisperMessageJpaRepository.save(whisperMessage);
     }
+public List<WhisperMessage> findListByUser(User user){
+    return q.selectFrom(whisperMessage)
+	   .where(whisperMessage.user.eq(user))
+	   .fetch();
+	   }
 
     public boolean existsByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime questionDateTime, LocalDateTime twentyFourHoursLater) {
         return q.selectFrom(whisperMessage)

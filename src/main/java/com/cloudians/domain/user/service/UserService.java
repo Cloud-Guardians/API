@@ -1,6 +1,7 @@
 package com.cloudians.domain.user.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -37,9 +38,7 @@ public class UserService{
 	private final UserTokenRepository userTokenRepository;
 
 	public User findUserByEmailOrThrow(String userEmail) {
-	    log.info(userEmail+" 들어왔고요.");
 	    Optional<User> us = userRepository.findByUserEmail(userEmail);
-	    log.info(us.toString());
 	   User user = userRepository.findByUserEmail(userEmail)
 			 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
 	   return user;
@@ -143,6 +142,18 @@ public class UserService{
 	    params.put("nickname",nickname);
 	    return params;
 	}
+	
+	// user withdraw
+	public boolean unregisterUser(String userEmail) {
+	    User user = findUserByEmailOrThrow(userEmail);
+	    userRepository.delete(user);
+	    return true;
+	}
+	
+	// 유저 작성글 조회 
+	
+	// 유저 댓글 조회 
+	
 	
 
 

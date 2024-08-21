@@ -1,7 +1,7 @@
 package com.cloudians.domain.publicdiary.controller;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
-import com.cloudians.domain.publicdiary.dto.response.PublicDiaryCreateResponse;
+import com.cloudians.domain.publicdiary.dto.response.PublicDiaryResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryThumbnailResponse;
 import com.cloudians.domain.publicdiary.service.PublicDiaryService;
 import com.cloudians.global.Message;
@@ -18,7 +18,7 @@ public class PublicDiaryController {
 
     @PostMapping()
     public ResponseEntity<Message> createPublicDiary(@RequestParam String userEmail, @RequestParam Long personalDiaryId) {
-        PublicDiaryCreateResponse response = publicDiaryService.createPublicDiary(userEmail, personalDiaryId);
+        PublicDiaryResponse response = publicDiaryService.createPublicDiary(userEmail, personalDiaryId);
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(message);
@@ -36,6 +36,14 @@ public class PublicDiaryController {
         // 전체 게시글 조회
         response = publicDiaryService.getAllPublicDiaries(userEmail, cursor, count);
         return createGetMessagesResponseEntity(response);
+    }
+
+    @GetMapping("/{public-diary-id}")
+    public ResponseEntity<Message> getPublicDiary(@RequestParam String userEmail, @PathVariable("public-diary-id") Long publicDiaryId) {
+        PublicDiaryResponse response = publicDiaryService.getPublicDiary(userEmail, publicDiaryId);
+
+        Message message = new Message(response, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 
     @DeleteMapping("/{public-diary-id}")

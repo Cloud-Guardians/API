@@ -58,4 +58,8 @@ public class PublicDiary extends BaseTimeEntity {
     public void increaseLikeCount() {
         likes++;
     }
+
+    public void updateView(Long views) {
+        this.views = views + 1L;
+    }
 }

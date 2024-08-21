@@ -9,13 +9,10 @@ import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
-import static com.cloudians.domain.home.entity.QWhisperMessage.whisperMessage;
 import static com.cloudians.domain.publicdiary.entity.QPublicDiary.publicDiary;
 
 @Repository
@@ -32,6 +29,10 @@ public class PublicDiaryRepositoryImpl {
 
     public void delete(PublicDiary publicDiary) {
         publicDiaryJpaRepository.delete(publicDiary);
+    }
+
+    public Optional<PublicDiary> findById(Long publicDiaryId) {
+        return publicDiaryJpaRepository.findById(publicDiaryId);
     }
 
     public boolean existsByPersonalDiaryId(Long personalDiaryId) {
@@ -51,25 +52,20 @@ public class PublicDiaryRepositoryImpl {
                 .fetch();
     }
 
-    public List<PublicDiary> findPublicDiariesOrderByCreatedAtDescWithTop3Diaries(Long cursor, Long count) {
-        List<PublicDiary> top3Diaries = findTop3DiariesByLikes(cursor);
+    public List<PublicDiary> publicDiariesOrderByCreatedAtDescWithTop3Diaries(Long cursor, Long count) {
+        List<PublicDiary> top3Diaries = findTop3DiariesByLikes();
         List<PublicDiary> otherDiaries = getLeftPublicDiariesOrderByDesc(cursor, count, top3Diaries);
 
-        List<PublicDiary> result = new ArrayList<>(top3Diaries);
-        result.addAll(otherDiaries);
+        top3Diaries.addAll(otherDiaries);
 
-        return result;
+        return top3Diaries;
     }
 
     private List<PublicDiary> getLeftPublicDiariesOrderByDesc(Long cursor, Long count, List<PublicDiary> top3Diaries) {
         if (top3Diaries.size() == TOP_DIARIES_SIZE) {
-            List<Long> top3DiaryIds = top3Diaries.stream()
-                    .map(PublicDiary::getId)
-                    .collect(Collectors.toList());
-
             return q.selectFrom(publicDiary)
-                    .where(getLt(cursor)
-                            .and(publicDiary.id.notIn(top3DiaryIds)))
+                    .where((publicDiary.notIn(top3Diaries))
+                            .and(getLt(cursor)))
                     .orderBy(publicDiary.createdAt.desc())
                     .limit(count - 2)  // top3Diaries가 3개이므로 (count + 1 - 3)은 count - 2와 동일
                     .fetch();
@@ -77,16 +73,15 @@ public class PublicDiaryRepositoryImpl {
         return Collections.emptyList();
     }
 
-    private List<PublicDiary> findTop3DiariesByLikes(Long cursor) {
+    private List<PublicDiary> findTop3DiariesByLikes() {
         return q.selectFrom(publicDiary)
-                .where(getLt(cursor))
                 .orderBy(publicDiary.likes.desc(), publicDiary.createdAt.desc())
                 .limit(3)
                 .fetch();
     }
 
     private BooleanExpression getLt(Long cursor) {
-        return cursor == null ? null : whisperMessage.id.lt(cursor);
+        return cursor == null ? null : publicDiary.id.lt(cursor);
     }
 
     BooleanExpression isSearchable(SearchType sType, String content) {

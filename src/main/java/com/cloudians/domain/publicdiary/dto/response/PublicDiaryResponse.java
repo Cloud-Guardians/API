@@ -9,7 +9,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
-public class PublicDiaryCreateResponse {
+public class PublicDiaryResponse {
     private Long publicDiaryId;
 
     private String userEmail;
@@ -22,27 +22,35 @@ public class PublicDiaryCreateResponse {
 
     private LocalDate date;
 
+    private Long views;
+
+    private Long likes;
+
     private LocalDateTime createdAt;
 
     @Builder
-    private PublicDiaryCreateResponse(Long publicDiaryId, String userEmail, String title, String content, String photoUrl, LocalDateTime createdAt, LocalDate date) {
+    private PublicDiaryResponse(Long publicDiaryId, String userEmail, String title, String content, String photoUrl, LocalDate date, Long views, Long likes, LocalDateTime createdAt) {
         this.publicDiaryId = publicDiaryId;
         this.userEmail = userEmail;
         this.title = title;
         this.content = content;
         this.photoUrl = photoUrl;
-        this.createdAt = createdAt;
         this.date = date;
+        this.views = views;
+        this.likes = likes;
+        this.createdAt = createdAt;
     }
 
-    public static PublicDiaryCreateResponse of(PublicDiary publicDiary, User user) {
-        return PublicDiaryCreateResponse.builder()
+    public static PublicDiaryResponse of(PublicDiary publicDiary, User user) {
+        return PublicDiaryResponse.builder()
                 .publicDiaryId(publicDiary.getId())
                 .userEmail(user.getUserEmail())
                 .title(publicDiary.getPersonalDiary().getTitle())
                 .content(publicDiary.getPersonalDiary().getContent())
                 .photoUrl(publicDiary.getPersonalDiary().getPhotoUrl())
                 .date(publicDiary.getPersonalDiary().getDate())
+                .views(publicDiary.getViews())
+                .likes(publicDiary.getLikes())
                 .createdAt(publicDiary.getCreatedAt())
                 .build();
     }

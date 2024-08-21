@@ -5,7 +5,7 @@ import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
-import com.cloudians.domain.publicdiary.dto.response.PublicDiaryCreateResponse;
+import com.cloudians.domain.publicdiary.dto.response.PublicDiaryResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryThumbnailResponse;
 import com.cloudians.domain.publicdiary.entity.PublicDiary;
 import com.cloudians.domain.publicdiary.entity.SearchCondition;
@@ -31,7 +31,7 @@ public class PublicDiaryService {
 
     private final UserRepository userRepository;
 
-    public PublicDiaryCreateResponse createPublicDiary(String userEmail, Long personalDiaryId) {
+    public PublicDiaryResponse createPublicDiary(String userEmail, Long personalDiaryId) {
         User user = findUserByUserEmail(userEmail);
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
         validateIfPublicDiaryExists(personalDiaryId);
@@ -39,7 +39,7 @@ public class PublicDiaryService {
         PublicDiary publicDiary = PublicDiary.createPublicDiary(user, personalDiary);
         publicDiaryRepository.save(publicDiary);
 
-        return PublicDiaryCreateResponse.of(publicDiary, user);
+        return PublicDiaryResponse.of(publicDiary, user);
     }
 
     public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getPublicDiariesByKeyword(String userEmail, Long cursor, Long count, String searchType, String keyword) {
@@ -52,7 +52,7 @@ public class PublicDiaryService {
 
     public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getAllPublicDiaries(String userEmail, Long cursor, Long count) {
         findUserByUserEmail(userEmail);
-        List<PublicDiary> publicDiaries = publicDiaryRepository.findPublicDiariesOrderByCreatedAtDescWithTop3Diaries(cursor, count);
+        List<PublicDiary> publicDiaries = publicDiaryRepository.publicDiariesOrderByCreatedAtDescWithTop3Diaries(cursor, count);
 
         return GeneralPaginatedResponse.of(publicDiaries, count, PublicDiary::getId, PublicDiaryThumbnailResponse::of);
     }
@@ -83,5 +83,18 @@ public class PublicDiaryService {
     private User findUserByUserEmail(String userEmail) {
         return userRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+    }
+
+    public PublicDiaryResponse getPublicDiary(String userEmail, Long publicDiaryId) {
+        User user = findUserByUserEmail(userEmail);
+
+        PublicDiary publicDiary = findByIdOrThrow(publicDiaryId);
+        publicDiary.updateView(publicDiary.getViews());
+        return PublicDiaryResponse.of(publicDiary, user);
+    }
+
+    private PublicDiary findByIdOrThrow(Long publicDiaryId) {
+        return publicDiaryRepository.findById(publicDiaryId)
+                .orElseThrow(() -> new PublicDiaryException(PublicDiaryExceptionType.NON_EXIST_PUBLIC_DIARY));
     }
 }

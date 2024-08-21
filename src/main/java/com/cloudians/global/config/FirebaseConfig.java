@@ -24,7 +24,7 @@ public class FirebaseConfig {
 	System.out.println("현재 firebaseApp의 상태는?");
         if (FirebaseApp.getApps().isEmpty()) {
             System.out.println("firebaseApp가 존재하지 않기 때문에 생성해드리겠습니다.");
-            try (InputStream inputStream = new FileInputStream("src/main/resources/cloudians-photo-key.json")) {
+            try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("cloudians-photo-key.json")) {
                 GoogleCredentials credentials = GoogleCredentials.fromStream(inputStream);
                 FirebaseOptions options = new FirebaseOptions.Builder()
                         .setCredentials(credentials)

@@ -23,11 +23,6 @@ public class WhisperMessageRepositoryImpl {
     public void save(WhisperMessage whisperMessage) {
         whisperMessageJpaRepository.save(whisperMessage);
     }
-public List<WhisperMessage> findListByUser(User user){
-    return q.selectFrom(whisperMessage)
-	   .where(whisperMessage.user.eq(user))
-	   .fetch();
-	   }
 
     public boolean existsByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime questionDateTime, LocalDateTime twentyFourHoursLater) {
         return q.selectFrom(whisperMessage)
@@ -64,6 +59,14 @@ public List<WhisperMessage> findListByUser(User user){
                 .limit(count + 1)
                 .orderBy(whisperMessage.timestamp.desc())
                 .fetch();
+    }
+    public List<WhisperMessage> findListByUser(User user){
+	    return q.selectFrom(whisperMessage)
+		   .where(whisperMessage.user.eq(user))
+		   .fetch();
+		   }
+    public List<WhisperMessage> findByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime TimeOfStartMonth, LocalDateTime TimeOfEndMonth) {
+        return whisperMessageJpaRepository.findByUserAndSenderAndTimestampBetween(user, sender, TimeOfStartMonth, TimeOfEndMonth);
     }
 
     private BooleanExpression getLt(Long cursor) {

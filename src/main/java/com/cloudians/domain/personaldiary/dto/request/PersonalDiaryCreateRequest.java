@@ -1,16 +1,17 @@
 package com.cloudians.domain.personaldiary.dto.request;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
-
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
 import com.cloudians.domain.user.entity.User;
-
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Getter
+@NoArgsConstructor
 public class PersonalDiaryCreateRequest {
 
     @NotBlank(message = "제목을 입력해주세요.")

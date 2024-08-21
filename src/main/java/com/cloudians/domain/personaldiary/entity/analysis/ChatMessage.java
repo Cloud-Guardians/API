@@ -3,6 +3,9 @@ package com.cloudians.domain.personaldiary.entity.analysis;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
+import java.io.Serializable;
 
 @Getter
 @NoArgsConstructor

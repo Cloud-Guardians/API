@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 public class PublicDiaryCommentResponse {
     private Long publicDiaryCommentId;
 
-    private String userEmail;
+    private String author;
 
     private String content;
 
@@ -21,9 +21,9 @@ public class PublicDiaryCommentResponse {
     private LocalDateTime updatedAt;
 
     @Builder
-    private PublicDiaryCommentResponse(Long publicDiaryCommentId, String userEmail, String content, Long likes, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private PublicDiaryCommentResponse(Long publicDiaryCommentId, String author, String content, Long likes, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.publicDiaryCommentId = publicDiaryCommentId;
-        this.userEmail = userEmail;
+        this.author = author;
         this.content = content;
         this.likes = likes;
         this.createdAt = createdAt;
@@ -33,7 +33,7 @@ public class PublicDiaryCommentResponse {
     public static PublicDiaryCommentResponse of(PublicDiaryComment publicDiaryComment) {
         return PublicDiaryCommentResponse.builder()
                 .publicDiaryCommentId(publicDiaryComment.getId())
-                .userEmail(publicDiaryComment.getAuthor().getUserEmail())
+                .author(publicDiaryComment.getAuthor().getNickname())
                 .content(publicDiaryComment.getContent())
                 .likes(publicDiaryComment.getLikes())
                 .createdAt(publicDiaryComment.getCreatedAt())

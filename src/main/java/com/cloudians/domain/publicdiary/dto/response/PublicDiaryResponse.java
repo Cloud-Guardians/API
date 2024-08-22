@@ -12,7 +12,7 @@ import java.time.LocalDateTime;
 public class PublicDiaryResponse {
     private Long publicDiaryId;
 
-    private String userEmail;
+    private String author;
 
     private String title;
 
@@ -29,9 +29,9 @@ public class PublicDiaryResponse {
     private LocalDateTime createdAt;
 
     @Builder
-    private PublicDiaryResponse(Long publicDiaryId, String userEmail, String title, String content, String photoUrl, LocalDate date, Long views, Long likes, LocalDateTime createdAt) {
+    private PublicDiaryResponse(Long publicDiaryId, String author, String title, String content, String photoUrl, LocalDate date, Long views, Long likes, LocalDateTime createdAt) {
         this.publicDiaryId = publicDiaryId;
-        this.userEmail = userEmail;
+        this.author = author;
         this.title = title;
         this.content = content;
         this.photoUrl = photoUrl;
@@ -44,7 +44,7 @@ public class PublicDiaryResponse {
     public static PublicDiaryResponse of(PublicDiary publicDiary, User user) {
         return PublicDiaryResponse.builder()
                 .publicDiaryId(publicDiary.getId())
-                .userEmail(user.getUserEmail())
+                .author(user.getNickname())
                 .title(publicDiary.getPersonalDiary().getTitle())
                 .content(publicDiary.getPersonalDiary().getContent())
                 .photoUrl(publicDiary.getPersonalDiary().getPhotoUrl())

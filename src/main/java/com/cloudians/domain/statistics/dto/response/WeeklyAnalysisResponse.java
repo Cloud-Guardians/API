@@ -18,11 +18,11 @@ public class WeeklyAnalysisResponse {
     private String weeklyDate;
     private int totalDiary;
     private int totalAnswer;
-    private int weeklyHappy;
-    private int weeklySad;
-    private int weeklyAngry;
-    private int weeklyUneasy;
-    private int weeklyBoring;
+    private int weeklyJoy;
+    private int weeklySadness;
+    private int weeklyAnger;
+    private int weeklyAnxiety;
+    private int weeklyBoredom;
     
   
     

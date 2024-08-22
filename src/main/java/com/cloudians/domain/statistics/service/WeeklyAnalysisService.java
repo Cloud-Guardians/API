@@ -29,6 +29,8 @@ import com.cloudians.domain.personaldiary.repository.PersonalDiaryAnalysisReposi
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryEmotionRepository;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
 import com.cloudians.domain.statistics.entity.WeeklyAnalysis;
+import com.cloudians.domain.statistics.exception.AnalysisException;
+import com.cloudians.domain.statistics.exception.AnalysisExceptionType;
 import com.cloudians.domain.statistics.repository.WeeklyAnalysisRepository;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
@@ -45,7 +47,7 @@ public class WeeklyAnalysisService {
     private final PersonalDiaryRepository diaryRepository;
     private final PersonalDiaryEmotionRepository emotionRepository;
     private final UserRepository userRepository;
-    private final WhisperMessageJpaRepository whisperJpaRepository;
+    private boolean updated = false;
     private final PersonalDiaryAnalysisRepository personalDiaryAnalysisRepository;
     private final WhisperMessageRepositoryImpl whisperRepository;
     private final FiveElementCharacterRepository fiveElementCharacterRepository;
@@ -92,6 +94,9 @@ public class WeeklyAnalysisService {
  	    weeklyList.add(diary);
  	 }
  	}
+ 	if(weeklyList.isEmpty()) {
+ 	    throw new AnalysisException(AnalysisExceptionType.WEEKLY_ANALYSIS_NOT_FOUND);
+ 	}
  	return weeklyList;
      }
     private List<WhisperMessage> getWhisperList(String userEmail){
@@ -129,18 +134,23 @@ public class WeeklyAnalysisService {
 System.out.println("service start");
 	List<PersonalDiary> diaryList = getWeeklyDiaryList(userEmail,yearMonth,week);
 	System.out.println("list start:"+diaryList.toString());
+	
 	List<String> elementList = new ArrayList<>();
+	
 	for(PersonalDiary diary : diaryList) {
-	    PersonalDiaryAnalysis analysis = personalDiaryAnalysisRepository.findByPersonalDiaryId(diary.getId()).get();
+	    PersonalDiaryAnalysis analysis = personalDiaryAnalysisRepository.findByPersonalDiaryId(diary.getId())
+		    .orElseThrow(()-> new AnalysisException(AnalysisExceptionType. ANALYSIS_NOT_FOUND));
 	    elementList.add(analysis.getFiveElement().getName());
 	}
+	
 	Map<Object, Long> frequencyMap = elementList.stream()
 	            .collect(Collectors.groupingBy(e -> e, Collectors.counting()));
-	System.out.println(frequencyMap.toString());
+	
 	 Optional<Map.Entry<Object, Long>> mostFrequent = frequencyMap.entrySet().stream()
 	            .max(Map.Entry.comparingByValue());
-	 System.out.println(mostFrequent.toString());
-	 Map.Entry<Object, Long> entry = mostFrequent.get();
+	 
+	 Map.Entry<Object, Long> entry = mostFrequent
+		 .orElseThrow(()-> new AnalysisException(AnalysisExceptionType. ELEMENT_LIST_NOT_FOUND));
 	 
 	 if(frequencyMap.size()<3) {
 	     List<Map.Entry<Object, Long>> list = frequencyMap.entrySet().stream()
@@ -163,7 +173,8 @@ System.out.println("service start");
       List<Map.Entry<Object, Long>> elementList =  getWeeklyMostElement(userEmail, yearMonth, week);
       String most = elementList.get(0).getKey().toString();
       FiveElement mostElement = fiveElementRepository.findByName(most).get();
-      List<FiveElementCharacter> mostElementChar = fiveElementCharacterRepository.findRandomCharactersByElementId(mostElement.getId());
+      // List<FiveElementCharacter>로 보내면 Jackson 직렬화 때문에 오류 나서 이렇게 코드 짠 건데 나중에 복습하기 
+      List<String> mostElementChar = fiveElementCharacterRepository.findRandomCharactersByElementId(mostElement.getId()).stream().map(FiveElementCharacter::getCharacter).collect(Collectors.toList());;
       WeeklyAnalysis anal = getOrCreateWeeklyAnalysis(userEmail, yearMonth, String.valueOf(week));
       for(PersonalDiary diary : diaryList) {
 	  PersonalDiaryEmotion emotion = emotionRepository.findPersonalDiaryEmotionByUserAndDate(user, diary.getDate());

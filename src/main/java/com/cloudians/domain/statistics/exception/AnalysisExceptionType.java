@@ -7,6 +7,8 @@ import com.cloudians.global.exception.BaseExceptionType;
 public enum AnalysisExceptionType implements BaseExceptionType {
     MONTHLY_ANALYSIS_NOT_FOUND(404, HttpStatus.NOT_FOUND, "사용자의 월간 통계 내역 조회에 실패하였습니다."),
     WEEKLY_ANALYSIS_NOT_FOUND(404, HttpStatus.NOT_FOUND, "사용자의 주간 통계 내역 조회에 실패하였습니다."),
+    ANALYSIS_NOT_FOUND(404, HttpStatus.NOT_FOUND, "사용자의 분석 조회에 실패하였습니다."),
+    ELEMENT_LIST_NOT_FOUND(404, HttpStatus.NOT_FOUND, "사용자의 기운 목록 조회에 실패하였습니다."),
     ;
     
 

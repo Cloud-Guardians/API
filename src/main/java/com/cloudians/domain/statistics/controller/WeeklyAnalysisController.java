@@ -1,5 +1,7 @@
 package com.cloudians.domain.statistics.controller;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,9 +26,9 @@ public class WeeklyAnalysisController {
     private final WeeklyAnalysisService weeklyService;
     
     @GetMapping("/{year}/{month}/{week}")
-    public ResponseEntity<Message> getMonth(@RequestParam String userEmail, @PathVariable("year") String year, @PathVariable("month") String month, @PathVariable("week") String week){
+    public ResponseEntity<Message> getMonth(@RequestParam("userEmail") String userEmail, @PathVariable("year") String year, @PathVariable("month") String month, @PathVariable("week") String week){
 	String yearMonth = year+month;
-	Object thisMonth = weeklyService.getWeeklyAnalysis(userEmail,yearMonth,week);
+	Map<String, Object> thisMonth = weeklyService.getWeeklyAnalysis(userEmail,yearMonth,week);
 	    Message message = new Message(thisMonth, HttpStatus.OK.value());
 	return ResponseEntity.status(HttpStatus.OK).body(message);
 	

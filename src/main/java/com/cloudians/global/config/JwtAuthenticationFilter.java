@@ -16,8 +16,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.cloudians.domain.auth.dto.request.PrincipalDetails;
 import com.cloudians.domain.auth.dto.request.UserAuthRequest;
-import com.cloudians.domain.auth.service.PrincipalDetails;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 // 스프링 시큐리티에서 UsernamePasswordAuthenticationFilter가 있음

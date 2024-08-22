@@ -16,9 +16,9 @@ import org.springframework.security.web.authentication.www.BasicAuthenticationFi
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.cloudians.domain.auth.dto.request.PrincipalDetails;
 import com.cloudians.domain.auth.dto.request.UserAuthRequest;
 import com.cloudians.domain.auth.repository.UserAuthRepository;
-import com.cloudians.domain.auth.service.PrincipalDetails;
 
 // 시큐리티가 filter 가지고 있는데 그중 BasicAuthenticationFilter가 있음
 // 권한이나 인증 필요한 특정 주소 요청 시 위 필터를 무조건 타게 돼 있음

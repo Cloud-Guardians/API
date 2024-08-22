@@ -1,7 +1,6 @@
 package com.cloudians.domain.user.service;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -12,14 +11,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudians.domain.auth.entity.UserToken;
+import com.cloudians.domain.auth.repository.UserTokenRepository;
 import com.cloudians.domain.user.dto.request.UserRequest;
 import com.cloudians.domain.user.dto.response.UserResponse;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.entity.UserToken;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
-import com.cloudians.domain.user.repository.UserTokenRepository;
 import com.cloudians.global.service.FirebaseService;
 
 import lombok.RequiredArgsConstructor;

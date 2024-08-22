@@ -5,14 +5,18 @@ import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
+import com.cloudians.domain.publicdiary.dto.response.LikeResponse;
+import com.cloudians.domain.publicdiary.dto.response.PaginationLikesResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryThumbnailResponse;
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.publicdiary.entity.diary.SearchCondition;
+import com.cloudians.domain.publicdiary.entity.like.PublicDiaryLikeLink;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
 import com.cloudians.domain.publicdiary.repository.PublicDiaryCommentRepositoryImpl;
+import com.cloudians.domain.publicdiary.repository.PublicDiaryLikeLinkRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
@@ -23,6 +27,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,6 +37,7 @@ public class PublicDiaryService {
     private final PublicDiaryRepositoryImpl publicDiaryRepository;
     private final PublicDiaryCommentRepositoryImpl publicDiaryCommentRepository;
     private final PersonalDiaryRepository personalDiaryRepository;
+    private final PublicDiaryLikeLinkRepositoryImpl publicDiaryLikeLinkRepository;
 
     private final UserRepository userRepository;
 
@@ -95,6 +101,30 @@ public class PublicDiaryService {
         publicDiaryRepository.delete(publicDiary);
         List<PublicDiaryComment> commentsInPublicDiary = publicDiaryCommentRepository.findByPublicDiary(publicDiary);
         publicDiaryCommentRepository.deleteAll(commentsInPublicDiary);
+    }
+
+    public LikeResponse toggleLike(String userEmail, Long publicDiaryId) {
+        User user = findUserByUserEmail(userEmail);
+
+        PublicDiary publicDiary = findByIdOrThrow(publicDiaryId);
+        Optional<PublicDiaryLikeLink> existingLike = publicDiaryLikeLinkRepository.findByPublicDiaryAndUser(publicDiary, user);
+        if (existingLike.isPresent()) {
+            publicDiaryLikeLinkRepository.delete(existingLike.get());
+            publicDiary.decreaseLikeCount();
+            return LikeResponse.of(existingLike.get(), false);
+        } else {
+            PublicDiaryLikeLink publicDiaryLikeLink = PublicDiaryLikeLink.toEntity(publicDiary, user);
+            publicDiaryLikeLinkRepository.save(publicDiaryLikeLink);
+            publicDiary.increaseLikeCount();
+            return LikeResponse.of(publicDiaryLikeLink, true);
+        }
+    }
+
+    public GeneralPaginatedResponse<PaginationLikesResponse> countLikes(Long cursor, Long count, Long publicDiaryId) {
+        publicDiaryRepository.findById(publicDiaryId);
+
+        List<PublicDiaryLikeLink> likes = publicDiaryLikeLinkRepository.findPublicDiaryLikesOrderByDesc(cursor, count, publicDiaryId);
+        return GeneralPaginatedResponse.of(likes, count, PublicDiaryLikeLink::getId, PaginationLikesResponse::from);
     }
 
     private void validateIfPublicDiaryExists(Long personalDiaryId) {

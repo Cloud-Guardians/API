@@ -49,7 +49,7 @@ public class PublicDiaryThumbnailResponse {
                 .timestamp(publicDiary.getCreatedAt())
                 .photoUrl(publicDiary.getPersonalDiary().getPhotoUrl())
                 .totalCommentsCount(totalCommentsCount)
-                //TODO: likeCount 추가
+                .totalLikeCount(publicDiary.getLikes())
                 .views(publicDiary.getViews())
                 .build();
     }

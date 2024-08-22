@@ -1,6 +1,8 @@
 package com.cloudians.domain.publicdiary.controller;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
+import com.cloudians.domain.publicdiary.dto.response.LikeResponse;
+import com.cloudians.domain.publicdiary.dto.response.PaginationLikesResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryThumbnailResponse;
 import com.cloudians.domain.publicdiary.service.PublicDiaryService;
@@ -17,7 +19,8 @@ public class PublicDiaryController {
     private final PublicDiaryService publicDiaryService;
 
     @PostMapping()
-    public ResponseEntity<Message> createPublicDiary(@RequestParam String userEmail, @RequestParam Long personalDiaryId) {
+    public ResponseEntity<Message> createPublicDiary(@RequestParam String userEmail,
+                                                     @RequestParam Long personalDiaryId) {
         PublicDiaryResponse response = publicDiaryService.createPublicDiary(userEmail, personalDiaryId);
         Message message = new Message(response, HttpStatus.CREATED.value());
 
@@ -25,7 +28,9 @@ public class PublicDiaryController {
     }
 
     @GetMapping()
-    public ResponseEntity<Message> getPublicDiaries(@RequestParam String userEmail, @RequestParam(required = false) Long cursor, @RequestParam(defaultValue = "10") Long count, @RequestParam(required = false) String searchType, @RequestParam(required = false) String keyword) {
+    public ResponseEntity<Message> getPublicDiaries(@RequestParam String userEmail,
+                                                    @RequestParam(required = false) Long cursor,
+                                                    @RequestParam(defaultValue = "10") Long count, @RequestParam(required = false) String searchType, @RequestParam(required = false) String keyword) {
         GeneralPaginatedResponse<PublicDiaryThumbnailResponse> response;
         // keyword 검색
         if (keyword != null && !keyword.isEmpty()) {
@@ -39,7 +44,8 @@ public class PublicDiaryController {
     }
 
     @GetMapping("/{public-diary-id}")
-    public ResponseEntity<Message> getPublicDiary(@RequestParam String userEmail, @PathVariable("public-diary-id") Long publicDiaryId) {
+    public ResponseEntity<Message> getPublicDiary(@RequestParam String userEmail,
+                                                  @PathVariable("public-diary-id") Long publicDiaryId) {
         PublicDiaryResponse response = publicDiaryService.getPublicDiary(userEmail, publicDiaryId);
 
         Message message = new Message(response, HttpStatus.OK.value());
@@ -47,12 +53,35 @@ public class PublicDiaryController {
     }
 
     @DeleteMapping("/{public-diary-id}")
-    public ResponseEntity<Message> deletePublicDiary(@RequestParam String userEmail, @PathVariable("public-diary-id") Long publicDiaryId) {
+    public ResponseEntity<Message> deletePublicDiary(@RequestParam String userEmail,
+                                                     @PathVariable("public-diary-id") Long publicDiaryId) {
         publicDiaryService.deletePublicDiary(userEmail, publicDiaryId);
 
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK).body(message);
     }
+
+    @PostMapping("/{public-diary-id}/likes")
+    public ResponseEntity<Message> toggleLike(@RequestParam String userEmail,
+                                              @PathVariable("public-diary-id") Long publicDiaryId) {
+        LikeResponse response = publicDiaryService.toggleLike(userEmail, publicDiaryId);
+
+        Message message = new Message(response, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+    @GetMapping("/{public-diary-id}/likes")
+    public ResponseEntity<Message> countLikes(@RequestParam(required = false) Long cursor,
+                                              @RequestParam(defaultValue = "10") Long count,
+                                              @PathVariable("public-diary-id") Long publicDiaryId) {
+        GeneralPaginatedResponse<PaginationLikesResponse> response = publicDiaryService.countLikes(cursor, count, publicDiaryId);
+
+        Message message = new Message(response, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
 
     private ResponseEntity<Message> createGetMessagesResponseEntity(GeneralPaginatedResponse<PublicDiaryThumbnailResponse> response) {
         Message message = new Message(response, HttpStatus.OK.value());

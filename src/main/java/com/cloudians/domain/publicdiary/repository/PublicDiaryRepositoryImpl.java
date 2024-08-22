@@ -53,7 +53,7 @@ public class PublicDiaryRepositoryImpl {
     }
 
     public List<PublicDiary> publicDiariesOrderByCreatedAtDescWithTop3Diaries(Long cursor, Long count) {
-        List<PublicDiary> top3Diaries = findTop3DiariesByLikes();
+        List<PublicDiary> top3Diaries = findTop3DiariesByLikes(cursor);
         List<PublicDiary> otherDiaries = getLeftPublicDiariesOrderByDesc(cursor, count, top3Diaries);
 
         top3Diaries.addAll(otherDiaries);
@@ -67,14 +67,15 @@ public class PublicDiaryRepositoryImpl {
                     .where((publicDiary.notIn(top3Diaries))
                             .and(getLt(cursor)))
                     .orderBy(publicDiary.createdAt.desc())
-                    .limit(count - 2)  // top3Diaries가 3개이므로 (count + 1 - 3)은 count - 2와 동일
+                    .limit(count - 2)
                     .fetch();
         }
         return Collections.emptyList();
     }
 
-    private List<PublicDiary> findTop3DiariesByLikes() {
+    private List<PublicDiary> findTop3DiariesByLikes(Long cursor) {
         return q.selectFrom(publicDiary)
+                .where(getLt(cursor))
                 .orderBy(publicDiary.likes.desc(), publicDiary.createdAt.desc())
                 .limit(3)
                 .fetch();

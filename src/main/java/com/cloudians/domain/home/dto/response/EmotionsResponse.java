@@ -6,6 +6,7 @@ import lombok.Getter;
 
 @Getter
 public class EmotionsResponse {
+    private Long emotionId;
 
     private int joy;
 
@@ -18,7 +19,8 @@ public class EmotionsResponse {
     private int boredom;
 
     @Builder
-    private EmotionsResponse(int joy, int sadness, int anger, int anxiety, int boredom) {
+    private EmotionsResponse(Long emotionId, int joy, int sadness, int anger, int anxiety, int boredom) {
+        this.emotionId = emotionId;
         this.joy = joy;
         this.sadness = sadness;
         this.anger = anger;
@@ -28,6 +30,7 @@ public class EmotionsResponse {
 
     public static EmotionsResponse of(PersonalDiaryEmotion emotion) {
         return EmotionsResponse.builder()
+                .emotionId(emotion.getId())
                 .joy(emotion.getJoy())
                 .sadness(emotion.getSadness())
                 .anger(emotion.getAnger())

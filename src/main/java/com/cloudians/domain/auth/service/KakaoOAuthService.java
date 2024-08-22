@@ -1,11 +1,12 @@
 package com.cloudians.domain.auth.service;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-
-import javax.servlet.http.HttpServletResponse;
-
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.cloudians.domain.auth.dto.request.OAuthToken;
+import com.cloudians.domain.auth.dto.request.PrincipalDetails;
+import com.cloudians.domain.auth.dto.request.UserAuthRequest;
+import com.cloudians.domain.auth.repository.UserAuthRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -24,13 +25,10 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.cloudians.domain.auth.dto.request.OAuthToken;
-import com.cloudians.domain.auth.dto.request.PrincipalDetails;
-import com.cloudians.domain.auth.dto.request.UserAuthRequest;
-import com.cloudians.domain.auth.repository.UserAuthRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Map;
 
 
 @Service
@@ -44,7 +42,7 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
 
     @Autowired
     private AuthTokenService authTokenService;
-    
+
     public OAuth2User handleKakaoLogin(String code) {
         String accessToken = requestAccessToken(code);
         if (accessToken == null) {
@@ -74,16 +72,16 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
                     .status(1)
                     .build();
             userAuthRepository.save(userEntity);
-        }   
+        }
 
         // JWT 토큰 발급
         String jwtToken = generateJwtToken(userEntity);
-        
+
         String refreshToken = authTokenService.generateRefreshToken(userEntity.getUserEmail());
-        
+
         authTokenService.saveRefreshToken(userEntity.getUserEmail(), jwtToken, refreshToken);
 
-        
+
         // JWT 토큰을 응답 헤더에 추가
         HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
         if (response != null) {
@@ -107,7 +105,7 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
         params.add("scope", "account_email");
 
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(params, headers);
-        
+
         ResponseEntity<String> response;
         try {
             response = rt.exchange(
@@ -121,9 +119,9 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
                 // JSON 파싱
                 ObjectMapper objectMapper = new ObjectMapper();
                 OAuthToken oauthToken = objectMapper.readValue(response.getBody(), OAuthToken.class);
-                System.out.println("사용자 액세스 토큰: "+oauthToken);
+                System.out.println("사용자 액세스 토큰: " + oauthToken);
                 return oauthToken.getAccess_token(); // 토큰 반환
-                
+
             } else {
                 // 실패한 경우 로그 출력
                 System.err.println("Kakao API 호출 실패: " + response.getStatusCode());
@@ -137,9 +135,9 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
     }
 
 
-   public OAuth2User fetchKakaoUserInfo(String accessToken) {
+    public OAuth2User fetchKakaoUserInfo(String accessToken) {
         RestTemplate restTemplate = new RestTemplate();
-        
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-Type", "application/json");
@@ -148,10 +146,10 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
 
         try {
             ResponseEntity<String> response = restTemplate.exchange(
-                "https://kapi.kakao.com/v2/user/me", 
-                HttpMethod.GET, 
-                entity, 
-                String.class
+                    "https://kapi.kakao.com/v2/user/me",
+                    HttpMethod.GET,
+                    entity,
+                    String.class
             );
 
             if (response.getStatusCode().is2xxSuccessful()) {
@@ -178,16 +176,15 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
     }
 
 
-
     public String generateJwtToken(UserAuthRequest userEntity) {
         String jwtToken = JWT.create()
                 .withSubject("jwt token")
                 .withExpiresAt(new Date(System.currentTimeMillis() + (60000 * 10))) // 10분 후 만료
                 .withClaim("userEmail", userEntity.getUserEmail())
                 .sign(Algorithm.HMAC512("jwt"));
-        
+
         System.out.println("생성된 JWT 토큰: " + jwtToken); // JWT 토큰 출력
-        
+
         return jwtToken;
 
 

@@ -1,14 +1,5 @@
 package com.cloudians.domain.auth.service;
 
-import java.time.LocalDateTime;
-import java.util.Date;
-import java.util.Map;
-import java.util.Optional;
-
-import org.apache.http.auth.InvalidCredentialsException;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.cloudians.domain.auth.dto.request.UserAuthRequest;
@@ -16,6 +7,14 @@ import com.cloudians.domain.auth.entity.UserToken;
 import com.cloudians.domain.auth.repository.UserAuthRepository;
 import com.cloudians.domain.auth.repository.UserTokenRepository;
 import com.cloudians.domain.auth.util.JwtUtil;
+import org.apache.http.auth.InvalidCredentialsException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
+import java.util.Date;
+import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class AuthTokenService {
@@ -50,7 +49,7 @@ public class AuthTokenService {
         }
         return false;
     }
-    
+
     private String generateAccessToken(String userEmail) {
         return JWT.create()
                 .withSubject("jwt token")
@@ -122,9 +121,10 @@ public class AuthTokenService {
             throw new RuntimeException("액세스 토큰이 유효하지 않거나 만료되었습니다.");
         }
     }
+
     public void saveRefreshToken(String userEmail, String jwtToken, String refreshToken) {
-        LocalDateTime jwtTokenExpiresAt = LocalDateTime.now().plusMinutes(10); 
-        LocalDateTime refreshTokenExpiresAt = LocalDateTime.now().plusDays(30); 
+        LocalDateTime jwtTokenExpiresAt = LocalDateTime.now().plusMinutes(10);
+        LocalDateTime refreshTokenExpiresAt = LocalDateTime.now().plusDays(30);
 
         saveToken(userEmail, jwtToken, "jwt", jwtTokenExpiresAt);
         saveToken(userEmail, refreshToken, "jwt rf", refreshTokenExpiresAt);

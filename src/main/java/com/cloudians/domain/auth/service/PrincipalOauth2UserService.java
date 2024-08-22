@@ -1,9 +1,10 @@
 package com.cloudians.domain.auth.service;
 
-import java.util.Date;
-
-import javax.servlet.http.HttpServletResponse;
-
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.cloudians.domain.auth.dto.request.PrincipalDetails;
+import com.cloudians.domain.auth.dto.request.UserAuthRequest;
+import com.cloudians.domain.auth.repository.UserAuthRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -14,11 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.cloudians.domain.auth.dto.request.PrincipalDetails;
-import com.cloudians.domain.auth.dto.request.UserAuthRequest;
-import com.cloudians.domain.auth.repository.UserAuthRepository;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 
 @Service
 public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
@@ -42,7 +40,7 @@ public class PrincipalOauth2UserService extends DefaultOAuth2UserService {
 
         System.out.println("Attempting to log in via OAuth2 for user: " + userEmail);
 
-        
+
         if (userEntity == null) {
             // 새로운 사용자 등록 (비밀번호 필드 없음)
             userEntity = UserAuthRequest.builder()

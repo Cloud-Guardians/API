@@ -12,4 +12,6 @@ public interface PublicDiaryCommentJpaRepository extends JpaRepository<PublicDia
     Optional<PublicDiaryComment> findByIdAndAuthor(Long publicDiaryId, User author);
 
     List<PublicDiaryComment> findByPublicDiary(PublicDiary publicDiary);
+
+    List<PublicDiaryComment> deletePublicDiaryCommentByParentCommentId(Long parentCommentId);
 }

@@ -2,7 +2,9 @@ package com.cloudians.domain.publicdiary.controller;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
 import com.cloudians.domain.publicdiary.dto.request.EditPublicDiaryCommentRequest;
+import com.cloudians.domain.publicdiary.dto.request.WriteChildCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.WritePublicDiaryCommentRequest;
+import com.cloudians.domain.publicdiary.dto.response.ChildCommentResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryCommentResponse;
 import com.cloudians.domain.publicdiary.service.PublicDiaryCommentService;
 import com.cloudians.global.Message;
@@ -61,6 +63,60 @@ public class PublicDiaryCommentController {
                                                  @PathVariable("public-diary-id") Long publicDiaryId,
                                                  @PathVariable("public-diary-comment-id") Long publicDiaryCommentId) {
         publicDiaryCommentService.deleteComment(userEmail, publicDiaryId, publicDiaryCommentId);
+
+        Message message = new Message(null, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+    // 대댓글
+    @PostMapping("{parent-comment-id}")
+    public ResponseEntity<Message> writeChildComment(@RequestParam String userEmail,
+                                                     @PathVariable("public-diary-id") Long publicDiaryId,
+                                                     @PathVariable("parent-comment-id") Long parentCommentId,
+                                                     @RequestBody @Valid WriteChildCommentRequest request) {
+
+        ChildCommentResponse response = publicDiaryCommentService.writeChildComment(userEmail, publicDiaryId, parentCommentId, request);
+
+        Message message = new Message(response, HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(message);
+    }
+
+    @GetMapping("{parent-comment-id}")
+    public ResponseEntity<Message> getAllChildComments(@RequestParam(required = false) Long cursor,
+                                                       @RequestParam(defaultValue = "20") Long count,
+                                                       @PathVariable("public-diary-id") Long publicDiaryId,
+                                                       @PathVariable("parent-comment-id") Long parentCommentId) {
+
+        GeneralPaginatedResponse<ChildCommentResponse> response = publicDiaryCommentService.getAllChildComments(cursor, count, publicDiaryId, parentCommentId);
+
+        Message message = new Message(response, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+    @PutMapping("/{parent-comment-id}/{child-comment-id}")
+    public ResponseEntity<Message> editChildComment(@RequestParam String userEmail,
+                                                    @PathVariable("public-diary-id") Long publicDiaryId,
+                                                    @PathVariable("parent-comment-id") Long parentCommentId,
+                                                    @PathVariable("child-comment-id") Long childCommentId,
+                                                    @RequestBody EditPublicDiaryCommentRequest request) {
+
+        ChildCommentResponse response = publicDiaryCommentService.editChildComment(userEmail, publicDiaryId, parentCommentId, childCommentId, request);
+
+        Message message = new Message(response, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+    @DeleteMapping("/{parent-comment-id}/{child-comment-id}")
+    public ResponseEntity<Message> deleteChildComment(@RequestParam String userEmail,
+                                                      @PathVariable("public-diary-id") Long publicDiaryId,
+                                                      @PathVariable("parent-comment-id") Long parentCommentId,
+                                                      @PathVariable("child-comment-id") Long childCommentId) {
+
+        publicDiaryCommentService.deleteChildComment(userEmail, publicDiaryId, parentCommentId, childCommentId);
 
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)

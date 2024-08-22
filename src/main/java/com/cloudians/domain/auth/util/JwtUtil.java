@@ -1,4 +1,4 @@
-package com.cloudians.domain.auth.service;
+package com.cloudians.domain.auth.util;
 import java.util.Date;
 
 import com.auth0.jwt.JWT;

@@ -219,7 +219,7 @@ public class PersonalDiaryService {
         return lines[index].split(ANSWER_START_REGEX)[1].trim();
     }
 
-    private List<String> getElementCharacters(FiveElement element) {
+    public List<String> getElementCharacters(FiveElement element) {
         return fiveElementCharacterRepository.findRandomCharactersByElementId(element.getId()).stream().map(FiveElementCharacter::getCharacter).collect(Collectors.toList());
     }
 

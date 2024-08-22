@@ -19,4 +19,3 @@ public class ChatMessage {
         this.content = content;
     }
 }
-

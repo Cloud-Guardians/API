@@ -2,8 +2,8 @@ package com.cloudians.domain.user.controller;
 
 import java.io.IOException;
 import java.sql.Time;
+import java.time.LocalTime;
 
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -11,13 +11,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cloudians.domain.user.dto.request.FcmNotificationRequest;
-import com.cloudians.domain.user.dto.request.NotificationRequest;
 import com.cloudians.domain.user.dto.response.NotificationResponse;
+import com.cloudians.domain.user.entity.NotificationType;
 import com.cloudians.domain.user.service.FcmNotificationService;
 import com.cloudians.global.Message;
 
@@ -58,7 +57,6 @@ public class FcmNotificationController {
     @PostMapping("/v1/fcm/sendDaily")
     public ResponseEntity<Message> pushDailyMessage(@RequestParam String userEmail) throws IOException{
 	log.debug("[+] send to push message");
-	    fcmService.sendHomeNotification(userEmail);
 	    return successMessage(userEmail);}
     
     @GetMapping("/v1/fcm/token")
@@ -72,34 +70,62 @@ public class FcmNotificationController {
 	
 	// 커뮤니티 알림 조회
 	
-	
-	// 홈 알림 등록 시 자동으로 .. 진행되게 해야겠네
-    
-	@PostMapping("/home-notification")
-	ResponseEntity<Message> insertHomeNotification(@RequestParam String userEmail, Time time){
-	    NotificationResponse response =    fcmService.insertHomeNotification(userEmail,(Time)time);
-	    fcmService.sendHomeNotification(userEmail);
+
+	@PostMapping("/whisper-notification")
+	ResponseEntity<Message> insertWhisperNotification(@RequestParam String userEmail, LocalTime time){
+	    NotificationResponse response =    fcmService.insertHomeNotification(userEmail,NotificationType.WHISPER,time);
+	    fcmService.sendHomeNotification(userEmail,NotificationType.WHISPER);
 	    return successMessage(response);
 	}
 	
-	// 홈 알림 삭제
-    	@DeleteMapping("/home-notification")
-    	ResponseEntity<Message> deleteHomeNotification(@RequestParam String userEmail){
-    	fcmService.deleteHomeNotification(userEmail);
+	// whisper 알림 삭제
+    	@DeleteMapping("/whisper-notification")
+    	ResponseEntity<Message> deleteWhisperNotification(@RequestParam String userEmail){
+    	fcmService.deleteHomeNotification(userEmail,NotificationType.WHISPER);
+    	return successMessage("done");
+    	}
+    	
+	@PutMapping("/whisper-notification")
+    	ResponseEntity<Message> changeWhisperNotification(@RequestParam String userEmail, LocalTime changeTime){
+    	    fcmService.changeHomeNotification(userEmail, NotificationType.WHISPER, changeTime);
+    	    return successMessage(userEmail+changeTime);
+    	}
+	
+	// 다이어리 알림 토글
+    	@PutMapping("/whisper-notification-toggle")
+    	ResponseEntity<Message> changeWhisperNotificationToggle(@RequestParam String userEmail){
+    	    fcmService.toggleHomeNotification(userEmail,NotificationType.WHISPER);
+    	    return successMessage(userEmail);
+    	}
+    	
+	
+    
+	// diary notification
+	@PostMapping("/diary-notification")
+	ResponseEntity<Message> insertDiaryNotification(@RequestParam String userEmail, LocalTime time){
+	    NotificationResponse response =    fcmService.insertHomeNotification(userEmail,NotificationType.DIARY,time);
+	    fcmService.sendHomeNotification(userEmail,NotificationType.DIARY);
+	    return successMessage(response);
+	}
+	
+	// 다이어리 알림 삭제
+    	@DeleteMapping("/diary-notification")
+    	ResponseEntity<Message> deleteDiaryNotification(@RequestParam String userEmail){
+    	fcmService.deleteHomeNotification(userEmail,NotificationType.DIARY);
     	return successMessage("done");
     	}
 	
-	// 홈 알림 수정
-    	@PutMapping("/home-notification")
-    	ResponseEntity<Message> changeHomeNotification(@RequestParam String userEmail, Time changeTime){
-    	    fcmService.changeHomeNotification(userEmail, changeTime);
+	// 다이어리 알림 수정
+    	@PutMapping("/diary-notification")
+    	ResponseEntity<Message> changeDiaryNotification(@RequestParam String userEmail, LocalTime changeTime){
+    	    fcmService.changeHomeNotification(userEmail, NotificationType.DIARY, changeTime);
     	    return successMessage(userEmail+changeTime);
     	}
     	
-    	// 홈 알림 토글
-    	@PutMapping("/home-notification-toggle")
-    	ResponseEntity<Message> changeHomeNotificationToggle(@RequestParam String userEmail){
-    	    fcmService.toggleHomeNotification(userEmail);
+    	// 다이어리 알림 토글
+    	@PutMapping("/diary-notification-toggle")
+    	ResponseEntity<Message> changeDiaryNotificationToggle(@RequestParam String userEmail){
+    	    fcmService.toggleHomeNotification(userEmail,NotificationType.DIARY);
     	    return successMessage(userEmail);
     	}
 

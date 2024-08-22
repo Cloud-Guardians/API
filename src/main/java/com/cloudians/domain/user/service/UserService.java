@@ -1,6 +1,7 @@
 package com.cloudians.domain.user.service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -22,8 +23,10 @@ import com.cloudians.domain.user.repository.UserTokenRepository;
 import com.cloudians.global.service.FirebaseService;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 @Transactional
 public class UserService{
@@ -35,6 +38,7 @@ public class UserService{
 	private final UserTokenRepository userTokenRepository;
 
 	public User findUserByEmailOrThrow(String userEmail) {
+	    Optional<User> us = userRepository.findByUserEmail(userEmail);
 	   User user = userRepository.findByUserEmail(userEmail)
 			 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
 	   return user;
@@ -138,6 +142,18 @@ public class UserService{
 	    params.put("nickname",nickname);
 	    return params;
 	}
+	
+	// user withdraw
+	public boolean unregisterUser(String userEmail) {
+	    User user = findUserByEmailOrThrow(userEmail);
+	    userRepository.delete(user);
+	    return true;
+	}
+	
+	// 유저 작성글 조회 
+	
+	// 유저 댓글 조회 
+	
 	
 
 

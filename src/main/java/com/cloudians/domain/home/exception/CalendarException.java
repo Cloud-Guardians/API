@@ -1,11 +1,12 @@
-package com.cloudians.domain.user.exception;
+package com.cloudians.domain.home.exception;
 
 import com.cloudians.global.exception.BaseException;
 import com.cloudians.global.exception.BaseExceptionType;
+
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public class UserException extends BaseException {
+public class CalendarException extends BaseException {
 
     private final BaseExceptionType exceptionType;
 

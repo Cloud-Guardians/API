@@ -39,9 +39,7 @@ public class FirebaseController {
 	
     private static final String FIREBASE_API_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyCRa6O8ERHxL_9CmWJeJyUKcxMgDxH65-A";
 	private final FirebaseService firebaseService;
-	private final FcmNotificationService notiService;
-	private UserService userService;
-	private FirebaseAuth fireAuth;
+
 
 	public ResponseEntity<Message> errorMessage (Exception e){
 	    System.out.println(e);

@@ -1,5 +1,15 @@
 package com.cloudians.domain.home.service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.YearMonth;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.cloudians.domain.home.dto.response.CalendarResponse;
 import com.cloudians.domain.home.dto.response.EmotionsResponse;
 import com.cloudians.domain.home.entity.SenderType;
@@ -15,6 +25,7 @@ import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +36,7 @@ import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -80,7 +92,7 @@ public class CalendarService {
 
     private List<PersonalDiary> getPersonalDiariesOrThrow(User user, LocalDate startOfMonth, LocalDate endOfMonth) {
         return personalDiaryRepository.findPersonalDiaryByUserAndDateBetweenOrderByDate(user, startOfMonth, endOfMonth)
-                .orElseThrow(() -> new CalenderException(CalenderExceptionType.NO_MORE_DATA));
+                .orElseThrow(() -> new CalendarException(CalendarExceptionType.NO_MORE_DATA));
     }
 
     private User findUserByUserEmail(String userEmail) {
@@ -88,3 +100,4 @@ public class CalendarService {
                 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
     }
 }
+

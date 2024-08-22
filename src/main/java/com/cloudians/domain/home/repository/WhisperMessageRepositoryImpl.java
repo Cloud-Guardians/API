@@ -60,6 +60,11 @@ public class WhisperMessageRepositoryImpl {
                 .orderBy(whisperMessage.timestamp.desc())
                 .fetch();
     }
+    public List<WhisperMessage> findListByUser(User user){
+	    return q.selectFrom(whisperMessage)
+		   .where(whisperMessage.user.eq(user))
+		   .fetch();
+		   }
 
     public List<WhisperMessage> findByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime TimeOfStartMonth, LocalDateTime TimeOfEndMonth) {
         return whisperMessageJpaRepository.findByUserAndSenderAndTimestampBetween(user, sender, TimeOfStartMonth, TimeOfEndMonth);

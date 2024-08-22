@@ -5,7 +5,6 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
-
 @Getter
 public class CalendarResponse {
     private Long personalDiaryId;
@@ -37,3 +36,4 @@ public class CalendarResponse {
                 .build();
     }
 }
+

@@ -1,19 +1,17 @@
-package com.cloudians.domain.user.exception;
+package com.cloudians.domain.home.exception;
 
 import com.cloudians.global.exception.BaseExceptionType;
 import org.springframework.http.HttpStatus;
 
-public enum UserExceptionType implements BaseExceptionType {
-    USER_NOT_FOUND(401, HttpStatus.UNAUTHORIZED, "존재하지 않는 회원입니다.");
-
-
+public enum CalendarExceptionType implements BaseExceptionType {
+    NO_MORE_DATA(400, HttpStatus.BAD_REQUEST, "더이상 가져올 데이터가 없습니다.");
 
 
     private final int statusCode;
     private final HttpStatus httpStatus;
     private final String errorMessage;
 
-    UserExceptionType(int statusCode, HttpStatus httpStatus, String errorMessage) {
+    CalendarExceptionType(int statusCode, HttpStatus httpStatus, String errorMessage) {
         this.statusCode = statusCode;
         this.httpStatus = httpStatus;
         this.errorMessage = errorMessage;

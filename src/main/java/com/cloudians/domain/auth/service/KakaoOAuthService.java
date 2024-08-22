@@ -73,14 +73,14 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
                     .status(1)
                     .build();
             userAuthRepository.save(userEntity);
-        }
+        }   
 
         // JWT 토큰 발급
         String jwtToken = generateJwtToken(userEntity);
         
         String refreshToken = authTokenService.generateRefreshToken(userEntity.getUserEmail());
         
-        authTokenService.saveRefreshToken(userEntity.getUserEmail(), refreshToken);
+        authTokenService.saveRefreshToken(userEntity.getUserEmail(), jwtToken, refreshToken);
 
         
         // JWT 토큰을 응답 헤더에 추가
@@ -92,7 +92,7 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
         return new PrincipalDetails(userEntity, oauth2User.getAttributes());
     }
 
-    private String requestAccessToken(String code) {
+    public String requestAccessToken(String code) {
         RestTemplate rt = new RestTemplate();
 
         HttpHeaders headers = new HttpHeaders();
@@ -136,7 +136,7 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
     }
 
 
-    private OAuth2User fetchKakaoUserInfo(String accessToken) {
+   public OAuth2User fetchKakaoUserInfo(String accessToken) {
         RestTemplate restTemplate = new RestTemplate();
         
         HttpHeaders headers = new HttpHeaders();
@@ -178,7 +178,7 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
 
 
 
-    private String generateJwtToken(UserAuthRequest userEntity) {
+    public String generateJwtToken(UserAuthRequest userEntity) {
         String jwtToken = JWT.create()
                 .withSubject("jwt token")
                 .withExpiresAt(new Date(System.currentTimeMillis() + (60000 * 10))) // 10분 후 만료

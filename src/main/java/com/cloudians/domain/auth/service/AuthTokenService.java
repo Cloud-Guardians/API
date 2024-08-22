@@ -58,13 +58,13 @@ public class AuthTokenService {
                 .sign(Algorithm.HMAC512("jwt"));
     }
 
-    private String generateRefreshToken(String email) {
+    public String generateRefreshToken(String email) {
         return JWT.create().withSubject("jwt rf token")
                 .withExpiresAt(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 30))) // 30일 후 만료
                 .withClaim("userEmail", email).sign(Algorithm.HMAC512("jwt"));
     }
 
-    private void saveToken(String userEmail, String tokenValue, String tokenType, LocalDateTime expiresAt) {
+    public void saveToken(String userEmail, String tokenValue, String tokenType, LocalDateTime expiresAt) {
         UserToken userToken = new UserToken();
         userToken.setUserEmail(userEmail);
         userToken.setTokenValue(tokenValue);
@@ -121,4 +121,12 @@ public class AuthTokenService {
             throw new RuntimeException("액세스 토큰이 유효하지 않거나 만료되었습니다.");
         }
     }
+    public void saveRefreshToken(String userEmail, String jwtToken, String refreshToken) {
+        LocalDateTime jwtTokenExpiresAt = LocalDateTime.now().plusMinutes(10); 
+        LocalDateTime refreshTokenExpiresAt = LocalDateTime.now().plusDays(30); 
+
+        saveToken(userEmail, jwtToken, "jwt", jwtTokenExpiresAt);
+        saveToken(userEmail, refreshToken, "jwt rf", refreshTokenExpiresAt);
+    }
+
 }

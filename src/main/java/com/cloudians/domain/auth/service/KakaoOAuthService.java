@@ -41,6 +41,9 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
     @Autowired
     private UserAuthRepository userAuthRepository;
 
+    @Autowired
+    private AuthTokenService authTokenService;
+    
     public OAuth2User handleKakaoLogin(String code) {
         String accessToken = requestAccessToken(code);
         if (accessToken == null) {
@@ -74,6 +77,11 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
 
         // JWT 토큰 발급
         String jwtToken = generateJwtToken(userEntity);
+        
+        String refreshToken = authTokenService.generateRefreshToken(userEntity.getUserEmail());
+        
+        authTokenService.saveRefreshToken(userEntity.getUserEmail(), refreshToken);
+
         
         // JWT 토큰을 응답 헤더에 추가
         HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
@@ -172,10 +180,10 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
 
     private String generateJwtToken(UserAuthRequest userEntity) {
         String jwtToken = JWT.create()
-                .withSubject("cos token")
+                .withSubject("jwt token")
                 .withExpiresAt(new Date(System.currentTimeMillis() + (60000 * 10))) // 10분 후 만료
                 .withClaim("userEmail", userEntity.getUserEmail())
-                .sign(Algorithm.HMAC512("cos"));
+                .sign(Algorithm.HMAC512("jwt"));
         
         System.out.println("생성된 JWT 토큰: " + jwtToken); // JWT 토큰 출력
         

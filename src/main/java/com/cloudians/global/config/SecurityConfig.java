@@ -43,6 +43,7 @@ public class SecurityConfig {
                 		"/login/oauth2/code/google",
                 		"/api/auth/kakao",
                 		"/api/oauth/token",
+                		"/api/auth/login",
                 		"/auth/kakao/callback",
                 		"/api/auth/kakao/callback").permitAll()
                 .antMatchers("/api/users/**").hasAnyAuthority("USER", "ADMIN")

@@ -1,4 +1,4 @@
-package com.cloudians.domain.auth.service;
+package com.cloudians.domain.auth.dto.request;
 
 import java.util.ArrayList;
 import java.util.Collection;

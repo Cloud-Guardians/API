@@ -8,6 +8,9 @@ import java.time.LocalDateTime;
 
 @Getter
 public class PublicDiaryThumbnailResponse {
+
+    private Long publicDiaryId;
+
     private String title;
 
     private String content;
@@ -25,7 +28,8 @@ public class PublicDiaryThumbnailResponse {
     private Long views;
 
     @Builder
-    private PublicDiaryThumbnailResponse(String title, String content, String author, LocalDateTime timestamp, String photoUrl, Long totalLikeCount, Long totalCommentsCount, Long views) {
+    private PublicDiaryThumbnailResponse(Long publicDiaryId, String title, String content, String author, LocalDateTime timestamp, String photoUrl, Long totalLikeCount, Long totalCommentsCount, Long views) {
+        this.publicDiaryId = publicDiaryId;
         this.title = title;
         this.content = content;
         this.author = author;
@@ -38,6 +42,7 @@ public class PublicDiaryThumbnailResponse {
 
     public static PublicDiaryThumbnailResponse of(PublicDiary publicDiary) {
         return PublicDiaryThumbnailResponse.builder()
+                .publicDiaryId(publicDiary.getId())
                 .title(publicDiary.getPersonalDiary().getTitle())
                 .content(publicDiary.getPersonalDiary().getContent())
                 .author(publicDiary.getAuthor().getNickname())

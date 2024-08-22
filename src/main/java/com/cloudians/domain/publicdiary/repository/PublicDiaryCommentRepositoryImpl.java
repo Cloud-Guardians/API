@@ -39,12 +39,12 @@ public class PublicDiaryCommentRepositoryImpl {
         return cursor == null ? null : publicDiaryComment.id.lt(cursor);
     }
 
-    public List<PublicDiaryComment> findCommentsOrderByCreatedAtDesc(Long publicDiaryId, Long cursor, Long count) {
+    public List<PublicDiaryComment> findCommentsOrderByCreatedAtAsc(Long publicDiaryId, Long cursor, Long count) {
         return q.selectFrom(publicDiaryComment)
                 .where(publicDiaryComment.publicDiary.id.eq(publicDiaryId)
                         .and(getLt(cursor)))
                 .limit(count + 1)
-                .orderBy(publicDiaryComment.id.desc())
+                .orderBy(publicDiaryComment.id.asc())
                 .fetch();
     }
 

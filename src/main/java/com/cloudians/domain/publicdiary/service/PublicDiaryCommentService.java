@@ -42,7 +42,7 @@ public class PublicDiaryCommentService {
     public GeneralPaginatedResponse<PublicDiaryCommentResponse> getAllComments(Long publicDiaryId, Long cursor, Long count) {
         findPublicDiaryByIdOrThrow(publicDiaryId);
 
-        List<PublicDiaryComment> comments = publicDiaryCommentRepository.findCommentsOrderByCreatedAtDesc(publicDiaryId, cursor, count);
+        List<PublicDiaryComment> comments = publicDiaryCommentRepository.findCommentsOrderByCreatedAtAsc(publicDiaryId, cursor, count);
         return GeneralPaginatedResponse.of(comments, count, PublicDiaryComment::getId, PublicDiaryCommentResponse::of);
     }
 

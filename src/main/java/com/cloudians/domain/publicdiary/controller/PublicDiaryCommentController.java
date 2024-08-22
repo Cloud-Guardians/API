@@ -5,6 +5,8 @@ import com.cloudians.domain.publicdiary.dto.request.EditPublicDiaryCommentReques
 import com.cloudians.domain.publicdiary.dto.request.WriteChildCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.WritePublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.response.ChildCommentResponse;
+import com.cloudians.domain.publicdiary.dto.response.LikeResponse;
+import com.cloudians.domain.publicdiary.dto.response.PaginationLikesResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryCommentResponse;
 import com.cloudians.domain.publicdiary.service.PublicDiaryCommentService;
 import com.cloudians.global.Message;
@@ -119,6 +121,29 @@ public class PublicDiaryCommentController {
         publicDiaryCommentService.deleteChildComment(userEmail, publicDiaryId, parentCommentId, childCommentId);
 
         Message message = new Message(null, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+    @PostMapping("/{public-diary-comment-id}/likes")
+    public ResponseEntity<Message> toggleLike(@RequestParam String userEmail,
+                                              @PathVariable("public-diary-id") Long publicDiaryId,
+                                              @PathVariable("public-diary-comment-id") Long publicDiaryCommentId) {
+        LikeResponse response = publicDiaryCommentService.toggleLike(userEmail, publicDiaryId, publicDiaryCommentId);
+
+        Message message = new Message(response, HttpStatus.OK.value());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+    @GetMapping("/{public-diary-comment-id}/likes")
+    public ResponseEntity<Message> countLikes(@RequestParam(required = false) Long cursor,
+                                              @RequestParam(defaultValue = "10") Long count,
+                                              @PathVariable("public-diary-id") Long publicDiaryId,
+                                              @PathVariable("public-diary-comment-id") Long publicDiaryCommentId) {
+        GeneralPaginatedResponse<PaginationLikesResponse> response = publicDiaryCommentService.countLikes(cursor, count, publicDiaryId, publicDiaryCommentId);
+
+        Message message = new Message(response, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
     }

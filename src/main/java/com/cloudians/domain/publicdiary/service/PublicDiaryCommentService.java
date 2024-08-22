@@ -5,11 +5,15 @@ import com.cloudians.domain.publicdiary.dto.request.EditPublicDiaryCommentReques
 import com.cloudians.domain.publicdiary.dto.request.WriteChildCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.WritePublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.response.ChildCommentResponse;
+import com.cloudians.domain.publicdiary.dto.response.LikeResponse;
+import com.cloudians.domain.publicdiary.dto.response.PaginationLikesResponse;
 import com.cloudians.domain.publicdiary.dto.response.PublicDiaryCommentResponse;
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
+import com.cloudians.domain.publicdiary.entity.like.PublicDiaryCommentLikeLink;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
+import com.cloudians.domain.publicdiary.repository.PublicDiaryCommentLikeLinkRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.PublicDiaryCommentRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.user.entity.User;
@@ -21,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,6 +33,7 @@ import java.util.List;
 public class PublicDiaryCommentService {
     private final PublicDiaryCommentRepositoryImpl publicDiaryCommentRepository;
     private final PublicDiaryRepositoryImpl publicDiaryRepository;
+    private final PublicDiaryCommentLikeLinkRepositoryImpl publicDiaryCommentLikeLinkRepository;
 
     private final UserRepository userRepository;
 
@@ -121,6 +127,32 @@ public class PublicDiaryCommentService {
         validateSameUser(user, childComment);
 
         publicDiaryCommentRepository.delete(childComment);
+    }
+
+    public LikeResponse toggleLike(String userEmail, Long publicDiaryId, Long publicDiaryCommentId) {
+        User user = findUserByUserEmail(userEmail);
+        findPublicDiaryByIdOrThrow(publicDiaryId);
+
+        PublicDiaryComment publicDiaryComment = findPublicDiaryCommentByIdOrThrow(publicDiaryCommentId);
+        Optional<PublicDiaryCommentLikeLink> existingLike = publicDiaryCommentLikeLinkRepository.findByPublicDiaryCommentAndUser(publicDiaryComment, user);
+        if (existingLike.isPresent()) {
+            publicDiaryCommentLikeLinkRepository.delete(existingLike.get());
+            publicDiaryComment.decreaseLikeCount();
+            return LikeResponse.of(existingLike.get(), false);
+        } else {
+            PublicDiaryCommentLikeLink publicDiaryCommentLikeLink = PublicDiaryCommentLikeLink.toEntity(publicDiaryComment, user);
+            publicDiaryCommentLikeLinkRepository.save(publicDiaryCommentLikeLink);
+            publicDiaryComment.increaseLikeCount();
+            return LikeResponse.of(publicDiaryCommentLikeLink, true);
+        }
+    }
+
+    public GeneralPaginatedResponse<PaginationLikesResponse> countLikes(Long cursor, Long count, Long publicDiaryId, Long publicDiaryCommentId) {
+        findPublicDiaryByIdOrThrow(publicDiaryId);
+        findPublicDiaryCommentByIdOrThrow(publicDiaryCommentId);
+
+        List<PublicDiaryCommentLikeLink> likes = publicDiaryCommentLikeLinkRepository.findPublicDiaryCommentLikesOrderByDesc(cursor, count, publicDiaryCommentId);
+        return GeneralPaginatedResponse.of(likes, count, PublicDiaryCommentLikeLink::getId, PaginationLikesResponse::from);
     }
 
     private void validateIsParentComment(PublicDiaryComment parentComment) {

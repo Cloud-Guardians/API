@@ -121,7 +121,7 @@ public class PublicDiaryService {
     }
 
     public GeneralPaginatedResponse<PaginationLikesResponse> countLikes(Long cursor, Long count, Long publicDiaryId) {
-        publicDiaryRepository.findById(publicDiaryId);
+        findByIdOrThrow(publicDiaryId);
 
         List<PublicDiaryLikeLink> likes = publicDiaryLikeLinkRepository.findPublicDiaryLikesOrderByDesc(cursor, count, publicDiaryId);
         return GeneralPaginatedResponse.of(likes, count, PublicDiaryLikeLink::getId, PaginationLikesResponse::from);

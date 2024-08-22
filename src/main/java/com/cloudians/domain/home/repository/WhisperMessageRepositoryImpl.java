@@ -32,12 +32,12 @@ public class WhisperMessageRepositoryImpl {
                 .fetchFirst() != null;
     }
 
-    public List<WhisperMessage> findByUserOrderByTimeStampDesc(User user, Long cursor, Long count) {
+    public List<WhisperMessage> findByUserOrderByTimeStampAsc(User user, Long cursor, Long count) {
         return q.selectFrom(whisperMessage)
                 .where(whisperMessage.user.eq(user)
-                        .and(getLt(cursor)))
+                        .and(getGt(cursor)))
                 .limit(count + 1)
-                .orderBy(whisperMessage.timestamp.desc())
+                .orderBy(whisperMessage.timestamp.asc())
                 .fetch();
     }
 
@@ -67,5 +67,9 @@ public class WhisperMessageRepositoryImpl {
 
     private BooleanExpression getLt(Long cursor) {
         return cursor == null ? null : whisperMessage.id.lt(cursor);
+    }
+
+    private BooleanExpression getGt(Long cursor) {
+        return cursor == null ? null : whisperMessage.id.gt(cursor);
     }
 }

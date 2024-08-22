@@ -113,11 +113,11 @@ public class MonthlyAnalysisService {
     public MonthlyAnalysis updateMonthlyAnalysis(String userEmail, String yearMonth) {
 	MonthlyAnalysis analysis = new MonthlyAnalysis();
 	int totalDiary =0;
-	int monthlyHappy =0;
-	int monthlySad = 0;
-	int monthlyAngry = 0;
-	int monthlyUneasy = 0;
-	int monthlyBoring = 0;
+	int monthlyJoy =0;
+	int monthlySadness = 0;
+	int monthlyAnger = 0;
+	int monthlyAnxiety = 0;
+	int monthlyBoredom = 0;
 	String most1 = "";
 	String most2 = "";
 	String most3 ="";
@@ -127,10 +127,10 @@ public class MonthlyAnalysisService {
 	for(PersonalDiary diary : diaryList) {
 	    totalDiary ++;
 	    PersonalDiaryEmotion emotion = findEmotionByUserAndDate(userEmail,diary.getDate());
-	    monthlyHappy += emotion.getJoy();
-	    monthlySad += emotion.getSadness();
-	    monthlyAngry += emotion.getAnxiety();
-	    monthlyBoring += emotion.getBoredom();
+	    monthlyJoy += emotion.getJoy();
+	    monthlySadness += emotion.getSadness();
+	    monthlyAnxiety += emotion.getAnxiety();
+	    monthlyBoredom += emotion.getBoredom();
 	}
 	
 	List<Map.Entry<Object,Long>> list = getMonthlyMostElement(userEmail, yearMonth);
@@ -148,11 +148,11 @@ public class MonthlyAnalysisService {
 	analysis.setMonthlyDate(yearMonth);
 	analysis.setTotalDiary(totalDiary);
 	analysis.setTotalAnswer(whisperList.size());
-	analysis.setMonthlyHappy(monthlyHappy);
-	analysis.setMonthlySad(monthlySad);
-	analysis.setMonthlyAngry(monthlyAngry);
-	analysis.setMonthlyUneasy(monthlyUneasy);
-	analysis.setMonthlyBoring(monthlyBoring);
+	analysis.setMonthlyJoy(monthlyJoy);
+	analysis.setMonthlySadness(monthlySadness);
+	analysis.setMonthlyAnger(monthlyAnger);
+	analysis.setMonthlyAnxiety(monthlyAnxiety);
+	analysis.setMonthlyBoredom(monthlyBoredom);
 	analysis.setMonthlyElement(list.get(0).getKey().toString());
 	analysis.setMostElementTop3(most1+","+most2+","+most3);
 
@@ -171,11 +171,11 @@ public class MonthlyAnalysisService {
 	PersonalDiaryEmotion emotion = findEmotionByUserAndDate(userEmail,date);
 	
 	anal.setTotalDiary(anal.getTotalDiary()+1);
-	anal.setMonthlyHappy(anal.getMonthlyHappy()+emotion.getJoy());
-	anal.setMonthlySad(anal.getMonthlySad()+emotion.getSadness());
-	anal.setMonthlyAngry(anal.getMonthlyHappy()+emotion.getAnger());
-	anal.setMonthlyUneasy(anal.getMonthlyHappy()+emotion.getAnxiety());
-	anal.setMonthlyBoring(anal.getMonthlyHappy()+emotion.getBoredom());
+	anal.setMonthlyJoy(anal.getMonthlyJoy()+emotion.getJoy());
+	anal.setMonthlySadness(anal.getMonthlySadness()+emotion.getSadness());
+	anal.setMonthlyAnger(anal.getMonthlyAnger()+emotion.getAnger());
+	anal.setMonthlyAnxiety(anal.getMonthlyAnxiety()+emotion.getAnxiety());
+	anal.setMonthlyBoredom(anal.getMonthlyBoredom()+emotion.getBoredom());
 	
 	monthlyRepository.save(anal);
 	
@@ -192,11 +192,11 @@ public class MonthlyAnalysisService {
 	
 
 	anal.setTotalDiary(anal.getTotalDiary()-1);
-	anal.setMonthlyHappy(anal.getMonthlyHappy()-emotion.getJoy());
-	anal.setMonthlySad(anal.getMonthlySad()-emotion.getSadness());
-	anal.setMonthlyAngry(anal.getMonthlyHappy()-emotion.getAnger());
-	anal.setMonthlyUneasy(anal.getMonthlyHappy()-emotion.getAnxiety());
-	anal.setMonthlyBoring(anal.getMonthlyHappy()-emotion.getBoredom());
+	anal.setMonthlyJoy(anal.getMonthlyJoy()-emotion.getJoy());
+	anal.setMonthlySadness(anal.getMonthlySadness()-emotion.getSadness());
+	anal.setMonthlyAnger(anal.getMonthlyAnger()-emotion.getAnger());
+	anal.setMonthlyAnxiety(anal.getMonthlyAnxiety()-emotion.getAnxiety());
+	anal.setMonthlyBoredom(anal.getMonthlyBoredom()-emotion.getBoredom());
 	
 	monthlyRepository.save(anal);
 	

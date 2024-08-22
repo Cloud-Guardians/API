@@ -43,20 +43,20 @@ public class WeeklyAnalysis {
     @Column(name="total_answer")
     private int totalAnswer;
     
-    @Column(name="weekly_happy")
-    private int weeklyHappy;
+    @Column(name="weekly_joy")
+    private int weeklyJoy;
     
-    @Column(name="weekly_sad")
-    private int weeklySad;
+    @Column(name="weekly_sadness")
+    private int weeklySadness;
     
-    @Column(name="weekly_angry")
-    private int weeklyAngry;
+    @Column(name="weekly_anger")
+    private int weeklyAnger;
     
-    @Column(name="weekly_uneasy")
-    private int weeklyUneasy;
+    @Column(name="weekly_anxiety")
+    private int weeklyAnxiety;
     
-    @Column(name="weekly_boring")
-    private int weeklyBoring;
+    @Column(name="weekly_boredom")
+    private int weeklyBoredom;
     
     
     public WeeklyAnalysisResponse toDto() {
@@ -65,11 +65,11 @@ public class WeeklyAnalysis {
   		.weeklyDate(weeklyDate)
   		.totalDiary(totalDiary)
   		.totalAnswer(totalAnswer)
-  		.weeklyHappy(weeklyHappy)
-  		.weeklySad(weeklySad)
-  		.weeklyAngry(weeklyAngry)
-  		.weeklyUneasy(weeklyUneasy)
-  		.weeklyBoring(weeklyBoring)
+  		.weeklyJoy(weeklyJoy)
+  		.weeklySadness(weeklySadness)
+  		.weeklyAnger(weeklyAnger)
+  		.weeklyAnxiety(weeklyAnxiety)
+  		.weeklyBoredom(weeklyBoredom)
   		.build();
       }
 }

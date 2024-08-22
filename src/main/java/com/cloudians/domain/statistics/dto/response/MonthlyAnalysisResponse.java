@@ -15,11 +15,11 @@ public class MonthlyAnalysisResponse {
     private String monthlyDate;
     private int totalDiary;
     private int totalAnswer;
-    private int monthlyHappy;
-    private int monthlySad;
-    private int monthlyAngry;
-    private int monthlyUneasy;
-    private int monthlyBoring;
+    private int monthlyJoy;
+    private int monthlySadness;
+    private int monthlyAnger;
+    private int monthlyAnxiety;
+    private int monthlyBoredom;
     private String monthlyElement;
     private String mostElementTop3;
 }

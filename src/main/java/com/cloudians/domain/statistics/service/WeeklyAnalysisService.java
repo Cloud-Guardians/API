@@ -180,11 +180,11 @@ System.out.println("service start");
 	  PersonalDiaryEmotion emotion = emotionRepository.findPersonalDiaryEmotionByUserAndDate(user, diary.getDate());
 	  anal.setTotalDiary(anal.getTotalDiary()+1);
 	  anal.setTotalAnswer(getWeeklyDiaryAndAnswer(userEmail,yearMonth,week));
-	  anal.setWeeklyHappy(anal.getWeeklyHappy()+emotion.getJoy());
-	  anal.setWeeklySad(anal.getWeeklySad()+emotion.getSadness());
-	  anal.setWeeklyAngry(anal.getWeeklyAngry()+emotion.getAnger());
-	  anal.setWeeklyUneasy(anal.getWeeklyUneasy()+emotion.getAnxiety());
-	  anal.setWeeklyBoring(anal.getWeeklyBoring()+emotion.getBoredom());
+	  anal.setWeeklyJoy(anal.getWeeklyJoy()+emotion.getJoy());
+	  anal.setWeeklySadness(anal.getWeeklySadness()+emotion.getSadness());
+	  anal.setWeeklyAnger(anal.getWeeklyAnger()+emotion.getAnger());
+	  anal.setWeeklyAnxiety(anal.getWeeklyAnxiety()+emotion.getAnxiety());
+	  anal.setWeeklyBoredom(anal.getWeeklyBoredom()+emotion.getBoredom());
       }
       weeklyRepository.save(anal);
       Map<String,Object> map = new HashMap<>();

@@ -39,20 +39,20 @@ public class MonthlyAnalysis {
     @Column(name="total_answer")
     private int totalAnswer;
     
-    @Column(name="monthly_happy")
-    private int monthlyHappy;
+    @Column(name="monthly_joy")
+    private int monthlyJoy;
     
-    @Column(name="monthly_sad")
-    private int monthlySad;
+    @Column(name="monthly_sadness")
+    private int monthlySadness;
     
-    @Column(name="monthly_angry")
-    private int monthlyAngry;
+    @Column(name="monthly_anger")
+    private int monthlyAnger;
     
-    @Column(name="monthly_uneasy")
-    private int monthlyUneasy;
+    @Column(name="monthly_anxiety")
+    private int monthlyAnxiety;
     
-    @Column(name="monthly_boring")
-    private int monthlyBoring;
+    @Column(name="monthly_boredom")
+    private int monthlyBoredom;
     
     @Column(name="monthly_element")
     private String monthlyElement;
@@ -66,11 +66,11 @@ public class MonthlyAnalysis {
 		.monthlyDate(monthlyDate)
 		.totalDiary(totalDiary)
 		.totalAnswer(totalAnswer)
-		.monthlyHappy(monthlyHappy)
-		.monthlySad(monthlySad)
-		.monthlyAngry(monthlyAngry)
-		.monthlyUneasy(monthlyUneasy)
-		.monthlyBoring(monthlyBoring)
+		.monthlyJoy(monthlyJoy)
+		.monthlySadness(monthlySadness)
+		.monthlyAnger(monthlyAnger)
+		.monthlyAnxiety(monthlyAnxiety)
+		.monthlyBoredom(monthlyBoredom)
 		.monthlyElement(monthlyElement)
 		.mostElementTop3(mostElementTop3)
 		.build();

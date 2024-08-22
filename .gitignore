@@ -38,4 +38,6 @@ out/
 
 ### application-secret ###
 src/main/resources/application-secret.properties
+
+### photo-key ###
 /src/main/resources/cloudians-photo-key.json

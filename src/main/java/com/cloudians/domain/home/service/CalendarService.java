@@ -13,8 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cloudians.domain.home.dto.response.CalendarResponse;
 import com.cloudians.domain.home.dto.response.EmotionsResponse;
 import com.cloudians.domain.home.entity.SenderType;
-import com.cloudians.domain.home.exception.CalendarException;
-import com.cloudians.domain.home.exception.CalendarExceptionType;
+import com.cloudians.domain.home.exception.CalenderException;
+import com.cloudians.domain.home.exception.CalenderExceptionType;
 import com.cloudians.domain.home.repository.WhisperMessageRepositoryImpl;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
@@ -27,6 +27,16 @@ import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.YearMonth;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -90,3 +100,4 @@ public class CalendarService {
                 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
     }
 }
+

@@ -40,7 +40,7 @@ public class PublicDiaryThumbnailResponse {
         this.views = views;
     }
 
-    public static PublicDiaryThumbnailResponse of(PublicDiary publicDiary) {
+    public static PublicDiaryThumbnailResponse of(PublicDiary publicDiary, Long totalCommentsCount) {
         return PublicDiaryThumbnailResponse.builder()
                 .publicDiaryId(publicDiary.getId())
                 .title(publicDiary.getPersonalDiary().getTitle())
@@ -48,6 +48,8 @@ public class PublicDiaryThumbnailResponse {
                 .author(publicDiary.getAuthor().getNickname())
                 .timestamp(publicDiary.getCreatedAt())
                 .photoUrl(publicDiary.getPersonalDiary().getPhotoUrl())
+                .totalCommentsCount(totalCommentsCount)
+                //TODO: likeCount 추가
                 .views(publicDiary.getViews())
                 .build();
     }

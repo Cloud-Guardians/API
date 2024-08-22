@@ -68,4 +68,11 @@ public class PublicDiaryCommentRepositoryImpl {
                 .orderBy(publicDiaryComment.id.asc())
                 .fetch();
     }
+
+    public Long getPublicDiaryCommentsCount(PublicDiary publicDiary) {
+        return q.select(publicDiaryComment.count())
+                .from(publicDiaryComment)
+                .where(publicDiaryComment.publicDiary.eq(publicDiary))
+                .fetchOne();
+    }
 }

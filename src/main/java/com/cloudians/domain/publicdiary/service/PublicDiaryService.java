@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -49,15 +50,34 @@ public class PublicDiaryService {
         findUserByUserEmail(userEmail);
         SearchCondition condition = SearchCondition.of(searchType, keyword);
         List<PublicDiary> searchedPublicDiaries = publicDiaryRepository.searchByTypeAndKeywordOrderByTimestampDesc(condition, cursor, count);
+        List<PublicDiaryThumbnailResponse> thumbnailResponses = getPublicDiaryThumbnailResponses(searchedPublicDiaries);
 
-        return GeneralPaginatedResponse.of(searchedPublicDiaries, count, PublicDiary::getId, PublicDiaryThumbnailResponse::of);
+        return GeneralPaginatedResponse.of(searchedPublicDiaries, count, PublicDiary::getId,
+                diary -> thumbnailResponses.get(searchedPublicDiaries.indexOf(diary))
+        );
     }
 
     public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getAllPublicDiaries(String userEmail, Long cursor, Long count) {
         findUserByUserEmail(userEmail);
         List<PublicDiary> publicDiaries = publicDiaryRepository.publicDiariesOrderByCreatedAtDescWithTop3Diaries(cursor, count);
+        List<PublicDiaryThumbnailResponse> thumbnailResponses = getPublicDiaryThumbnailResponses(publicDiaries);
 
-        return GeneralPaginatedResponse.of(publicDiaries, count, PublicDiary::getId, PublicDiaryThumbnailResponse::of);
+        return GeneralPaginatedResponse.of(publicDiaries, count, PublicDiary::getId,
+                diary -> thumbnailResponses.get(publicDiaries.indexOf(diary))
+        );
+    }
+
+    private List<PublicDiaryThumbnailResponse> getPublicDiaryThumbnailResponses(List<PublicDiary> publicDiaries) {
+        return publicDiaries.stream()
+                .map(publicDiary -> {
+                    Long commentsCount = getCommentsCount(publicDiary);
+                    return PublicDiaryThumbnailResponse.of(publicDiary, commentsCount);
+                })
+                .collect(Collectors.toList());
+    }
+
+    private Long getCommentsCount(PublicDiary publicDiary) {
+        return publicDiaryCommentRepository.getPublicDiaryCommentsCount(publicDiary);
     }
 
     public PublicDiaryResponse getPublicDiary(String userEmail, Long publicDiaryId) {

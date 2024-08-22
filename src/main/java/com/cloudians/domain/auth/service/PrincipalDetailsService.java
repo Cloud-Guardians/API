@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import com.cloudians.domain.auth.dto.request.PrincipalDetails;
 import com.cloudians.domain.auth.dto.request.UserAuthRequest;
 import com.cloudians.domain.auth.repository.UserAuthRepository;
 

@@ -25,20 +25,20 @@ import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.cloudians.domain.auth.entity.UserToken;
+import com.cloudians.domain.auth.repository.UserTokenRepository;
 import com.cloudians.domain.user.dto.request.FcmNotificationRequest;
 import com.cloudians.domain.user.dto.response.FcmNotificationResponse;
 import com.cloudians.domain.user.dto.response.NotificationResponse;
 import com.cloudians.domain.user.entity.Notification;
 import com.cloudians.domain.user.entity.NotificationType;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.entity.UserToken;
 import com.cloudians.domain.user.exception.NotificationException;
 import com.cloudians.domain.user.exception.NotificationExceptionType;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.NotificationRepository;
 import com.cloudians.domain.user.repository.UserRepository;
-import com.cloudians.domain.user.repository.UserTokenRepository;
 import com.cloudians.global.Message;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -333,7 +333,7 @@ public void sendHomeNotificationToAll() {
    	User user = findUserByUserEmail(userEmail);
    	List<Notification> notification =  notificationRepository.findByUserEmail(userEmail)
                    .orElseThrow(() -> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
-   	List<UserToken> tokenList = userTokenRepository.findByUserEmail(userEmail)
+   	List<UserToken> tokenList = userTokenRepository.findListByUserEmail(userEmail)
    		 .orElseThrow(() -> new UserException(UserExceptionType.TOKEN_NOT_FOUND));
    	
    	UserToken token = new UserToken();

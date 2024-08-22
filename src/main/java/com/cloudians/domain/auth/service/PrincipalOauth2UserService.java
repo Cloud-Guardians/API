@@ -16,6 +16,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
+import com.cloudians.domain.auth.dto.request.PrincipalDetails;
 import com.cloudians.domain.auth.dto.request.UserAuthRequest;
 import com.cloudians.domain.auth.repository.UserAuthRepository;
 

@@ -17,11 +17,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cloudians.domain.auth.dto.request.LoginRequest;
+import com.cloudians.domain.auth.dto.request.PrincipalDetails;
 import com.cloudians.domain.auth.dto.request.UserAuthRequest;
 import com.cloudians.domain.auth.dto.response.LoginResponse;
 import com.cloudians.domain.auth.repository.UserAuthRepository;
 import com.cloudians.domain.auth.service.AuthTokenService;
-import com.cloudians.domain.auth.service.PrincipalDetails;
 
 @RestController
 @RequestMapping("/auth")

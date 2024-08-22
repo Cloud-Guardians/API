@@ -15,6 +15,7 @@ import com.cloudians.domain.auth.dto.request.UserAuthRequest;
 import com.cloudians.domain.auth.entity.UserToken;
 import com.cloudians.domain.auth.repository.UserAuthRepository;
 import com.cloudians.domain.auth.repository.UserTokenRepository;
+import com.cloudians.domain.auth.util.JwtUtil;
 
 @Service
 public class AuthTokenService {
@@ -25,43 +26,43 @@ public class AuthTokenService {
     @Autowired
     private UserAuthRepository userAuthRepository;
 
-    public Map<String, String> login(String email, String password) throws InvalidCredentialsException {
-        if (!authenticateUser(email, password)) {
+    public Map<String, String> login(String userEmail, String password) throws InvalidCredentialsException {
+        if (!authenticateUser(userEmail, password)) {
             throw new InvalidCredentialsException("이메일 또는 비밀번호가 잘못되었습니다.");
         }
 
-        String accessToken = generateAccessToken(email);
-        String refreshToken = generateRefreshToken(email);
+        String accessToken = generateAccessToken(userEmail);
+        String refreshToken = generateRefreshToken(userEmail);
 
         LocalDateTime accessTokenExpiresAt = LocalDateTime.now().plusMinutes(10); // 10분 후
         LocalDateTime refreshTokenExpiresAt = LocalDateTime.now().plusDays(30); // 30일 후
 
-        saveToken(email, accessToken, "jwt", accessTokenExpiresAt);
-        saveToken(email, refreshToken, "jwt rf", refreshTokenExpiresAt);
+        saveToken(userEmail, accessToken, "jwt", accessTokenExpiresAt);
+        saveToken(userEmail, refreshToken, "jwt rf", refreshTokenExpiresAt);
 
         return Map.of("accessToken", accessToken, "refreshToken", refreshToken);
     }
 
-    private boolean authenticateUser(String email, String password) {
-        Optional<UserAuthRequest> userAuthOptional = userAuthRepository.findByUserEmail(email);
+    private boolean authenticateUser(String userEmail, String password) {
+        Optional<UserAuthRequest> userAuthOptional = userAuthRepository.findByUserEmail(userEmail);
         if (userAuthOptional.isPresent()) {
             return userAuthOptional.get().getPassword().equals(password);
         }
         return false;
     }
-
-    private String generateAccessToken(String email) {
+    
+    private String generateAccessToken(String userEmail) {
         return JWT.create()
                 .withSubject("jwt token")
                 .withExpiresAt(new Date(System.currentTimeMillis() + (1000L * 60 * 10))) // 10분 후 만료
-                .withClaim("userEmail", email)
+                .withClaim("userEmail", userEmail)
                 .sign(Algorithm.HMAC512("jwt"));
     }
 
-    public String generateRefreshToken(String email) {
+    public String generateRefreshToken(String userEmail) {
         return JWT.create().withSubject("jwt rf token")
                 .withExpiresAt(new Date(System.currentTimeMillis() + (1000L * 60 * 60 * 24 * 30))) // 30일 후 만료
-                .withClaim("userEmail", email).sign(Algorithm.HMAC512("jwt"));
+                .withClaim("userEmail", userEmail).sign(Algorithm.HMAC512("jwt"));
     }
 
     public void saveToken(String userEmail, String tokenValue, String tokenType, LocalDateTime expiresAt) {
@@ -75,8 +76,8 @@ public class AuthTokenService {
         userTokenRepository.save(userToken);
     }
 
-    public Optional<UserToken> getUserToken(String email, String tokenType) {
-        return userTokenRepository.findByUserEmailAndTokenType(email, tokenType);
+    public Optional<UserToken> getUserToken(String userEmail, String tokenType) {
+        return userTokenRepository.findByUserEmailAndTokenType(userEmail, tokenType);
     }
 
     public boolean isTokenExpired(LocalDateTime expiresAt) {

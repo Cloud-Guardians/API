@@ -1,5 +1,6 @@
 package com.cloudians.domain.statistics.controller;
 
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +17,6 @@ import com.cloudians.domain.personaldiary.entity.analysis.FiveElement;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.domain.statistics.dto.response.CollectionResponse;
 import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
-import com.cloudians.domain.statistics.entity.MonthlyAnalysis;
 import com.cloudians.domain.statistics.service.MonthlyAnalysisService;
 import com.cloudians.global.Message;
 
@@ -42,7 +42,7 @@ public class MonthlyAnalysisController {
     }
     
     @GetMapping("/monthly/{year}/{month}")
-    public ResponseEntity<Message> monthlyReport(@RequestParam("userEmail") String userEmail,   @PathVariable("year") String year, @PathVariable("month") String month){
+    public ResponseEntity<Message> monthlyReport(@RequestParam("userEmail") String userEmail, @PathVariable("year") String year, @PathVariable("month") String month){	
 	String yearMonth = year+month;
 	MonthlyAnalysisResponse response = monthlyService.getMonthlyAnalysis(userEmail, yearMonth);
 	Map<String, Object> map = monthlyService.getMonthlyReport(userEmail,yearMonth);

@@ -1,16 +1,16 @@
 package com.cloudians.domain.publicdiary.controller;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
-import com.cloudians.domain.publicdiary.dto.response.LikeResponse;
-import com.cloudians.domain.publicdiary.dto.response.PaginationLikesResponse;
-import com.cloudians.domain.publicdiary.dto.response.PublicDiaryResponse;
-import com.cloudians.domain.publicdiary.dto.response.PublicDiaryThumbnailResponse;
+import com.cloudians.domain.publicdiary.dto.request.PublicDiaryReportRequest;
+import com.cloudians.domain.publicdiary.dto.response.*;
 import com.cloudians.domain.publicdiary.service.PublicDiaryService;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @RequestMapping("/public-diaries")
 @RestController
@@ -61,6 +61,7 @@ public class PublicDiaryController {
         return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 
+    // 좋아요
     @PostMapping("/{public-diary-id}/likes")
     public ResponseEntity<Message> toggleLike(@RequestParam String userEmail,
                                               @PathVariable("public-diary-id") Long publicDiaryId) {
@@ -82,6 +83,17 @@ public class PublicDiaryController {
                 .body(message);
     }
 
+    //신고
+    @PostMapping("/{public-diary-id}/reports")
+    public ResponseEntity<Message> reportPublicDiary(@RequestParam String userEmail,
+                                                     @PathVariable("public-diary-id") Long publicDiaryId,
+                                                     @RequestBody @Valid PublicDiaryReportRequest request) {
+        PublicDiaryReportResponse response = publicDiaryService.reportPublicDiary(userEmail, publicDiaryId, request);
+
+        Message message = new Message(response, HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(message);
+    }
 
     private ResponseEntity<Message> createGetMessagesResponseEntity(GeneralPaginatedResponse<PublicDiaryThumbnailResponse> response) {
         Message message = new Message(response, HttpStatus.OK.value());

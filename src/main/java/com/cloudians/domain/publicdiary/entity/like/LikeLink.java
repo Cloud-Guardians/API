@@ -9,12 +9,11 @@ import javax.persistence.*;
 
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
-import static lombok.AccessLevel.PROTECTED;
 
 @MappedSuperclass
 @Getter
 @SuperBuilder
-@NoArgsConstructor(access = PROTECTED)
+@NoArgsConstructor
 public abstract class LikeLink {
 
     @Id

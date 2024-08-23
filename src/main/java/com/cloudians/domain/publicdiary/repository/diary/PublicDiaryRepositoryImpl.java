@@ -3,7 +3,6 @@ package com.cloudians.domain.publicdiary.repository.diary;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.publicdiary.entity.diary.SearchCondition;
 import com.cloudians.domain.publicdiary.entity.diary.SearchType;
-import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryJpaRepository;
 import com.cloudians.domain.user.entity.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -21,8 +20,6 @@ import static com.cloudians.domain.publicdiary.entity.diary.QPublicDiary.publicD
 public class PublicDiaryRepositoryImpl {
     private final PublicDiaryJpaRepository publicDiaryJpaRepository;
     private final JPAQueryFactory q;
-
-    public static int TOP_DIARIES_SIZE = 3;
 
     public void save(PublicDiary publicDiary) {
         publicDiaryJpaRepository.save(publicDiary);
@@ -54,29 +51,43 @@ public class PublicDiaryRepositoryImpl {
     }
 
     public List<PublicDiary> publicDiariesOrderByCreatedAtDescWithTop3Diaries(Long cursor, Long count) {
-        List<PublicDiary> top3Diaries = findTop3DiariesByLikes(cursor);
-        List<PublicDiary> otherDiaries = getLeftPublicDiariesOrderByDesc(cursor, count, top3Diaries);
+        if (cursor == null) {
+            List<PublicDiary> top3Diaries = findTop3DiariesByLikes();
+            List<PublicDiary> otherDiaries = getLeftPublicDiariesOrderByDesc(cursor, count, top3Diaries);
 
-        top3Diaries.addAll(otherDiaries);
+            top3Diaries.addAll(otherDiaries);
 
-        return top3Diaries;
+            return top3Diaries;
+        }
+        return getLeftPublicDiariesOrderByDesc(cursor, count, Collections.emptyList());
     }
 
     private List<PublicDiary> getLeftPublicDiariesOrderByDesc(Long cursor, Long count, List<PublicDiary> top3Diaries) {
-        if (top3Diaries.size() == TOP_DIARIES_SIZE) {
-            return q.selectFrom(publicDiary)
-                    .where((publicDiary.notIn(top3Diaries))
-                            .and(getLt(cursor)))
-                    .orderBy(publicDiary.createdAt.desc())
-                    .limit(count - 2)
-                    .fetch();
+        if (!top3Diaries.isEmpty()) {
+            return getPublicDiariesWithoutTop3(cursor, count, top3Diaries);
         }
-        return Collections.emptyList();
+        return getPublicDiariesOrderByDesc(cursor, count);
     }
 
-    private List<PublicDiary> findTop3DiariesByLikes(Long cursor) {
+    private List<PublicDiary> getPublicDiariesOrderByDesc(Long cursor, Long count) {
         return q.selectFrom(publicDiary)
                 .where(getLt(cursor))
+                .orderBy(publicDiary.createdAt.desc())
+                .limit(count)
+                .fetch();
+    }
+
+    private List<PublicDiary> getPublicDiariesWithoutTop3(Long cursor, Long count, List<PublicDiary> top3Diaries) {
+        return q.selectFrom(publicDiary)
+                .where((publicDiary.notIn(top3Diaries))
+                        .and(getLt(cursor)))
+                .orderBy(publicDiary.createdAt.desc())
+                .limit(count - 2)
+                .fetch();
+    }
+
+    private List<PublicDiary> findTop3DiariesByLikes() {
+        return q.selectFrom(publicDiary)
                 .orderBy(publicDiary.likes.desc(), publicDiary.createdAt.desc())
                 .limit(3)
                 .fetch();

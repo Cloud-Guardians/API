@@ -2,12 +2,10 @@ package com.cloudians.domain.publicdiary.controller;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
 import com.cloudians.domain.publicdiary.dto.request.EditPublicDiaryCommentRequest;
+import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
 import com.cloudians.domain.publicdiary.dto.request.WriteChildCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.WritePublicDiaryCommentRequest;
-import com.cloudians.domain.publicdiary.dto.response.ChildCommentResponse;
-import com.cloudians.domain.publicdiary.dto.response.LikeResponse;
-import com.cloudians.domain.publicdiary.dto.response.PaginationLikesResponse;
-import com.cloudians.domain.publicdiary.dto.response.PublicDiaryCommentResponse;
+import com.cloudians.domain.publicdiary.dto.response.*;
 import com.cloudians.domain.publicdiary.service.PublicDiaryCommentService;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
@@ -145,6 +143,18 @@ public class PublicDiaryCommentController {
 
         Message message = new Message(response, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
+    @PostMapping("/{public-diary-comment-id}/reports")
+    public ResponseEntity<Message> reportPublicDiaryComment(@RequestParam String userEmail,
+                                                            @PathVariable("public-diary-id") Long publicDiaryId,
+                                                            @PathVariable("public-diary-comment-id") Long publicDiaryCommentId,
+                                                            @RequestBody @Valid ReportRequest request) {
+        PublicDiaryCommentReportResponse response = publicDiaryCommentService.reportPublicDiaryComment(userEmail, publicDiaryId, publicDiaryCommentId, request);
+
+        Message message = new Message(response, HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(message);
     }
 }

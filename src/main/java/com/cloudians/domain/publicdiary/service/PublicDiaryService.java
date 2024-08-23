@@ -5,7 +5,7 @@ import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
-import com.cloudians.domain.publicdiary.dto.request.PublicDiaryReportRequest;
+import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
 import com.cloudians.domain.publicdiary.dto.response.*;
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
@@ -122,14 +122,14 @@ public class PublicDiaryService {
         return GeneralPaginatedResponse.of(likes, count, PublicDiaryLikeLink::getId, PaginationLikesResponse::from);
     }
 
-    public PublicDiaryReportResponse reportPublicDiary(String userEmail, Long publicDiaryId, PublicDiaryReportRequest request) {
+    public PublicDiaryReportResponse reportPublicDiary(String userEmail, Long publicDiaryId, ReportRequest request) {
         User reporter = findUserByUserEmail(userEmail);
         PublicDiary reportedDiary = findByIdOrThrow(publicDiaryId);
 
         validateSelfReport(reportedDiary, reporter);
         validateDuplicateReport(reporter, reportedDiary);
 
-        PublicDiaryReport publicDiaryReport = request.toEntity(reporter, reportedDiary);
+        PublicDiaryReport publicDiaryReport = request.toDiaryReport(reporter, reportedDiary);
         publicDiaryReportRepository.save(publicDiaryReport);
 
         return PublicDiaryReportResponse.of(publicDiaryReport, reporter, reportedDiary);

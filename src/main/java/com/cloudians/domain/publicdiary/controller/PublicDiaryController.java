@@ -1,7 +1,7 @@
 package com.cloudians.domain.publicdiary.controller;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
-import com.cloudians.domain.publicdiary.dto.request.PublicDiaryReportRequest;
+import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
 import com.cloudians.domain.publicdiary.dto.response.*;
 import com.cloudians.domain.publicdiary.service.PublicDiaryService;
 import com.cloudians.global.Message;
@@ -87,7 +87,7 @@ public class PublicDiaryController {
     @PostMapping("/{public-diary-id}/reports")
     public ResponseEntity<Message> reportPublicDiary(@RequestParam String userEmail,
                                                      @PathVariable("public-diary-id") Long publicDiaryId,
-                                                     @RequestBody @Valid PublicDiaryReportRequest request) {
+                                                     @RequestBody @Valid ReportRequest request) {
         PublicDiaryReportResponse response = publicDiaryService.reportPublicDiary(userEmail, publicDiaryId, request);
 
         Message message = new Message(response, HttpStatus.CREATED.value());

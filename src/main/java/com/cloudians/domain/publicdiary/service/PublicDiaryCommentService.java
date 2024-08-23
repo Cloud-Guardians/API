@@ -2,18 +2,18 @@ package com.cloudians.domain.publicdiary.service;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
 import com.cloudians.domain.publicdiary.dto.request.EditPublicDiaryCommentRequest;
+import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
 import com.cloudians.domain.publicdiary.dto.request.WriteChildCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.WritePublicDiaryCommentRequest;
-import com.cloudians.domain.publicdiary.dto.response.ChildCommentResponse;
-import com.cloudians.domain.publicdiary.dto.response.LikeResponse;
-import com.cloudians.domain.publicdiary.dto.response.PaginationLikesResponse;
-import com.cloudians.domain.publicdiary.dto.response.PublicDiaryCommentResponse;
+import com.cloudians.domain.publicdiary.dto.response.*;
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.publicdiary.entity.like.PublicDiaryCommentLikeLink;
+import com.cloudians.domain.publicdiary.entity.report.PublicDiaryCommentReport;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
 import com.cloudians.domain.publicdiary.repository.PublicDiaryCommentLikeLinkRepositoryImpl;
+import com.cloudians.domain.publicdiary.repository.PublicDiaryCommentReportJpaRepository;
 import com.cloudians.domain.publicdiary.repository.PublicDiaryCommentRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.user.entity.User;
@@ -34,6 +34,7 @@ public class PublicDiaryCommentService {
     private final PublicDiaryCommentRepositoryImpl publicDiaryCommentRepository;
     private final PublicDiaryRepositoryImpl publicDiaryRepository;
     private final PublicDiaryCommentLikeLinkRepositoryImpl publicDiaryCommentLikeLinkRepository;
+    private final PublicDiaryCommentReportJpaRepository publicDiaryCommentReportRepository;
 
     private final UserRepository userRepository;
 
@@ -190,6 +191,36 @@ public class PublicDiaryCommentService {
     private void validateIsChildComment(PublicDiaryComment childComment) {
         if (childComment.getParentCommentId() == null) {
             throw new PublicDiaryException(PublicDiaryExceptionType.BAD_REQUEST);
+        }
+    }
+
+    public PublicDiaryCommentReportResponse reportPublicDiaryComment(String userEmail, Long publicDiaryId, Long publicDiaryCommentId, ReportRequest request) {
+        User reporter = findUserByUserEmail(userEmail);
+        findPublicDiaryByIdOrThrow(publicDiaryId);
+        PublicDiaryComment reportedComment = findPublicDiaryCommentByIdOrThrow(publicDiaryCommentId);
+
+        validateSelfReport(reportedComment, reporter);
+        validateDuplicateReport(reporter, reportedComment);
+
+        PublicDiaryCommentReport publicDiaryCommentReport = request.toCommentReport(reporter, reportedComment);
+        publicDiaryCommentReportRepository.save(publicDiaryCommentReport);
+
+        return PublicDiaryCommentReportResponse.of(publicDiaryCommentReport, reporter, reportedComment);
+    }
+
+    private void validateDuplicateReport(User reporter, PublicDiaryComment reportedComment) {
+        if (publicDiaryCommentReportRepository.existsByReporterAndReportedComment(reporter, reportedComment)) {
+            throw new PublicDiaryException(PublicDiaryExceptionType.ALREADY_REPORT);
+        }
+    }
+
+    private boolean isSameUser(User reporter, PublicDiaryComment reportedComment) {
+        return reportedComment.getAuthor().getUserEmail().equals(reporter.getUserEmail());
+    }
+
+    private void validateSelfReport(PublicDiaryComment reportedComment, User reporter) {
+        if (isSameUser(reporter, reportedComment)) {
+            throw new PublicDiaryException(PublicDiaryExceptionType.SELF_REPORT);
         }
     }
 }

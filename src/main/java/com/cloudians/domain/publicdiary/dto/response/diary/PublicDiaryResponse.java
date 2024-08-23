@@ -1,5 +1,6 @@
-package com.cloudians.domain.publicdiary.dto.response;
+package com.cloudians.domain.publicdiary.dto.response.diary;
 
+import com.cloudians.domain.publicdiary.dto.response.UserProfileResponse;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.user.entity.User;
 import lombok.Builder;
@@ -12,7 +13,7 @@ import java.time.LocalDateTime;
 public class PublicDiaryResponse {
     private Long publicDiaryId;
 
-    private String userEmail;
+    private UserProfileResponse author;
 
     private String title;
 
@@ -29,9 +30,9 @@ public class PublicDiaryResponse {
     private LocalDateTime createdAt;
 
     @Builder
-    private PublicDiaryResponse(Long publicDiaryId, String userEmail, String title, String content, String photoUrl, LocalDate date, Long views, Long likes, LocalDateTime createdAt) {
+    private PublicDiaryResponse(Long publicDiaryId, UserProfileResponse author, String title, String content, String photoUrl, LocalDate date, Long views, Long likes, LocalDateTime createdAt) {
         this.publicDiaryId = publicDiaryId;
-        this.userEmail = userEmail;
+        this.author = author;
         this.title = title;
         this.content = content;
         this.photoUrl = photoUrl;
@@ -44,7 +45,7 @@ public class PublicDiaryResponse {
     public static PublicDiaryResponse of(PublicDiary publicDiary, User user) {
         return PublicDiaryResponse.builder()
                 .publicDiaryId(publicDiary.getId())
-                .userEmail(user.getUserEmail())
+                .author(UserProfileResponse.from(user))
                 .title(publicDiary.getPersonalDiary().getTitle())
                 .content(publicDiary.getPersonalDiary().getContent())
                 .photoUrl(publicDiary.getPersonalDiary().getPhotoUrl())

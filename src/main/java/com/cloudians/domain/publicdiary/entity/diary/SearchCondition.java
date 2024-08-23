@@ -1,7 +1,5 @@
 package com.cloudians.domain.publicdiary.entity.diary;
 
-import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
-import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -19,15 +17,8 @@ public class SearchCondition {
 
     public static SearchCondition of(String searchType, String keyword) {
         return SearchCondition.builder()
-                .type(getType(searchType))
+                .type(SearchType.from(searchType))
                 .content(keyword)
                 .build();
-    }
-
-    private static SearchType getType(String searchType) {
-        if (SearchType.hasType(searchType)) {
-            return SearchType.valueOf(searchType);
-        }
-        throw new PublicDiaryException(PublicDiaryExceptionType.WRONG_SEARCH_TYPE);
     }
 }

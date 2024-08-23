@@ -1,4 +1,4 @@
-package com.cloudians.domain.publicdiary.repository;
+package com.cloudians.domain.publicdiary.repository.comment;
 
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
@@ -12,4 +12,6 @@ public interface PublicDiaryCommentJpaRepository extends JpaRepository<PublicDia
     Optional<PublicDiaryComment> findByIdAndAuthor(Long publicDiaryId, User author);
 
     List<PublicDiaryComment> findByPublicDiary(PublicDiary publicDiary);
+
+    List<PublicDiaryComment> deletePublicDiaryCommentByParentCommentId(Long parentCommentId);
 }

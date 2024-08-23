@@ -1,7 +1,8 @@
-package com.cloudians.domain.publicdiary.repository;
+package com.cloudians.domain.publicdiary.repository.comment;
 
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
+import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentJpaRepository;
 import com.cloudians.domain.user.entity.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -35,14 +36,14 @@ public class PublicDiaryCommentRepositoryImpl {
         return publicDiaryCommentJpaRepository.findByIdAndAuthor(publicDiaryCommentId, user);
     }
 
-    private BooleanExpression getLt(Long cursor) {
-        return cursor == null ? null : publicDiaryComment.id.lt(cursor);
+    private BooleanExpression getGt(Long cursor) {
+        return cursor == null ? null : publicDiaryComment.id.gt(cursor);
     }
 
     public List<PublicDiaryComment> findCommentsOrderByCreatedAtAsc(Long publicDiaryId, Long cursor, Long count) {
         return q.selectFrom(publicDiaryComment)
                 .where(publicDiaryComment.publicDiary.id.eq(publicDiaryId)
-                        .and(getLt(cursor)))
+                        .and(getGt(cursor)))
                 .limit(count + 1)
                 .orderBy(publicDiaryComment.id.asc())
                 .fetch();
@@ -54,5 +55,25 @@ public class PublicDiaryCommentRepositoryImpl {
 
     public void deleteAll(List<PublicDiaryComment> commentsInPublicDiary) {
         publicDiaryCommentJpaRepository.deleteAll(commentsInPublicDiary);
+    }
+
+    public void deleteChildComments(Long parentCommentId) {
+        publicDiaryCommentJpaRepository.deletePublicDiaryCommentByParentCommentId(parentCommentId);
+    }
+
+    public List<PublicDiaryComment> findChildCommentsOrderByAsc(Long cursor, Long count, Long parentCommentId) {
+        return q.selectFrom(publicDiaryComment)
+                .where(publicDiaryComment.parentCommentId.eq(parentCommentId)
+                        .and(getGt(cursor)))
+                .limit(count + 1)
+                .orderBy(publicDiaryComment.id.asc())
+                .fetch();
+    }
+
+    public Long getPublicDiaryCommentsCount(PublicDiary publicDiary) {
+        return q.select(publicDiaryComment.count())
+                .from(publicDiaryComment)
+                .where(publicDiaryComment.publicDiary.eq(publicDiary))
+                .fetchOne();
     }
 }

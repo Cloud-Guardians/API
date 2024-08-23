@@ -1,4 +1,4 @@
-package com.cloudians.domain.publicdiary.dto.request;
+package com.cloudians.domain.publicdiary.dto.request.comment;
 
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;

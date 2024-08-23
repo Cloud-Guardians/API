@@ -75,7 +75,7 @@ public class WhisperService {
     public GeneralPaginatedResponse<WhisperMessageResponse> getRecentMessages(String userEmail, Long cursor, Long count) {
         User user = findUserByUserEmail(userEmail);
 
-        List<WhisperMessage> messages = whisperMessageRepository.findByUserOrderByTimeStampDesc(user, cursor, count);
+        List<WhisperMessage> messages = whisperMessageRepository.findByUserOrderByTimeStampAsc(user, cursor, count);
         return GeneralPaginatedResponse.of(messages, count, WhisperMessage::getId, WhisperMessageResponse::of);
     }
 

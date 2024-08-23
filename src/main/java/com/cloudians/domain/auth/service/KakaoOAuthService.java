@@ -4,8 +4,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.cloudians.domain.auth.dto.request.OAuthToken;
 import com.cloudians.domain.auth.dto.request.PrincipalDetails;
-import com.cloudians.domain.auth.dto.request.UserAuthRequest;
-import com.cloudians.domain.auth.repository.UserAuthRepository;
+import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
@@ -38,7 +38,7 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    private UserAuthRepository userAuthRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private AuthTokenService authTokenService;
@@ -63,15 +63,15 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
             return null; // 이메일이 없으면 null 반환
         }
 
-        UserAuthRequest userEntity = userAuthRepository.findByUserEmail(userEmail).orElse(null);
+        User userEntity = userRepository.findByUserEmail(userEmail).orElse(null);
         if (userEntity == null) {
             // 새로운 사용자 등록
-            userEntity = UserAuthRequest.builder()
+            userEntity = User.builder()
                     .userEmail(userEmail)
                     .password(bCryptPasswordEncoder.encode("1234")) // 기본 비밀번호 해시화
                     .status(1)
                     .build();
-            userAuthRepository.save(userEntity);
+            userRepository.save(userEntity);
         }
 
         // JWT 토큰 발급
@@ -176,7 +176,7 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
     }
 
 
-    public String generateJwtToken(UserAuthRequest userEntity) {
+    public String generateJwtToken(User userEntity) {
         String jwtToken = JWT.create()
                 .withSubject("jwt token")
                 .withExpiresAt(new Date(System.currentTimeMillis() + (60000 * 10))) // 10분 후 만료

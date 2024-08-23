@@ -3,8 +3,8 @@ package com.cloudians.global.config;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.cloudians.domain.auth.dto.request.PrincipalDetails;
-import com.cloudians.domain.auth.dto.request.UserAuthRequest;
-import com.cloudians.domain.auth.repository.UserAuthRepository;
+import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -23,11 +23,11 @@ import java.util.Optional;
 // 권한 및 인증 필요한 주소가 아니면 이 필터 안 탐
 public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
 
-    private final UserAuthRepository userAuthRepository;
+    private final UserRepository userRepository;
 
-    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, UserAuthRepository userAuthRepository) {
+    public JwtAuthorizationFilter(AuthenticationManager authenticationManager, UserRepository userRepository) {
         super(authenticationManager);
-        this.userAuthRepository = userAuthRepository; // 필드 초기화
+        this.userRepository = userRepository; // 필드 초기화
     }
 
     // 인증이나 권한 필요한 주소 요청 시 해달 필터 타게 됨
@@ -53,12 +53,12 @@ public class JwtAuthorizationFilter extends BasicAuthenticationFilter {
         // 정상 작동 시
         if (userEmail != null) {
             System.out.println("username 정상 ");
-            Optional<UserAuthRequest> optionalUserAuthRequest = userAuthRepository.findByUserEmail(userEmail);
+            Optional<User> optionalUserAuthRequest = userRepository.findByUserEmail(userEmail);
 
-            UserAuthRequest userAuthRequest = optionalUserAuthRequest.orElse(null); // 값이 없으면 null 반환
+            User user = optionalUserAuthRequest.orElse(null); // 값이 없으면 null 반환
 
-            System.out.println("userEntity: " + userAuthRequest);
-            PrincipalDetails principalDetails = new PrincipalDetails(userAuthRequest);
+            System.out.println("userEntity: " + user);
+            PrincipalDetails principalDetails = new PrincipalDetails(user);
             System.out.println("자고 시포요 " + principalDetails.getUsername());
             // JWT 토큰 서명을 통해서 서명이 정상이면 authentication 객체 생성
             Authentication authentication =

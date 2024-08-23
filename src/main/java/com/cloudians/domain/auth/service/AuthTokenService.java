@@ -2,13 +2,14 @@ package com.cloudians.domain.auth.service;
 
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.cloudians.domain.auth.dto.request.UserAuthRequest;
 import com.cloudians.domain.auth.entity.UserToken;
-import com.cloudians.domain.auth.repository.UserAuthRepository;
 import com.cloudians.domain.auth.repository.UserTokenRepository;
 import com.cloudians.domain.auth.util.JwtUtil;
+import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.repository.UserRepository;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -20,14 +21,20 @@ import java.util.Optional;
 public class AuthTokenService {
 
     @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+
+    @Autowired
     private UserTokenRepository userTokenRepository;
 
     @Autowired
-    private UserAuthRepository userAuthRepository;
+    private UserRepository userRepository;
 
     public Map<String, String> login(String userEmail, String password) throws InvalidCredentialsException {
-        if (!authenticateUser(userEmail, password)) {
-            throw new InvalidCredentialsException("이메일 또는 비밀번호가 잘못되었습니다.");
+        User user = userRepository.findByUserEmail(userEmail)
+                .orElseThrow(() -> new InvalidCredentialsException("이메일 또는 비밀번호가 잘못되었습니다."));
+
+        if (!bCryptPasswordEncoder.matches(password, user.getPassword())) {
+            throw new InvalidCredentialsException("비밀번호가 잘못되었습니다.");
         }
 
         String accessToken = generateAccessToken(userEmail);
@@ -42,13 +49,13 @@ public class AuthTokenService {
         return Map.of("accessToken", accessToken, "refreshToken", refreshToken);
     }
 
-    private boolean authenticateUser(String userEmail, String password) {
-        Optional<UserAuthRequest> userAuthOptional = userAuthRepository.findByUserEmail(userEmail);
-        if (userAuthOptional.isPresent()) {
-            return userAuthOptional.get().getPassword().equals(password);
-        }
-        return false;
-    }
+//    private boolean authenticateUser(String userEmail, String password) {
+//        Optional<User> userAuthOptional = userRepository.findByUserEmail(userEmail);
+//        if (userAuthOptional.isPresent()) {
+//            return userAuthOptional.get().getPassword().equals(password);
+//        }
+//        return false;
+//    }
 
     private String generateAccessToken(String userEmail) {
         return JWT.create()

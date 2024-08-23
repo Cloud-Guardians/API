@@ -1,8 +1,8 @@
 package com.cloudians.domain.auth.service;
 
 import com.cloudians.domain.auth.dto.request.PrincipalDetails;
-import com.cloudians.domain.auth.dto.request.UserAuthRequest;
-import com.cloudians.domain.auth.repository.UserAuthRepository;
+import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -17,12 +17,14 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PrincipalDetailsService implements UserDetailsService {
 
-    private final UserAuthRepository UserAuthRepository;
+    private final UserRepository userRepository;
 
     @Override
     public UserDetails loadUserByUsername(String userEmail) throws UsernameNotFoundException {
         System.out.println("PrincipalDetailsService의 loadIserByUsername()");
-        UserAuthRequest userEntity = UserAuthRepository.findByUserEmail(userEmail)
+        System.out.println("userEmail = " + userEmail);
+
+        User userEntity = userRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + userEmail));
         if (userEntity.getStatus() != 1) { // 1이 활성 상태라면
             throw new DisabledException("사용자가 비활성화되었습니다.");

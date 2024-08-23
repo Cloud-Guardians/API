@@ -2,18 +2,17 @@ package com.cloudians.domain.auth.controller;
 
 import com.cloudians.domain.auth.dto.request.LoginRequest;
 import com.cloudians.domain.auth.dto.request.PrincipalDetails;
-import com.cloudians.domain.auth.dto.request.UserAuthRequest;
 import com.cloudians.domain.auth.dto.response.LoginResponse;
-import com.cloudians.domain.auth.repository.UserAuthRepository;
 import com.cloudians.domain.auth.service.AuthTokenService;
+import com.cloudians.domain.user.dto.request.UserRequest;
+import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.repository.UserRepository;
 import org.apache.http.auth.InvalidCredentialsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -26,16 +25,27 @@ public class RestApiController {
     private AuthTokenService authTokenService;
 
     @Autowired
-    private UserAuthRepository userAuthRepository;
+    private UserRepository userRepository;
 
-    private final BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @PostMapping("signup")
-    public String join(@RequestBody UserAuthRequest user) {
+    public String join(@RequestBody UserRequest userRequest) {
         try {
-            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            user.setStatus(1);
-            userAuthRepository.save(user);
+            userRequest.setPassword(bCryptPasswordEncoder.encode(userRequest.getPassword()));
+            userRequest.setStatus(1);
+            com.cloudians.domain.user.entity.User user = new User(userRequest.getUserEmail(),
+                    userRequest.getSignupType(),
+                    userRequest.getName(),
+                    userRequest.getNickname(),
+                    userRequest.getPassword(),
+                    userRequest.getGender(),
+                    userRequest.getCalendarType(),
+                    userRequest.getBirthdate(),
+                    userRequest.getBirthTime(),
+                    userRequest.getProfileUrl());
+            userRepository.save(user);
             return "회원가입 완료";
         } catch (Exception e) {
             e.printStackTrace(); // 예외 발생 시 로그 출력
@@ -46,7 +56,7 @@ public class RestApiController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> generalLogin(@RequestBody LoginRequest loginRequest) {
         try {
-            Map<String, String> tokens = authTokenService.login(loginRequest.getEmail(), loginRequest.getPassword());
+            Map<String, String> tokens = authTokenService.login(loginRequest.getUserEmail(), loginRequest.getPassword());
 
             // 성공적으로 로그인한 경우 토큰을 포함한 응답 반환
             LoginResponse loginResponse = new LoginResponse(tokens.get("accessToken"), tokens.get("refreshToken"));
@@ -58,29 +68,29 @@ public class RestApiController {
     }
 
 
-    @GetMapping("login/google")
-    public String testOAuthLogin(Authentication authentication,
-                                 @AuthenticationPrincipal OAuth2User oauth) { // DI(의존성 주입)
-        System.out.println("/api/auth/login/google ============");
-        PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
-
-        String oauthEmail = principalDetails.getOAuthEmail(); // OAuth2 이메일
-
-        UserAuthRequest userEntity = userAuthRepository.findByUserEmail(oauthEmail).orElse(null);
-        if (userEntity == null) {
-            // DB에 사용자 저장
-            userEntity = UserAuthRequest.builder()
-                    .userEmail(oauthEmail)
-                    .status(1) // 기본 상태
-                    .build();
-            userAuthRepository.save(userEntity);
-            System.out.println("새로운 사용자를 DB에 저장했습니다.");
-        } else {
-            System.out.println("기존 사용자가 DB에 존재합니다.");
-        }
-        System.out.println("oauth2User: " + oauth.getAttributes());
-        return "redirect:/home"; // templates/signup.html로 이동
-    }
+//    @GetMapping("login/google")
+//    public String testOAuthLogin(Authentication authentication,
+//                                 @AuthenticationPrincipal OAuth2User oauth) { // DI(의존성 주입)
+//        System.out.println("/api/auth/login/google ============");
+//        PrincipalDetails principalDetails = (PrincipalDetails) authentication.getPrincipal();
+//
+//        String oauthEmail = principalDetails.getOAuthEmail(); // OAuth2 이메일
+//
+//        User userEntity = userRepository.findByUserEmail(oauthEmail).orElse(null);
+//        if (userEntity == null) {
+//            // DB에 사용자 저장
+//            userEntity = User.builder()
+//                    .userEmail(oauthEmail)
+//                    .status(1) // 기본 상태
+//                    .build();
+//            userAuthRepository.save(userEntity);
+//            System.out.println("새로운 사용자를 DB에 저장했습니다.");
+//        } else {
+//            System.out.println("기존 사용자가 DB에 존재합니다.");
+//        }
+//        System.out.println("oauth2User: " + oauth.getAttributes());
+//        return "redirect:/home"; // templates/signup.html로 이동
+//    }
 
     @GetMapping("login/google/redirect")
     public String OauthLoginSuccess(Authentication authentication) {

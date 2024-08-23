@@ -30,7 +30,9 @@ public class PublicDiaryController {
     @GetMapping()
     public ResponseEntity<Message> getPublicDiaries(@RequestParam String userEmail,
                                                     @RequestParam(required = false) Long cursor,
-                                                    @RequestParam(defaultValue = "10") Long count, @RequestParam(required = false) String searchType, @RequestParam(required = false) String keyword) {
+                                                    @RequestParam(defaultValue = "10") Long count,
+                                                    @RequestParam(required = false) String searchType,
+                                                    @RequestParam(required = false) String keyword) {
         GeneralPaginatedResponse<PublicDiaryThumbnailResponse> response;
         // keyword 검색
         if (keyword != null && !keyword.isEmpty()) {

@@ -1,6 +1,6 @@
 package com.cloudians.domain.publicdiary.entity.diary;
 
-import java.util.Arrays;
+import com.fasterxml.jackson.annotation.JsonCreator;
 
 public enum SearchType {
     TITLE,
@@ -8,8 +8,8 @@ public enum SearchType {
     AUTHOR,
     TITCONT;
 
-    public static boolean hasType(String string) {
-        return Arrays.stream(SearchType.values())
-                .anyMatch(type -> type.name().equals(string));
+    @JsonCreator
+    public static SearchType from(String s) {
+        return SearchType.valueOf(s.toUpperCase());
     }
 }

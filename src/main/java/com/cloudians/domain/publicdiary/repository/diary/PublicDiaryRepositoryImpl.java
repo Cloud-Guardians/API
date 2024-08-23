@@ -1,8 +1,9 @@
-package com.cloudians.domain.publicdiary.repository;
+package com.cloudians.domain.publicdiary.repository.diary;
 
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.publicdiary.entity.diary.SearchCondition;
 import com.cloudians.domain.publicdiary.entity.diary.SearchType;
+import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryJpaRepository;
 import com.cloudians.domain.user.entity.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;

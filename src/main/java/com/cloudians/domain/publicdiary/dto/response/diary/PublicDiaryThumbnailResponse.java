@@ -1,4 +1,4 @@
-package com.cloudians.domain.publicdiary.dto.response;
+package com.cloudians.domain.publicdiary.dto.response.diary;
 
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import lombok.Builder;

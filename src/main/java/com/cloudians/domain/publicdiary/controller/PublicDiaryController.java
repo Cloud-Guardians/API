@@ -2,7 +2,11 @@ package com.cloudians.domain.publicdiary.controller;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
 import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
-import com.cloudians.domain.publicdiary.dto.response.*;
+import com.cloudians.domain.publicdiary.dto.response.diary.PublicDiaryResponse;
+import com.cloudians.domain.publicdiary.dto.response.diary.PublicDiaryThumbnailResponse;
+import com.cloudians.domain.publicdiary.dto.response.like.LikeResponse;
+import com.cloudians.domain.publicdiary.dto.response.like.PaginationLikesResponse;
+import com.cloudians.domain.publicdiary.dto.response.report.PublicDiaryReportResponse;
 import com.cloudians.domain.publicdiary.service.PublicDiaryService;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;

@@ -1,4 +1,4 @@
-package com.cloudians.domain.publicdiary.dto.request;
+package com.cloudians.domain.publicdiary.dto.request.comment;
 
 import lombok.Getter;
 

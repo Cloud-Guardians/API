@@ -1,11 +1,15 @@
 package com.cloudians.domain.publicdiary.controller;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
-import com.cloudians.domain.publicdiary.dto.request.EditPublicDiaryCommentRequest;
+import com.cloudians.domain.publicdiary.dto.request.comment.EditPublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
-import com.cloudians.domain.publicdiary.dto.request.WriteChildCommentRequest;
-import com.cloudians.domain.publicdiary.dto.request.WritePublicDiaryCommentRequest;
-import com.cloudians.domain.publicdiary.dto.response.*;
+import com.cloudians.domain.publicdiary.dto.request.comment.WriteChildCommentRequest;
+import com.cloudians.domain.publicdiary.dto.request.comment.WritePublicDiaryCommentRequest;
+import com.cloudians.domain.publicdiary.dto.response.comment.ChildCommentResponse;
+import com.cloudians.domain.publicdiary.dto.response.comment.PublicDiaryCommentResponse;
+import com.cloudians.domain.publicdiary.dto.response.like.LikeResponse;
+import com.cloudians.domain.publicdiary.dto.response.like.PaginationLikesResponse;
+import com.cloudians.domain.publicdiary.dto.response.report.PublicDiaryCommentReportResponse;
 import com.cloudians.domain.publicdiary.service.PublicDiaryCommentService;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;

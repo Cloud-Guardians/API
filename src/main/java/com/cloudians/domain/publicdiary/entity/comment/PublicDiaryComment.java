@@ -1,6 +1,6 @@
 package com.cloudians.domain.publicdiary.entity.comment;
 
-import com.cloudians.domain.publicdiary.dto.request.EditPublicDiaryCommentRequest;
+import com.cloudians.domain.publicdiary.dto.request.comment.EditPublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.entity.BaseTimeEntity;

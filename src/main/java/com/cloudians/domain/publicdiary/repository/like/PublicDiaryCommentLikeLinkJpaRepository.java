@@ -1,4 +1,4 @@
-package com.cloudians.domain.publicdiary.repository;
+package com.cloudians.domain.publicdiary.repository.like;
 
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.like.PublicDiaryCommentLikeLink;

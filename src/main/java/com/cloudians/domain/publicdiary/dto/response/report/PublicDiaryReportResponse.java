@@ -1,5 +1,6 @@
-package com.cloudians.domain.publicdiary.dto.response;
+package com.cloudians.domain.publicdiary.dto.response.report;
 
+import com.cloudians.domain.publicdiary.dto.response.UserReportResponse;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.publicdiary.entity.report.PublicDiaryReport;
 import com.cloudians.domain.publicdiary.entity.report.ReportReason;

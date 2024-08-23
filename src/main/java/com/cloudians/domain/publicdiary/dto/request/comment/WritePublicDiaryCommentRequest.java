@@ -1,4 +1,4 @@
-package com.cloudians.domain.publicdiary.dto.request;
+package com.cloudians.domain.publicdiary.dto.request.comment;
 
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
@@ -11,21 +11,20 @@ import javax.validation.constraints.NotBlank;
 
 @Getter
 @NoArgsConstructor
-public class WriteChildCommentRequest {
+public class WritePublicDiaryCommentRequest {
     @NotBlank(message = "내용을 입력해주세요.")
     private String content;
 
     @Builder
-    private WriteChildCommentRequest(String content) {
+    private WritePublicDiaryCommentRequest(String content) {
         this.content = content;
     }
 
-    public PublicDiaryComment toEntity(PublicDiary publicDiary, User author, Long parnetCommentId) {
+    public PublicDiaryComment toEntity(PublicDiary publicDiary, User author) {
         return PublicDiaryComment.builder()
                 .publicDiary(publicDiary)
                 .author(author)
                 .content(content)
-                .parentCommentId(parnetCommentId)
                 .build();
     }
 }

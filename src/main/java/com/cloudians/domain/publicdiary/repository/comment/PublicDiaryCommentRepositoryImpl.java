@@ -1,7 +1,8 @@
-package com.cloudians.domain.publicdiary.repository;
+package com.cloudians.domain.publicdiary.repository.comment;
 
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
+import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentJpaRepository;
 import com.cloudians.domain.user.entity.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;

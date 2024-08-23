@@ -1,8 +1,8 @@
 package com.cloudians.domain.publicdiary.controller;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
-import com.cloudians.domain.publicdiary.dto.request.comment.EditPublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
+import com.cloudians.domain.publicdiary.dto.request.comment.EditPublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.comment.WriteChildCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.comment.WritePublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.response.comment.ChildCommentResponse;
@@ -41,7 +41,7 @@ public class PublicDiaryCommentController {
     public ResponseEntity<Message> getAllComments(@RequestParam String userEmail,
                                                   @PathVariable("public-diary-id") Long publicDiaryId,
                                                   @RequestParam(required = false) Long cursor,
-                                                  @RequestParam(defaultValue = "20") Long count) {
+                                                  @RequestParam(defaultValue = "10") Long count) {
 
         GeneralPaginatedResponse<PublicDiaryCommentResponse> response = publicDiaryCommentService.getAllComments(publicDiaryId, cursor, count);
 
@@ -89,7 +89,7 @@ public class PublicDiaryCommentController {
 
     @GetMapping("{parent-comment-id}")
     public ResponseEntity<Message> getAllChildComments(@RequestParam(required = false) Long cursor,
-                                                       @RequestParam(defaultValue = "20") Long count,
+                                                       @RequestParam(defaultValue = "10") Long count,
                                                        @PathVariable("public-diary-id") Long publicDiaryId,
                                                        @PathVariable("parent-comment-id") Long parentCommentId) {
 

@@ -1,6 +1,6 @@
 package com.cloudians.domain.publicdiary.dto.response.report;
 
-import com.cloudians.domain.publicdiary.dto.response.UserReportResponse;
+import com.cloudians.domain.publicdiary.dto.response.UserProfileResponse;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.publicdiary.entity.report.PublicDiaryReport;
 import com.cloudians.domain.publicdiary.entity.report.ReportReason;
@@ -15,7 +15,7 @@ public class PublicDiaryReportResponse {
 
     private Long reportId;
 
-    private UserReportResponse reporter;
+    private UserProfileResponse reporter;
 
     private Long reportedDiaryId;
 
@@ -28,7 +28,7 @@ public class PublicDiaryReportResponse {
     private boolean isRead;
 
     @Builder
-    private PublicDiaryReportResponse(Long reportId, UserReportResponse reporter, Long reportedDiaryId, ReportReason reason, java.lang.String customReason, ReportStatus status, boolean isRead) {
+    private PublicDiaryReportResponse(Long reportId, UserProfileResponse reporter, Long reportedDiaryId, ReportReason reason, java.lang.String customReason, ReportStatus status, boolean isRead) {
         this.reportId = reportId;
         this.reporter = reporter;
         this.reportedDiaryId = reportedDiaryId;
@@ -41,7 +41,7 @@ public class PublicDiaryReportResponse {
     public static PublicDiaryReportResponse of(PublicDiaryReport report, User reporter, PublicDiary reportedDiary) {
         return PublicDiaryReportResponse.builder()
                 .reportId(report.getId())
-                .reporter(UserReportResponse.from(reporter))
+                .reporter(UserProfileResponse.from(reporter))
                 .reportedDiaryId(reportedDiary.getId())
                 .reason(report.getReason())
                 .customReason(report.getCustomReason())

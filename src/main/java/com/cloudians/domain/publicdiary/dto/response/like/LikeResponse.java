@@ -1,5 +1,6 @@
 package com.cloudians.domain.publicdiary.dto.response.like;
 
+import com.cloudians.domain.publicdiary.dto.response.UserProfileResponse;
 import com.cloudians.domain.publicdiary.entity.like.LikeLink;
 import lombok.Builder;
 import lombok.Getter;
@@ -7,20 +8,20 @@ import lombok.Getter;
 @Getter
 public class LikeResponse {
     private Long likeId;
-    private String nickname;
+    private UserProfileResponse user;
     boolean hasLike;
 
     @Builder
-    private LikeResponse(Long likeId, String nickname, boolean hasLike) {
+    private LikeResponse(Long likeId, UserProfileResponse user, boolean hasLike) {
         this.likeId = likeId;
-        this.nickname = nickname;
+        this.user = user;
         this.hasLike = hasLike;
     }
 
     public static LikeResponse of(LikeLink likeLink, boolean hasLike) {
         return LikeResponse.builder()
                 .likeId(likeLink.getId())
-                .nickname(likeLink.getUser().getNickname())
+                .user(UserProfileResponse.from(likeLink.getUser()))
                 .hasLike(hasLike)
                 .build();
     }

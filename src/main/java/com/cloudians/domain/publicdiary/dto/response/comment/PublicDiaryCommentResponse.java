@@ -1,5 +1,6 @@
 package com.cloudians.domain.publicdiary.dto.response.comment;
 
+import com.cloudians.domain.publicdiary.dto.response.UserProfileResponse;
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import lombok.Builder;
 import lombok.Getter;
@@ -10,7 +11,7 @@ import java.time.LocalDateTime;
 public class PublicDiaryCommentResponse {
     private Long publicDiaryCommentId;
 
-    private String author;
+    private UserProfileResponse author;
 
     private String content;
 
@@ -21,7 +22,7 @@ public class PublicDiaryCommentResponse {
     private LocalDateTime updatedAt;
 
     @Builder
-    private PublicDiaryCommentResponse(Long publicDiaryCommentId, String author, String content, Long likes, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private PublicDiaryCommentResponse(Long publicDiaryCommentId, UserProfileResponse author, String content, Long likes, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.publicDiaryCommentId = publicDiaryCommentId;
         this.author = author;
         this.content = content;
@@ -33,7 +34,7 @@ public class PublicDiaryCommentResponse {
     public static PublicDiaryCommentResponse of(PublicDiaryComment publicDiaryComment) {
         return PublicDiaryCommentResponse.builder()
                 .publicDiaryCommentId(publicDiaryComment.getId())
-                .author(publicDiaryComment.getAuthor().getNickname())
+                .author(UserProfileResponse.from(publicDiaryComment.getAuthor()))
                 .content(publicDiaryComment.getContent())
                 .likes(publicDiaryComment.getLikes())
                 .createdAt(publicDiaryComment.getCreatedAt())

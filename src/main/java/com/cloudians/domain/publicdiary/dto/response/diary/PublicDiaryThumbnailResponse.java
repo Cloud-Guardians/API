@@ -1,5 +1,6 @@
 package com.cloudians.domain.publicdiary.dto.response.diary;
 
+import com.cloudians.domain.publicdiary.dto.response.UserProfileResponse;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,7 +16,7 @@ public class PublicDiaryThumbnailResponse {
 
     private String content;
 
-    private String author;
+    private UserProfileResponse author;
 
     private LocalDateTime timestamp;
 
@@ -28,7 +29,7 @@ public class PublicDiaryThumbnailResponse {
     private Long views;
 
     @Builder
-    private PublicDiaryThumbnailResponse(Long publicDiaryId, String title, String content, String author, LocalDateTime timestamp, String photoUrl, Long totalLikeCount, Long totalCommentsCount, Long views) {
+    private PublicDiaryThumbnailResponse(Long publicDiaryId, String title, String content, UserProfileResponse author, LocalDateTime timestamp, String photoUrl, Long totalLikeCount, Long totalCommentsCount, Long views) {
         this.publicDiaryId = publicDiaryId;
         this.title = title;
         this.content = content;
@@ -45,7 +46,7 @@ public class PublicDiaryThumbnailResponse {
                 .publicDiaryId(publicDiary.getId())
                 .title(publicDiary.getPersonalDiary().getTitle())
                 .content(publicDiary.getPersonalDiary().getContent())
-                .author(publicDiary.getAuthor().getNickname())
+                .author(UserProfileResponse.from(publicDiary.getAuthor()))
                 .timestamp(publicDiary.getCreatedAt())
                 .photoUrl(publicDiary.getPersonalDiary().getPhotoUrl())
                 .totalCommentsCount(totalCommentsCount)

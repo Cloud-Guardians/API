@@ -1,15 +1,5 @@
 package com.cloudians.domain.home.service;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.YearMonth;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.cloudians.domain.home.dto.response.CalendarResponse;
 import com.cloudians.domain.home.dto.response.EmotionsResponse;
 import com.cloudians.domain.home.entity.SenderType;
@@ -25,14 +15,11 @@ import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -47,15 +34,15 @@ public class CalendarService {
 
     private final UserRepository userRepository;
 
-    public List<CalendarResponse> getDiariesInMonth(String userEmail, LocalDate date) {
+    public List<CalendarResponse> getDiaries(String userEmail) {
         User user = findUserByUserEmail(userEmail);
 
-        YearMonth yearMonth = YearMonth.from(date);
-        LocalDate startOfMonth = yearMonth.atDay(1);
-        LocalDate endOfMonth = yearMonth.atEndOfMonth();
+//        YearMonth yearMonth = YearMonth.from(date);
+//        LocalDate startOfMonth = yearMonth.atDay(1);
+//        LocalDate endOfMonth = yearMonth.atEndOfMonth();
 
-        List<PersonalDiary> diaries = getPersonalDiariesOrThrow(user, startOfMonth, endOfMonth);
-        Set<LocalDate> whisperMessageDates = getWhisperMessageDates(user, startOfMonth, endOfMonth);
+        List<PersonalDiary> diaries = getPersonalDiariesOrThrow(user);
+        Set<LocalDate> whisperMessageDates = getWhisperMessageDates(user);
 
         return getCalendarResponses(diaries, whisperMessageDates);
     }
@@ -82,16 +69,16 @@ public class CalendarService {
                 .collect(Collectors.toList());
     }
 
-    private Set<LocalDate> getWhisperMessageDates(User user, LocalDate startOfMonth, LocalDate endOfMonth) {
-        return whisperMessageRepository.findByUserAndSenderAndTimestampBetween(
-                        user, SenderType.USER, startOfMonth.atStartOfDay(), endOfMonth.atTime(LocalTime.MAX))
+    private Set<LocalDate> getWhisperMessageDates(User user) {
+        return whisperMessageRepository.findByUserAndSender(
+                        user, SenderType.USER)
                 .stream()
                 .map(message -> message.getTimestamp().toLocalDate())
                 .collect(Collectors.toSet());
     }
 
-    private List<PersonalDiary> getPersonalDiariesOrThrow(User user, LocalDate startOfMonth, LocalDate endOfMonth) {
-        return personalDiaryRepository.findPersonalDiaryByUserAndDateBetweenOrderByDate(user, startOfMonth, endOfMonth)
+    private List<PersonalDiary> getPersonalDiariesOrThrow(User user) {
+        return personalDiaryRepository.findPersonalDiaryByUserOrderByDate(user)
                 .orElseThrow(() -> new CalendarException(CalendarExceptionType.NO_MORE_DATA));
     }
 

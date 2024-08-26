@@ -28,8 +28,8 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.cloudians.domain.auth.dto.request.OAuthToken;
 import com.cloudians.domain.auth.dto.request.PrincipalDetails;
-import com.cloudians.domain.auth.dto.request.UserAuthRequest;
-import com.cloudians.domain.auth.repository.UserAuthRepository;
+import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
@@ -40,11 +40,11 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
     private BCryptPasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    private UserAuthRepository userAuthRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private AuthTokenService authTokenService;
-    
+
     public OAuth2User handleKakaoLogin(String code) {
         String accessToken = requestAccessToken(code);
         if (accessToken == null) {
@@ -65,25 +65,25 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
             return null; // 이메일이 없으면 null 반환
         }
 
-        UserAuthRequest userEntity = userAuthRepository.findByUserEmail(userEmail).orElse(null);
+        User userEntity = userRepository.findByUserEmail(userEmail).orElse(null);
         if (userEntity == null) {
             // 새로운 사용자 등록
-            userEntity = UserAuthRequest.builder()
+            userEntity = User.builder()
                     .userEmail(userEmail)
                     .password(bCryptPasswordEncoder.encode("1234")) // 기본 비밀번호 해시화
                     .status(1)
                     .build();
-            userAuthRepository.save(userEntity);
-        }   
+            userRepository.save(userEntity);
+        }
 
         // JWT 토큰 발급
         String jwtToken = generateJwtToken(userEntity);
-        
+
         String refreshToken = authTokenService.generateRefreshToken(userEntity.getUserEmail());
-        
+
         authTokenService.saveRefreshToken(userEntity.getUserEmail(), jwtToken, refreshToken);
 
-        
+
         // JWT 토큰을 응답 헤더에 추가
         HttpServletResponse response = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getResponse();
         if (response != null) {
@@ -107,7 +107,7 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
         params.add("scope", "account_email");
 
         HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(params, headers);
-        
+
         ResponseEntity<String> response;
         try {
             response = rt.exchange(
@@ -121,9 +121,9 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
                 // JSON 파싱
                 ObjectMapper objectMapper = new ObjectMapper();
                 OAuthToken oauthToken = objectMapper.readValue(response.getBody(), OAuthToken.class);
-                System.out.println("사용자 액세스 토큰: "+oauthToken);
+                System.out.println("사용자 액세스 토큰: " + oauthToken);
                 return oauthToken.getAccess_token(); // 토큰 반환
-                
+
             } else {
                 // 실패한 경우 로그 출력
                 System.err.println("Kakao API 호출 실패: " + response.getStatusCode());
@@ -137,9 +137,9 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
     }
 
 
-   public OAuth2User fetchKakaoUserInfo(String accessToken) {
+    public OAuth2User fetchKakaoUserInfo(String accessToken) {
         RestTemplate restTemplate = new RestTemplate();
-        
+
         HttpHeaders headers = new HttpHeaders();
         headers.add("Authorization", "Bearer " + accessToken);
         headers.add("Content-Type", "application/json");
@@ -148,10 +148,10 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
 
         try {
             ResponseEntity<String> response = restTemplate.exchange(
-                "https://kapi.kakao.com/v2/user/me", 
-                HttpMethod.GET, 
-                entity, 
-                String.class
+                    "https://kapi.kakao.com/v2/user/me",
+                    HttpMethod.GET,
+                    entity,
+                    String.class
             );
 
             if (response.getStatusCode().is2xxSuccessful()) {
@@ -178,16 +178,15 @@ public class KakaoOAuthService extends DefaultOAuth2UserService {
     }
 
 
-
-    public String generateJwtToken(UserAuthRequest userEntity) {
+    public String generateJwtToken(User userEntity) {
         String jwtToken = JWT.create()
                 .withSubject("jwt token")
                 .withExpiresAt(new Date(System.currentTimeMillis() + (60000 * 10))) // 10분 후 만료
                 .withClaim("userEmail", userEntity.getUserEmail())
                 .sign(Algorithm.HMAC512("jwt"));
-        
+
         System.out.println("생성된 JWT 토큰: " + jwtToken); // JWT 토큰 출력
-        
+
         return jwtToken;
 
 

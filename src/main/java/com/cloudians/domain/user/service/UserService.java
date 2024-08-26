@@ -1,18 +1,29 @@
 package com.cloudians.domain.user.service;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
 import javax.transaction.Transactional;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.cloudians.domain.auth.entity.UserToken;
 import com.cloudians.domain.auth.repository.UserTokenRepository;
+import com.cloudians.domain.publicdiary.dto.response.comment.PublicDiaryCommentResponse;
+import com.cloudians.domain.publicdiary.dto.response.diary.PublicDiaryResponse;
+import com.cloudians.domain.publicdiary.dto.response.diary.PublicDiaryThumbnailResponse;
+import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
+import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
+import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
+import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
+import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentJpaRepository;
+import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryJpaRepository;
+import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
+import com.cloudians.domain.publicdiary.service.PublicDiaryService;
 import com.cloudians.domain.user.dto.request.UserRequest;
 import com.cloudians.domain.user.dto.response.UserResponse;
 import com.cloudians.domain.user.entity.User;
@@ -31,10 +42,12 @@ import lombok.extern.slf4j.Slf4j;
 public class UserService{
 	
 	private final FirebaseService firebaseService;
-	@Autowired
-	private BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();
 	private final UserRepository userRepository;
 	private final UserTokenRepository userTokenRepository;
+	private final PublicDiaryJpaRepository publicRepository;
+	private final PublicDiaryCommentJpaRepository commentRepository;
+	private final PublicDiaryRepositoryImpl diaryRepositoryImpl;
+	private final PublicDiaryService publicDiaryService;
 
 	public User findUserByEmailOrThrow(String userEmail) {
 	    Optional<User> us = userRepository.findByUserEmail(userEmail);
@@ -59,23 +72,6 @@ public class UserService{
 	    }
 	    
 
-    //signup_type
-    public UserResponse userSignup(UserRequest userRequest) {
-	Optional<User> user = userRepository.findByUserEmail(userRequest.getUserEmail());
-	User join = new User();
-	if(user.isEmpty()) {
-	    join.setUserEmail(userRequest.getUserEmail());
-	    join.setNickname(userRequest.getNickname());
-	    join.setName(userRequest.getName());
-	    join.setPassword(bCryptPasswordEncoder.encode(userRequest.getPassword()));
-	    join.setGender(userRequest.getGender());
-	    join.setCalendarType(userRequest.getCalendarType());
-	    join.setBirthdate(userRequest.getBirthdate());
-	    join.setBirthTime(userRequest.getBirthTime());
-	    User NewUser = userRepository.save(join);
-	    return NewUser.toDto();
-	} else return null;
-    }
     
     // user info
     public UserResponse userInfo(String userEmail) {
@@ -86,7 +82,6 @@ public class UserService{
 
 	// 프로필 제외한 개인 정보 변경
 	public UserResponse updateUser(String userEmail, UserRequest userRequest) {
-		System.out.println("조회부터 할게염.");
 		User user = findUserByEmailOrThrow(userEmail);
 			 
 	    if (userRequest.getName() != null) {
@@ -104,21 +99,22 @@ public class UserService{
 	   if(userRequest.getCalendarType()!=null) {
 		   user.setCalendarType(userRequest.getCalendarType());
 	   }
-	    
 	    User updatedUser = userRepository.save(user);
 	    System.out.println(updatedUser.getName());
 	    return updatedUser.toDto();
 	}
 	
 	// user profile 
-	public UserResponse updateProfile(String userEmail, MultipartFile file) {
+	public Map<String, String> updateProfile(String userEmail, MultipartFile file) {
 	    User user = findUserByEmailOrThrow(userEmail);
 		    String domain = "profile";
 			firebaseService.uploadFile(file, userEmail,domain,domain);
 			   user.setProfileUrl(firebaseService.getFileUrl(userEmail,domain,domain));
 			   User updatedUser = userRepository.save(user);
-			   return updatedUser.toDto();
-
+			   Map<String, String> map = new HashMap<>();
+			   map.put("profile",updatedUser.getProfileUrl());
+			   map.put("nickname",updatedUser.getNickname());
+			   return map;
 	}
 	
 	// user profile delete 
@@ -148,11 +144,32 @@ public class UserService{
 	    userRepository.delete(user);
 	    return true;
 	}
-	
+
 	// 유저 작성글 조회 
+	public List<PublicDiaryThumbnailResponse> getPublicDiaries(String userEmail){
+	    User author = findUserByEmailOrThrow(userEmail);
+	    List<PublicDiary> entityList = publicRepository.findListByAuthor(author);
+	   List<PublicDiaryThumbnailResponse> list = publicDiaryService.getPublicDiaryThumbnailResponses(entityList);
+	    return  list;
+	}
 	
+
 	// 유저 댓글 조회 
-	
+	public List<Map<String,Object>> getPublicComments(String userEmail){
+	    User author = findUserByEmailOrThrow(userEmail);
+	   List<PublicDiaryComment> entityList = commentRepository.findListByAuthor(author);
+	   List<Map<String,Object>> list = new ArrayList<>();
+	   
+	   for(PublicDiaryComment comment : entityList) {
+	       Map<String, Object> map = new HashMap<>();
+	       map.put("comment",PublicDiaryCommentResponse.of(comment));
+	       PublicDiary diary = diaryRepositoryImpl.findByPublicDiaryComment(comment)
+		       .orElseThrow(()-> new PublicDiaryException(PublicDiaryExceptionType.PUBLIC_DIARY_LIST_NOT_FOUND));
+	       map.put("diary",PublicDiaryResponse.of(diary,author));
+	       list.add(map);
+	   }
+	   return list;
+	}
 	
 
 

@@ -5,29 +5,29 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.cloudians.domain.auth.dto.request.UserAuthRequest;
-import com.cloudians.domain.auth.repository.UserAuthRepository;
+import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.repository.UserRepository;
 
 @Service
 public class UserAuthService {
 
     @Autowired
-    private UserAuthRepository UseAuthRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private BCryptPasswordEncoder encoder;
 
     @Transactional(readOnly = true)
-    public UserAuthRequest findUserByUsername(String userEmail) {
+    public User findUserByUsername(String userEmail) {
         // Optional을 반환하는 메서드에 대해 orElseThrow 사용
-        return UseAuthRepository.findByUserEmail(userEmail)
+        return userRepository.findByUserEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("회원 찾기 실패"));
     }
 
     @Transactional
-    public boolean registerUser(UserAuthRequest user) {
+    public boolean registerUser(User user) {
         // 이메일로 사용자 찾기
-        UserAuthRequest existingUser = UseAuthRepository.findByUserEmail(user.getUserEmail()).orElse(null);
+        User existingUser = userRepository.findByUserEmail(user.getUserEmail()).orElse(null);
 
         // 이미 존재하는 사용자라면 회원가입 실패
         if (existingUser != null) {
@@ -43,7 +43,7 @@ public class UserAuthService {
         user.setStatus(1);
 
         try {
-            UseAuthRepository.save(user);
+            userRepository.save(user);
             return true; // 성공적으로 저장됨
         } catch (Exception e) {
             // 로그를 남기거나 예외 처리를 할 수 있음
@@ -52,25 +52,25 @@ public class UserAuthService {
     }
 
     @Transactional
-    public int joinUser(UserAuthRequest user) {
-    	String rawPassword = user.getPassword(); // 1234 원문
-		String encPassword = encoder.encode(rawPassword); // 해쉬
-		user.setPassword(encPassword);
-		user.setStatus(1);
-		try {
-			UseAuthRepository.save(user);
-			return 1;
-		} catch (Exception e) {
-			return -1;
-		}
-	}
-    
+    public int joinUser(User user) {
+        String rawPassword = user.getPassword(); // 1234 원문
+        String encPassword = encoder.encode(rawPassword); // 해쉬
+        user.setPassword(encPassword);
+        user.setStatus(1);
+        try {
+            userRepository.save(user);
+            return 1;
+        } catch (Exception e) {
+            return -1;
+        }
+    }
+
     @Transactional
-    public void updateUser(UserAuthRequest user) {
+    public void updateUser(User user) {
         // 수정시에는 영속성 컨텍스트 User 오브젝트를 영속화시키고, 영속화된 User 오브젝트를 수정
         // select를 해서 User 오브젝트를 DB로부터 가져오는 이유는 영속화를 하기 위해서!!
         // 영속화된 오브젝트를 변경하면 자동으로 DB에 update문을 날려주거든요.
-        UserAuthRequest persistence = UseAuthRepository.findByUserEmail(user.getUserEmail())
+        User persistence = userRepository.findByUserEmail(user.getUserEmail())
                 .orElseThrow(() -> new IllegalArgumentException("회원 찾기 실패"));
 
         // Validate 체크 => oauth 필드에 값이 없으면 수정 가능

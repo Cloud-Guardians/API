@@ -73,48 +73,34 @@ public class FcmNotificationService {
  	    notification.setNotificationStatus(true);
  	    notification.setNotificationIsRead(true);   
  	    notificationRepository.save(notification);
- 	    return notification.toDto();	}
+ 	    return NotificationResponse.of(notification);	}
     
     
+ 	private Notification findNotificationByUserEmailAndType(String userEmail, NotificationType type) {
+ 	    Notification notification = notificationRepository.findByUserEmailAndNotificationType(userEmail, type.toString())
+ 		    .orElseThrow(()-> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
+ 	    return notification;
+ 	}
 	
 	// user home notification time change O
 	public void changeHomeNotification(String userEmail, NotificationType type, LocalTime time) {
-	    List<Notification> notifications = findNotificationListByUserEmail(userEmail);
-	    for(Notification not : notifications) {
-		if(not.getNotificationType().equals(type.toString())) {
-		    not.setNotificationDiaryTime(time);
-		    notificationRepository.save(not);
-		    updated = true;
-		}}
-	    if(!updated) throw new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_UPDATED);
+	    Notification notification = findNotificationByUserEmailAndType(userEmail, type);
+	    notification.setNotificationDiaryTime(time);
+	    notificationRepository.save(notification);
 	}
 	
 	 // home toggle on, off 
 	    public boolean toggleHomeNotification(String userEmail,NotificationType type) {
-		List<Notification> notifications = findNotificationListByUserEmail(userEmail);
-		    for(Notification not : notifications) {
-			if(not.getNotificationType().equals(type.toString())) {
-			    not.setNotificationStatus(!not.isNotificationStatus());
-			    notificationRepository.save(not);
-			    updated = true;
-			    return true;
-			}
-			}
-		    if(!updated) throw new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_UPDATED);
-		    return false;
-		    
+		  Notification notification = findNotificationByUserEmailAndType(userEmail, type);
+		  notification.setNotificationStatus(!notification.isNotificationStatus());
+			    notificationRepository.save(notification);
+			    return true;    
 	    }
 	    
 	// user home notification time delete
 	public void deleteHomeNotification(String userEmail,NotificationType type) {
-	    List<Notification> notifications = findNotificationListByUserEmail(userEmail);
-	    for(Notification not : notifications) {
-		if(not.getNotificationType().equals(type.toString())) {
-		    notificationRepository.delete(not);
-		    updated = true;
-		} 
-	    } 
-	    if(!updated) throw new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_UPDATED);
+	    Notification notification = findNotificationByUserEmailAndType(userEmail, type);
+	    notificationRepository.delete(notification);
 	}
     // whisper&diary
 	
@@ -137,16 +123,8 @@ public void sendHomeNotificationToAll() {
 	// notification entity에서 값을 받아와 가지고, 알림 타입과 알림 상태가 일치하면 지정 알림 시간을 등록하여, 알림을 전송 
 	Map<Object, Object> param =  findByUserEmail(userEmail);
 	User user = (User)param.get("user");
-	List<Notification> notifications = (List<Notification>)param.get("notification");
-	Notification notification = new Notification();
+	Notification notification = findNotificationByUserEmailAndType(userEmail, type);
 	
-	for(Notification not : notifications) {
-	    if(not.getNotificationType().equals(type.toString()) && not.isNotificationStatus()) {
-		notification= not;
-		updated = true;
-	    } 
-	} 
-	  if(!updated) throw new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND);
 	  
 	String hours = notification.getNotificationDiaryTime().toString().split(":")[0];
 	String minutes = notification.getNotificationDiaryTime().toString().split(":")[1];
@@ -156,9 +134,9 @@ public void sendHomeNotificationToAll() {
 	UserToken token = (UserToken)param.get("token");
 	
 	FcmNotificationRequest request = new FcmNotificationRequest();
-	if(type==NotificationType.DIARY) {
+	if(type==NotificationType.DIARY && notification.isNotificationStatus()) {
 	    request.sendForDiary(token.getTokenValue());
-	} else if(type==NotificationType.WHISPER) {
+	} else if(type==NotificationType.WHISPER && notification.isNotificationStatus()) {
 	    request.sendForWhisper(token.getTokenValue());
 	}
 
@@ -168,42 +146,12 @@ public void sendHomeNotificationToAll() {
                 sendMessageTo(request);
                 log.info(request.getTitle()+":"+request.getBody());
             } catch (Exception e) {
-                Message message = new Message(e,null);
+                Message message = new Message(e,NotificationExceptionType. NOTIFICATION_SEND_FAILURE.getStatusCode());
               System.out.println("error:"+message);
             }
         }, new CronTrigger(cronText));
 	System.out.println("Scheduled task with cron: " + cronText);
 	
-    }
-    
-    // diary only 
-    public void dailyDiaryNotification(String userEmail, NotificationType type) {
-	// notification entity에서 값을 받아와 가지고, 알림 타입과 알림 상태가 일치하면 지정 알림 시간을 등록하여, 알림을 전송 
-	Map<Object, Object> param =  findByUserEmail(userEmail);
-	List<Notification> notifications = (List<Notification>)param.get("notification");
-	Notification notification = new Notification();
-	
-	for(Notification not : notifications) {
-	    if(not.getNotificationType().equals(type.toString())) {
-		notification= not;
-	    }
-	}
-	String hours = notification.getNotificationDiaryTime().toString().split(":")[0];
-	String minutes = notification.getNotificationDiaryTime().toString().split(":")[1];
-	String cronText = minutes.split("")[0]+" "+minutes.split("")[1]+" "+hours.split("")[0]+" "+hours.split("")[1]+" * * ?";
-	// cronText : 0 0 1 2 * * ?로 나타나고, 매일 정각 열두시를 의미
-
-	UserToken token = (UserToken)param.get("token");
-	
-	FcmNotificationRequest request = new FcmNotificationRequest().sendForDiary(token.getTokenValue());
-
-	taskScheduler.schedule(() -> {
-            try {
-                sendMessageTo(request);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }, new CronTrigger(cronText));
     }
     
     // 댓글과 좋아요 알림  ... 수정중 

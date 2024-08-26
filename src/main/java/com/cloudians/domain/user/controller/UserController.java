@@ -1,13 +1,14 @@
 package com.cloudians.domain.user.controller;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudians.domain.publicdiary.dto.response.comment.PublicDiaryCommentResponse;
+import com.cloudians.domain.publicdiary.dto.response.diary.PublicDiaryThumbnailResponse;
 import com.cloudians.domain.user.dto.request.UserLockRequest;
 import com.cloudians.domain.user.dto.request.UserRequest;
 import com.cloudians.domain.user.dto.response.UserLockResponse;
@@ -24,8 +27,6 @@ import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.service.UserLockService;
 import com.cloudians.domain.user.service.UserService;
 import com.cloudians.global.Message;
-import com.google.api.core.ApiFuture;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -92,6 +93,13 @@ public class UserController {
 	        }
 	    }
 
+	
+	// 탈퇴
+	@GetMapping("/withdraw")
+	public ResponseEntity<Message> userWithdraw(@RequestParam("userEmail") String userEmail){
+	    boolean result = userService.unregisterUser(userEmail);
+	    return successMessage(result);
+	}
 
 	// 프로필 조회 
 	 @GetMapping("/profile")
@@ -105,8 +113,8 @@ public class UserController {
 		@PutMapping("/profile")
 		public ResponseEntity<Message> userProfileUpdate (@RequestParam("userEmail") String userEmail,
 				@RequestParam("file") MultipartFile file) {// 사용자 정보를 업데이트하는 서비스 호출
-		   UserResponse user = userService.updateProfile(userEmail,file);
-		   return successMessage(user.getProfileUrl());
+		   Map<String, String> user = userService.updateProfile(userEmail,file);
+		   return successMessage(user);
 		}
 	
 	// 프로필 삭제
@@ -116,18 +124,10 @@ public class UserController {
 			return successMessage(user);
 		}
 		
-		
-	// 회원 가입
-		  @PostMapping("/join")
-		    public ResponseEntity<Message> userJoin(@RequestBody UserRequest userRequest) {
-		      UserResponse user = userService.userSignup(userRequest);
-		      return successMessage(user);
-		    }
 	
 	// 내 정보 조회
 	@GetMapping("/user-info")
 	public ResponseEntity<Message> userInfo(@RequestParam("userEmail") String userEmail){
-	    log.info("조회 시작.");
 	    UserResponse user = userService.userInfo(userEmail);
 	    return successMessage(user);
 	}
@@ -136,7 +136,6 @@ public class UserController {
 	@PutMapping("/user-info")
 	public ResponseEntity<Message> userInfoUpdate(@RequestParam("userEmail") String userEmail,
             @RequestBody UserRequest userRequest){// 사용자 정보를 업데이트하는 서비스 호출
-       System.out.println("controller - modify");
 		UserResponse updatedUser = userService.updateUser(userEmail, userRequest);
         return successMessage(updatedUser);
 	}
@@ -163,10 +162,11 @@ public class UserController {
 	  return successMessage("done"); 
 	}
 	
+	
 	// 앱 잠금 번호 변경
 		@PutMapping("user-lock")
-		ResponseEntity<Message> userLockChange(@RequestParam("userEmail") String userEmail, String insertCode){
-		    UserLockResponse user = userLockService.changeLock(userEmail,insertCode);
+		ResponseEntity<Message> userLockChange(@RequestParam("userEmail") String userEmail, String beforePass, String afterPass){
+		    UserLockResponse user = userLockService.changeLock(userEmail,beforePass,afterPass);
 		    return successMessage(user);
 		    
 		}
@@ -179,29 +179,22 @@ public class UserController {
 		}
 	
 	
-	
-	
-	
 	// 유저 작성글 조회
+	@GetMapping("/{userEmail}/publicDiaries")
+	ResponseEntity<Message> getUserPublicDiaries(@PathVariable("userEmail") String userEmail){
+	    List<PublicDiaryThumbnailResponse> list = userService.getPublicDiaries(userEmail);
+	    return successMessage(list);
+	}
+	
 	
 	// 유저 댓글 조회
+	@GetMapping("/{userEmail}/comments")
+	ResponseEntity<Message> getUserComments(@PathVariable("userEmail") String userEmail){
+	    List<Map<String,Object>> list = userService.getPublicComments(userEmail);
+	    return successMessage(list);
+	}
 	
 	
-
-	
-	// 커뮤니티 알림 생성/삭제
-	
-	// 커뮤니티 알림 조회
-	
-	
-	// 홈 알림 호출
-	
-	// 홈 알림 등록
-	
-	
-	// 홈 알림 삭제
-	
-	// 홈 알림 수정
 
 	
 	

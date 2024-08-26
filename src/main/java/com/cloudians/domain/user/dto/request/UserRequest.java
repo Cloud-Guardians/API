@@ -1,24 +1,28 @@
 package com.cloudians.domain.user.dto.request;
 
-import java.sql.Date;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
 
-import lombok.*;
+import java.sql.Date;
 
 @Builder
 @Data
 @AllArgsConstructor
 public class UserRequest {
 
-	private String userEmail;
-	private String password;
-	private String name;
-	private String profileUrl;
-	private String nickname;
-	private char gender;
-	private String calendarType;
-	private Date birthdate;
-	private String birthTime;
-	
-	public UserRequest() {
+    private String userEmail;
+    private int signupType;
+    private String password;
+    private String name;
+    private String profileUrl;
+    private String nickname;
+    private char gender;
+    private String calendarType;
+    private Date birthdate;
+    private String birthTime;
+    private int status;
+
+    public UserRequest() {
     }
 }

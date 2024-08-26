@@ -1,11 +1,19 @@
 package com.cloudians.domain.auth.dto.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
-@Data
-@AllArgsConstructor
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+@Getter
 public class LoginResponse {
-    private String accessToken;   // 액세스 토큰
-    private String refreshToken;  // 리프레시 토큰
+    private String accessToken;
+
+    private String refreshToken;
+
+    @Builder
+    private LoginResponse(String accessToken, String refreshToken) {
+        this.accessToken = accessToken;
+        this.refreshToken = refreshToken;
+    }
 }

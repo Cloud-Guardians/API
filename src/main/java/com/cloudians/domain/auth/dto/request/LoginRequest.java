@@ -1,9 +1,20 @@
 package com.cloudians.domain.auth.dto.request;
 
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
+@Getter
+@NoArgsConstructor
 public class LoginRequest {
     private String userEmail;
     private String password;
+
+    @Builder
+    private LoginRequest(String userEmail, String password) {
+        this.userEmail = userEmail;
+        this.password = password;
+    }
+
+
 }

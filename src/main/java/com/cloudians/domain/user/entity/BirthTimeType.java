@@ -1,6 +1,10 @@
 package com.cloudians.domain.user.entity;
 
-public enum BirthType {
+import com.cloudians.domain.user.exception.UserException;
+import com.cloudians.domain.user.exception.UserExceptionType;
+import com.fasterxml.jackson.annotation.JsonCreator;
+
+public enum BirthTimeType {
 
     자시,
 
@@ -24,5 +28,14 @@ public enum BirthType {
 
     술시,
 
-    해시
+    해시;
+
+    @JsonCreator
+    public static BirthTimeType from(String s){
+        try{
+            return BirthTimeType.valueOf(s.toUpperCase());
+        }catch (IllegalArgumentException e){
+            throw new UserException(UserExceptionType.WRONG_BIRTHTIME_TYPE);
+        }
+    }
 }

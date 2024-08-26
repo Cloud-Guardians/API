@@ -36,61 +36,61 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/global")
 public class FirebaseController {
-	
+
     private static final String FIREBASE_API_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyCRa6O8ERHxL_9CmWJeJyUKcxMgDxH65-A";
 	private final FirebaseService firebaseService;
 
 
 	public ResponseEntity<Message> errorMessage (Exception e){
 	    System.out.println(e);
-	    
+
 	    Message errorMessage = new Message(e.toString(), HttpStatus.BAD_REQUEST.value());
 		return ResponseEntity.status(HttpStatus.OK).body(errorMessage);
 	}
-	
+
 	public ResponseEntity<Message> successMessage (Object object){
 	    Message message = new Message(object,null,HttpStatus.OK.value());
 	    return ResponseEntity.status(HttpStatus.OK).body(message);
 	}
 
-	
-	
+
+
 	// id Token
 	@GetMapping("/token")
 	public ResponseEntity<Message> tokenTest() throws FirebaseAuthException{
 		String uid = "c51e4662168a7a006bf6082dcd7a16ba5ff3fb0b";
-		
+
 		try {
 			String customToken = FirebaseAuth.getInstance().createCustomToken(uid);
 		Map<String, Object> firebaseRequest = new HashMap<>();
 		firebaseRequest.put("token",customToken);
 		firebaseRequest.put("returnSecureToken",true);
-		
+
 		RestTemplate restTemplate = new RestTemplate();
 		HttpHeaders headers = new HttpHeaders();
-		
+
 		headers.setContentType(MediaType.APPLICATION_JSON);
 		HttpEntity<Map<String,Object>> entity = new HttpEntity<>(firebaseRequest,headers);
-		
+
 		ResponseEntity<Map> response = restTemplate.exchange(
 			FIREBASE_API_URL,
 			HttpMethod.POST,
 			entity,
 			Map.class);
-		
+
 		Map<String,String> responseBody = new HashMap<>();
 		if(response.getBody() != null) {
 		    String idToken = (String) response.getBody().get("idToken");
 		    responseBody.put("idToken",idToken);
 		    return successMessage(idToken);
-		} 
+		}
 		return successMessage("none");
 		} catch(Exception e) {
 		    return errorMessage(e);
 		}
 
 	}
-	
+
 	@DeleteMapping("/delete")
 	public ResponseEntity<Message> deleteFile(@RequestParam String fileName) throws Exception{
 	    System.out.println("Start");
@@ -98,7 +98,7 @@ public class FirebaseController {
 	    String message = "done";
 		   return successMessage(message);
 	}
-	
+
 	@GetMapping("/get")
 	public ResponseEntity<Message> getFile(@RequestParam String fileName) throws Exception {
 	    System.out.println("Start");
@@ -106,7 +106,7 @@ public class FirebaseController {
 	    String message=  firebaseService.getFileUrl(userEmail,"profile",fileName);
 		   return successMessage(message);
 	}
-	
+
 	// uploadFile
 	@PostMapping("/files")
 	public ResponseEntity<Message> uploadFile(@RequestParam("file") MultipartFile file, String nameFile) throws IOException, FirebaseAuthException {
@@ -119,7 +119,7 @@ public class FirebaseController {
 		 return errorMessage(e);
 	    }
 	}
-	
+
 
 	@GetMapping("/files")
 	public ResponseEntity<Message> viewFile(@RequestParam String fileName){
@@ -133,11 +133,11 @@ public class FirebaseController {
 
 		 return errorMessage(e);
 	    }
-	        
+
 	}
-	
-	
-	
+
+
+
 
 
 }

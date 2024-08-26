@@ -47,8 +47,7 @@ public class CalendarService {
 
     private final UserRepository userRepository;
 
-    public List<CalendarResponse> getDiariesInMonth(String userEmail, LocalDate date) {
-        User user = findUserByUserEmail(userEmail);
+    public List<CalendarResponse> getDiariesInMonth(User user, LocalDate date) {
 
         YearMonth yearMonth = YearMonth.from(date);
         LocalDate startOfMonth = yearMonth.atDay(1);

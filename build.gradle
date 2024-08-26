@@ -40,12 +40,9 @@ repositories {
 dependencies {
     // spring boot
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
-    implementation 'org.springframework.boot:spring-boot-starter-security'
+    // implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'com.jcraft:jsch:0.1.55'
     implementation 'io.github.flashvayne:chatgpt-spring-boot-starter:1.0.4'
@@ -57,7 +54,6 @@ dependencies {
 
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
-
 
     // Database driver
     runtimeOnly 'com.mysql:mysql-connector-j'
@@ -76,6 +72,8 @@ dependencies {
     implementation 'io.jsonwebtoken:jjwt-impl:0.11.2'
     implementation 'io.jsonwebtoken:jjwt-jackson:0.11.2'
 
+    // Bcrypt
+    implementation 'com.password4j:password4j:1.8.2'
 
     //쿼리DSL 추가
     implementation "com.querydsl:querydsl-jpa:${queryDslVersion}"
@@ -84,9 +82,8 @@ dependencies {
     annotationProcessor "jakarta.annotation:jakarta.annotation-api"
     annotationProcessor "jakarta.persistence:jakarta.persistence-api"
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'org.springframework.security:spring-security-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+  //  implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
 
 }
 

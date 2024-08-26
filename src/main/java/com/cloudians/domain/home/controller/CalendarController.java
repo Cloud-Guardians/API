@@ -1,8 +1,10 @@
 package com.cloudians.domain.home.controller;
 
+import com.cloudians.domain.auth.controller.AuthUser;
 import com.cloudians.domain.home.dto.response.CalendarResponse;
 import com.cloudians.domain.home.service.CalendarService;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
+import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -20,9 +22,9 @@ public class CalendarController {
     private final CalendarService calendarService;
 
     @GetMapping("/{date}")
-    public ResponseEntity<Message> getDiariesInMonth(@RequestParam String userEmail,
+    public ResponseEntity<Message> getDiariesInMonth(@AuthUser User user,
                                                      @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        List<CalendarResponse> response = calendarService.getDiariesInMonth(userEmail, date);
+        List<CalendarResponse> response = calendarService.getDiariesInMonth(user, date);
         Message message = new Message(response, HttpStatus.OK.value());
 
         return ResponseEntity.status(HttpStatus.OK)

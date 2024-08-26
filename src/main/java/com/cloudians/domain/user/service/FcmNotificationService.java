@@ -11,6 +11,7 @@ import java.util.Map;
 
 import javax.transaction.Transactional;
 
+import com.cloudians.domain.auth.repository.UserTokenRepository;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -26,7 +27,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.cloudians.domain.auth.entity.UserToken;
-import com.cloudians.domain.auth.repository.UserTokenRepository;
 import com.cloudians.domain.user.dto.request.FcmNotificationRequest;
 import com.cloudians.domain.user.dto.response.FcmNotificationResponse;
 import com.cloudians.domain.user.dto.response.NotificationResponse;
@@ -56,8 +56,8 @@ public class FcmNotificationService {
     public final String firebaseConfigPath = "cloudians-photo-key.json";
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-    private final UserTokenRepository userTokenRepository; 
-    private final TaskScheduler taskScheduler; 
+	private final UserTokenRepository userTokenRepository;
+	private final TaskScheduler taskScheduler;
     private  boolean updated = false;
     
 	

@@ -4,11 +4,12 @@ import com.cloudians.domain.user.entity.User;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.util.Date;
 
 @Getter
 public class FortuneResponse {
-    private Date birthdate;
+    private LocalDate birthdate;
 
     private String name;
 
@@ -17,7 +18,7 @@ public class FortuneResponse {
     private String advice;
 
     @Builder
-    private FortuneResponse(Date birthdate, String name, String fortuneDetail, String advice) {
+    private FortuneResponse(LocalDate birthdate, String name, String fortuneDetail, String advice) {
         this.birthdate = birthdate;
         this.name = name;
         this.fortuneDetail = fortuneDetail;

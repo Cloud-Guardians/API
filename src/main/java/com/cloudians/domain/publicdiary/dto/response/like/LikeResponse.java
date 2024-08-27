@@ -2,6 +2,7 @@ package com.cloudians.domain.publicdiary.dto.response.like;
 
 import com.cloudians.domain.publicdiary.dto.response.UserProfileResponse;
 import com.cloudians.domain.publicdiary.entity.like.LikeLink;
+
 import lombok.Builder;
 import lombok.Getter;
 

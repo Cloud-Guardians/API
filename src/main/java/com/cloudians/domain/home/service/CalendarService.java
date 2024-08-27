@@ -87,4 +87,3 @@ public class CalendarService {
                 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
     }
 }
-

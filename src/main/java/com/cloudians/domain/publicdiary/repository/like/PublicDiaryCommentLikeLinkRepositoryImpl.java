@@ -1,19 +1,18 @@
 package com.cloudians.domain.publicdiary.repository.like;
 
-import static com.cloudians.domain.publicdiary.entity.like.QPublicDiaryCommentLikeLink.publicDiaryCommentLikeLink;
+import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
+import com.cloudians.domain.publicdiary.entity.like.PublicDiaryCommentLikeLink;
+import com.cloudians.domain.publicdiary.repository.like.PublicDiaryCommentLikeLinkJpaRepository;
+import com.cloudians.domain.user.entity.User;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.stereotype.Repository;
-
-import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
-import com.cloudians.domain.publicdiary.entity.like.PublicDiaryCommentLikeLink;
-import com.cloudians.domain.user.entity.User;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-
-import lombok.RequiredArgsConstructor;
+import static com.cloudians.domain.publicdiary.entity.like.QPublicDiaryCommentLikeLink.publicDiaryCommentLikeLink;
 
 
 @Repository

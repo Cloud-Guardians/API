@@ -1,5 +1,6 @@
 package com.cloudians.domain.auth.dto.request;
 
+
 import java.time.LocalDate;
 
 import com.cloudians.domain.user.entity.BirthTimeType;
@@ -47,3 +48,4 @@ public class SignupRequest {
                 .build();
     }
 }
+

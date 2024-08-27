@@ -1,5 +1,6 @@
 package com.cloudians.domain.auth.controller;
 
+
 import javax.validation.Valid;
 
 import org.springframework.http.HttpHeaders;
@@ -47,6 +48,5 @@ public class AuthController {
                 .headers(headers)
                 .body(message);
     }
-
 
 }

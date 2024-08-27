@@ -1,10 +1,12 @@
 package com.cloudians.domain.user.dto.request;
 
-import java.time.LocalDate;
-
+import com.cloudians.domain.user.entity.BirthTimeType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+
+import java.sql.Date;
+import java.time.LocalDate;
 
 @Builder
 @Data

@@ -1,5 +1,6 @@
 package com.cloudians.domain.publicdiary.entity.like;
 
+
 import static javax.persistence.FetchType.LAZY;
 import static javax.persistence.GenerationType.IDENTITY;
 
@@ -14,6 +15,7 @@ import com.cloudians.domain.user.entity.User;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+
 
 @MappedSuperclass
 @Getter

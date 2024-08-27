@@ -1,6 +1,10 @@
 package com.cloudians.domain.publicdiary.entity.report;
 
+
+import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
+import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
 import com.fasterxml.jackson.annotation.JsonCreator;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -26,6 +30,11 @@ public enum ReportReason {
 
     @JsonCreator
     public static ReportReason from(String s) {
-        return ReportReason.valueOf(s.toUpperCase());
+        try {
+            return ReportReason.valueOf(s.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            throw new PublicDiaryException(PublicDiaryExceptionType.WRONG_REPORT_REASON);
+        }
     }
 }
+

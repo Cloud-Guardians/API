@@ -38,6 +38,7 @@ public class PersonalDiaryController {
     private final PersonalDiaryService personalDiaryService;
     private final MonthlyAnalysisService monthlyService;
 
+
     // 자가 감정 측정 생성
     @PostMapping("/self-emotions")
     public ResponseEntity<Message> createSelfEmotions(@RequestParam String userEmail,

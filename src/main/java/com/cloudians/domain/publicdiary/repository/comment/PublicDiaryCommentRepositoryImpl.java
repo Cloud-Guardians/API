@@ -1,19 +1,18 @@
 package com.cloudians.domain.publicdiary.repository.comment;
 
-import static com.cloudians.domain.publicdiary.entity.comment.QPublicDiaryComment.publicDiaryComment;
+import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
+import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
+import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentJpaRepository;
+import com.cloudians.domain.user.entity.User;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.stereotype.Repository;
-
-import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
-import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
-import com.cloudians.domain.user.entity.User;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-
-import lombok.RequiredArgsConstructor;
+import static com.cloudians.domain.publicdiary.entity.comment.QPublicDiaryComment.publicDiaryComment;
 
 @Repository
 @RequiredArgsConstructor

@@ -1,5 +1,6 @@
 package com.cloudians.domain.auth.service;
 
+
 import java.util.Random;
 
 import javax.transaction.Transactional;
@@ -18,6 +19,7 @@ import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+
 
 @Service
 @RequiredArgsConstructor

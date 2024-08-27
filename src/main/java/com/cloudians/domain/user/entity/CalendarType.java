@@ -18,5 +18,4 @@ public enum CalendarType {
             throw new UserException(UserExceptionType.WRONG_CALENDAR_TYPE);
         }
     }
-
 }

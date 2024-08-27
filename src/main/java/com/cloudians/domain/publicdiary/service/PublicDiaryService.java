@@ -74,7 +74,7 @@ public class PublicDiaryService {
         return GeneralPaginatedResponse.of(publicDiaries, count, PublicDiary::getId, diary -> thumbnailResponses.get(publicDiaries.indexOf(diary)));
     }
 
-    public List<PublicDiaryThumbnailResponse> getPublicDiaryThumbnailResponses(List<PublicDiary> publicDiaries) {
+    private List<PublicDiaryThumbnailResponse> getPublicDiaryThumbnailResponses(List<PublicDiary> publicDiaries) {
         return publicDiaries.stream().map(publicDiary -> {
             Long commentsCount = getCommentsCount(publicDiary);
             return PublicDiaryThumbnailResponse.of(publicDiary, commentsCount);

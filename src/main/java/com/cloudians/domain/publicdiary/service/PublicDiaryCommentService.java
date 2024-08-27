@@ -1,14 +1,8 @@
 package com.cloudians.domain.publicdiary.service;
 
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
-import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
 import com.cloudians.domain.publicdiary.dto.request.comment.EditPublicDiaryCommentRequest;
+import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
 import com.cloudians.domain.publicdiary.dto.request.comment.WriteChildCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.comment.WritePublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.response.comment.ChildCommentResponse;
@@ -22,16 +16,20 @@ import com.cloudians.domain.publicdiary.entity.like.PublicDiaryCommentLikeLink;
 import com.cloudians.domain.publicdiary.entity.report.PublicDiaryCommentReport;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
-import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRepositoryImpl;
-import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.like.PublicDiaryCommentLikeLinkRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.report.PublicDiaryCommentReportJpaRepository;
+import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRepositoryImpl;
+import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -223,8 +221,6 @@ public class PublicDiaryCommentService {
     private boolean isSameUser(User reporter, PublicDiaryComment reportedComment) {
         return reportedComment.getAuthor().getUserEmail().equals(reporter.getUserEmail());
     }
-    
-  
 
     private void validateSelfReport(PublicDiaryComment reportedComment, User reporter) {
         if (isSameUser(reporter, reportedComment)) {

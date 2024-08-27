@@ -10,7 +10,8 @@ import java.util.Optional;
 
 public interface PublicDiaryCommentJpaRepository extends JpaRepository<PublicDiaryComment, Long> {
     Optional<PublicDiaryComment> findByIdAndAuthor(Long publicDiaryId, User author);
+
     List<PublicDiaryComment> findByPublicDiary(PublicDiary publicDiary);
-    List<PublicDiaryComment> findListByAuthor(User author);
+
     List<PublicDiaryComment> deletePublicDiaryCommentByParentCommentId(Long parentCommentId);
 }

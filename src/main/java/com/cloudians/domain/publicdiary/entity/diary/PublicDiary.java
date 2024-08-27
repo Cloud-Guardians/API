@@ -1,24 +1,16 @@
 package com.cloudians.domain.publicdiary.entity.diary;
 
-import static javax.persistence.FetchType.LAZY;
-import static javax.persistence.GenerationType.IDENTITY;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
-import com.cloudians.domain.publicdiary.dto.response.diary.PublicDiaryResponse;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.entity.BaseTimeEntity;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
+
+import static javax.persistence.FetchType.LAZY;
+import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
@@ -51,7 +43,7 @@ public class PublicDiary extends BaseTimeEntity {
         this.views = 0L;
         this.likes = 0L;
     }
-    
+
     public static PublicDiary createPublicDiary(User user, PersonalDiary personalDiary) {
         return PublicDiary.builder()
                 .author(user)

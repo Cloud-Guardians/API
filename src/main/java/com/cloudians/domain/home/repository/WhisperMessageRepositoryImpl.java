@@ -1,18 +1,20 @@
 package com.cloudians.domain.home.repository;
 
-import com.cloudians.domain.home.entity.SenderType;
-import com.cloudians.domain.home.entity.WhisperMessage;
-import com.cloudians.domain.user.entity.User;
-import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.jpa.impl.JPAQueryFactory;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
+import static com.cloudians.domain.home.entity.QWhisperMessage.whisperMessage;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static com.cloudians.domain.home.entity.QWhisperMessage.whisperMessage;
+import org.springframework.stereotype.Repository;
+
+import com.cloudians.domain.home.entity.SenderType;
+import com.cloudians.domain.home.entity.WhisperMessage;
+import com.cloudians.domain.user.entity.User;
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.impl.JPAQueryFactory;
+
+import lombok.RequiredArgsConstructor;
 
 @Repository
 @RequiredArgsConstructor
@@ -44,8 +46,8 @@ public class WhisperMessageRepositoryImpl {
         return q.selectFrom(whisperMessage).where(whisperMessage.user.eq(user)).fetch();
     }
 
-    public List<WhisperMessage> findByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime TimeOfStartMonth, LocalDateTime TimeOfEndMonth) {
-        return whisperMessageJpaRepository.findByUserAndSenderAndTimestampBetween(user, sender, TimeOfStartMonth, TimeOfEndMonth);
+    public List<WhisperMessage> findByUserAndSender(User user, SenderType sender) {
+        return whisperMessageJpaRepository.findByUserAndSender(user, sender);
     }
 
     private BooleanExpression getLt(Long cursor) {

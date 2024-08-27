@@ -6,6 +6,7 @@ import com.cloudians.domain.publicdiary.entity.report.PublicDiaryCommentReport;
 import com.cloudians.domain.publicdiary.entity.report.ReportReason;
 import com.cloudians.domain.publicdiary.entity.report.ReportStatus;
 import com.cloudians.domain.user.entity.User;
+
 import lombok.Builder;
 import lombok.Getter;
 

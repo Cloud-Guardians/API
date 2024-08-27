@@ -19,10 +19,9 @@ import java.util.List;
 public class CalendarController {
     private final CalendarService calendarService;
 
-    @GetMapping("/{date}")
-    public ResponseEntity<Message> getDiariesInMonth(@RequestParam String userEmail,
-                                                     @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        List<CalendarResponse> response = calendarService.getDiariesInMonth(userEmail, date);
+    @GetMapping()
+    public ResponseEntity<Message> getDiariesInMonth(@RequestParam String userEmail) {
+        List<CalendarResponse> response = calendarService.getDiaries(userEmail);
         Message message = new Message(response, HttpStatus.OK.value());
 
         return ResponseEntity.status(HttpStatus.OK)
@@ -39,4 +38,3 @@ public class CalendarController {
                 .body(message);
     }
 }
-

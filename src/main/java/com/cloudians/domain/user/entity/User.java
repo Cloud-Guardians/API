@@ -1,15 +1,17 @@
 package com.cloudians.domain.user.entity;
 
-import java.sql.Date;
+import com.cloudians.domain.auth.entity.UserStatus;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import java.time.LocalDate;
 
-import com.cloudians.domain.user.dto.response.UserResponse;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static javax.persistence.EnumType.STRING;
 
 
 @Data
@@ -17,60 +19,74 @@ import lombok.NoArgsConstructor;
 @Entity
 public class User {
 
-	@Id
-	@Column(name = "user_email")
-	private String userEmail;
-	
-	private String name;
-	
-	@Column(unique = true)
-	private String nickname;
-	
-	private String password; 
-	private char gender;
-	
-	@Column(name = "profile_url")
-	private String profileUrl;
+    @Id
+    @Column(name = "user_email")
+    private String userEmail;
 
-	
-	@Column(name = "calendar_type")
-	private String calendarType;
-	
-	private Date birthdate;
-	
-	@Column(name = "birth_time")
-	private String birthTime;
-	
-	@Column(name = "total_report_count")
-	private int totalReportCount;
-	
-	private int status;
-	
-	public User(String userEmail, String name, String nickname, String password, char gender, String calendarType,
-			Date birthdate, String birthTime, String profileUrl) {
-		this.userEmail=userEmail;
-		this.name=name;
-		this.nickname=nickname;
-		this.password=password;
-		this.gender=gender;
-		this.profileUrl=profileUrl;
-		this.calendarType=calendarType;
-		this.birthdate=birthdate;
-		this.birthTime=birthTime;
-	}
-	
-	// Convert User entity to UserResponse DTO
-    public UserResponse toDto() {
-        return UserResponse.builder()
-                .userEmail(this.userEmail)
-                .name(this.name)
-                .nickname(this.nickname)
-                .profileUrl(this.profileUrl)
-                .calendarType(this.calendarType)
-                .birthdate(this.birthdate)
-                .birthTime(this.birthTime)
-                .build();
+    @Enumerated(STRING)
+    private SignupType signupType;
+
+    private String name;
+
+    @Column(unique = true)
+    private String nickname;
+
+    private String password;
+
+    private char gender;
+
+    @Column(name = "profile_url")
+    private String profileUrl;
+
+    @Enumerated(STRING)
+    @Column(name = "calendar_type")
+    private CalendarType calendarType;
+
+    private LocalDate birthdate;
+
+    @Enumerated(STRING)
+    @Column(name = "birth_time")
+    private BirthTimeType birthTime;
+
+    @Column(name = "total_report_count")
+    private int totalReportCount;
+
+    // TODO: 관리자, 일반, 차단 enum
+    @Enumerated(STRING)
+    private UserStatus status;
+
+    @Builder
+    private User(String userEmail, SignupType signupType, String name, String nickname, String password, char gender, String profileUrl, CalendarType calendarType, LocalDate birthdate, BirthTimeType birthTime, int totalReportCount, UserStatus status) {
+        this.userEmail = userEmail;
+        this.signupType = signupType;
+        this.name = name;
+        this.nickname = nickname;
+        this.password = password;
+        this.gender = gender;
+        this.profileUrl = profileUrl;
+        this.calendarType = calendarType;
+        this.birthdate = birthdate;
+        this.birthTime = birthTime;
+        this.totalReportCount = 0;
+        this.status = UserStatus.DEFAULT;
     }
-//    
-    
+
+    //  Convert User entity to UserResponse DTO
+//    public UserResponse toDto() {
+//        return UserResponse.builder()
+//                .userEmail(this.userEmail)
+//                .signupType(this.signupType)
+//                .name(this.name)
+//                .nickname(this.nickname)
+//                .gender(this.gender)
+//                .profileUrl(this.profileUrl)
+//                .calendarType(this.calendarType)
+//                .birthdate(this.birthdate)
+//                .birthTime(this.birthTime)
+//                .totalReportCount(this.totalReportCount)
+//                .status(this.status)
+//                .build();
+//    }
+
+
 }

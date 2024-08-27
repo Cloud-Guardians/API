@@ -22,7 +22,6 @@ import lombok.RequiredArgsConstructor;
 public class UserLockService {
     
 	private final UserRepository userRepository;
-    
     	private final UserLockRepository userLockRepository;
     
     private UserLock findUserLockByUserEmail(String userEmail) {
@@ -67,10 +66,12 @@ public class UserLockService {
     
 
     // lock 수정
-    public UserLockResponse changeLock(String userEmail, String insertCode) {
+    public UserLockResponse changeLock(String userEmail, String beforePass, String afterPass) {
 	UserLock userLock = findUserLockByUserEmail(userEmail);
-	userLock.setPasscode(insertCode);
-	userLockRepository.save(userLock);
+	if(userLock.getPasscode().equals(beforePass)) {
+	    userLock.setPasscode(afterPass);
+		userLockRepository.save(userLock);   
+	}
 	return userLock.toDto();
     }
     

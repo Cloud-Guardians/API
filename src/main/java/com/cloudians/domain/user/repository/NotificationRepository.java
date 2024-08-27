@@ -12,4 +12,5 @@ import com.cloudians.domain.user.entity.Notification;
 public interface NotificationRepository extends JpaRepository<Notification,Long> {
 
     Optional<List<Notification>> findByUserEmail(String userEmail);
+    Optional<Notification> findByUserEmailAndNotificationType(String userEmail, String notificationType);
 }

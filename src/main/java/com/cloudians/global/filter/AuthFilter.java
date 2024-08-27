@@ -1,6 +1,6 @@
 package com.cloudians.global.filter;
 
-import com.cloudians.domain.auth.JwtProcessor;
+import com.cloudians.domain.auth.util.JwtProcessor;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;

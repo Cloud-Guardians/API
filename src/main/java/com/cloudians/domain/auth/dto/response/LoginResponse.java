@@ -3,6 +3,7 @@ package com.cloudians.domain.auth.dto.response;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @Getter
 public class LoginResponse {
@@ -16,5 +17,11 @@ public class LoginResponse {
         this.refreshToken = refreshToken;
     }
 
+    public static LoginResponse of(String accessToken, String refreshToken) {
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
 }
 

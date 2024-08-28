@@ -60,7 +60,7 @@ public class AuthFilter extends OncePerRequestFilter {
     private String getAccessToken(HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new UserException(UserExceptionType.Null_TOKEN);
+            throw new UserException(UserExceptionType.NULL_TOKEN);
         }
         return authorization.substring(7);
     }

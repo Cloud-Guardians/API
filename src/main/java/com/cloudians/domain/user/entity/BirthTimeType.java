@@ -28,7 +28,9 @@ public enum BirthTimeType {
 
     술시,
 
-    해시;
+    해시,
+
+    모름;
 
     @JsonCreator
     public static BirthTimeType from(String s){

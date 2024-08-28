@@ -1,6 +1,8 @@
 package com.cloudians.domain.auth.service;
 
-import com.cloudians.domain.auth.JwtProcessor;
+import com.cloudians.domain.auth.dto.request.TokenRefreshRequest;
+import com.cloudians.domain.auth.dto.response.LoginResponse;
+import com.cloudians.domain.auth.util.JwtProcessor;
 import com.cloudians.domain.auth.dto.request.LoginRequest;
 import com.cloudians.domain.auth.dto.request.SignupRequest;
 import com.cloudians.domain.auth.dto.response.SignupResponse;
@@ -21,42 +23,61 @@ import java.util.Random;
 @Transactional
 public class AuthService {
     private final UserRepository userRepository;
-    private final JwtProcessor jwtProcessor;
-    private final BcryptService bcryptService;
-    public SignupResponse signup(SignupRequest request){
-        String encodedPassword = bcryptService.encodeBcrypt(request.getPassword());
-       //TODO: 닉네임 랜덤 생성 필요
-        String nickname = uniqueNickname();
 
+    private final JwtProcessor jwtProcessor;
+
+    private final BcryptService bcryptService;
+
+    // 회원가입
+    public SignupResponse signup(SignupRequest request) {
+        checkIfUserExists(request);
+        String encodedPassword = bcryptService.encodeBcrypt(request.getPassword());
+        String nickname = uniqueNickname();
         User user = request.toUser(encodedPassword, nickname);
         user.setSignupType(SignupType.REGULAR);
         userRepository.save(user);
-
         return SignupResponse.from(user);
     }
 
-    public String login(@Valid LoginRequest request) {
-        User user = getUserOrThrow(request);
+    // 회원가입 중복 여부
+    private void checkIfUserExists(SignupRequest request) {
+        if (userRepository.findByUserEmail(request.getUserEmail()).isPresent()) {
+            throw new UserException(UserExceptionType.USER_ALREADY_EXIST);
+        }
+    }
 
+    // 로그인
+    public LoginResponse login(LoginRequest request) {
+        User user = getUserOrThrow(request);
         validatePassword(request, user);
+        String accessToken = jwtProcessor.createAccessToken(user.getUserEmail());
+        String refreshToken = jwtProcessor.createRefreshToken(user.getUserEmail());
+        return LoginResponse.of(accessToken, refreshToken);
+    }
+
+    // 들어온 토큰 검증
+    public String refreshAccessToken(@Valid TokenRefreshRequest request) {
+        User user = jwtProcessor.verifyAuthTokenOrThrow(request.getRefreshToken());
         return jwtProcessor.createAccessToken(user.getUserEmail());
     }
 
+    // 암호화된 비밀번호과 매칭
     private void validatePassword(LoginRequest request, User user) {
         boolean isMatchingPassword = bcryptService.matchBcrypt(request.getPassword(), user.getPassword());
         // plain: getPassword
-        if(!isMatchingPassword){
+        if (!isMatchingPassword) {
             throw new UserException(UserExceptionType.WRONG_PASSWORD);
         }
     }
 
+    // 아이디 존재 여부
     private User getUserOrThrow(LoginRequest request) {
-        User user = userRepository.findByUserEmail(request.getUserEmail())
+        return userRepository.findByUserEmail(request.getUserEmail())
                 .orElseThrow(() -> new UserException((UserExceptionType.USER_NOT_FOUND)));
-        return user;
     }
 
-    private static String randomNickname(){
+    // 회원가입 시 랜덤 닉네임
+    private static String randomNickname() {
         String[] adjectives = {"배고픈", "행복한", "똑똑한", "즐거운", "강한", "빠른", "재치있는",
                 "충성스러운", "멋진", "훌륭한", "즐거운", "아름다운", "기쁜", "사랑스러운", "행복한",
                 "환상적인", "놀라운", "훌륭한", "매력적인", "긍정적인", "빛나는", "희망찬", "용감한",
@@ -76,11 +97,12 @@ public class AuthService {
         return adjective + " " + noun + randomNum;
     }
 
-    private String uniqueNickname(){
+    // 같은 닉네임 부여 시 새로 리턴
+    private String uniqueNickname() {
         String nickname;
-        do{
+        do {
             nickname = randomNickname();
-        }while (userRepository.findByNickname(nickname).isPresent());
+        } while (userRepository.findByNickname(nickname).isPresent());
         return nickname;
     }
 }

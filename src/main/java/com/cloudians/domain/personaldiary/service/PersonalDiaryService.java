@@ -65,8 +65,7 @@ public class PersonalDiaryService {
     public static int EMOTION_DIVISOR = 10;
 
 
-    public PersonalDiaryEmotionCreateResponse createTempSelfEmotions(PersonalDiaryEmotionCreateRequest request, String userEmail) {
-        User user = findUserByUserEmail(userEmail);
+    public PersonalDiaryEmotionCreateResponse createTempSelfEmotions(PersonalDiaryEmotionCreateRequest request, User user) {
         //감정 수치 검증
         validateEmotionsValue(request);
         PersonalDiaryEmotion personalDiaryEmotion = request.toEntity(user);
@@ -77,18 +76,17 @@ public class PersonalDiaryService {
     }
 
 
-    public PersonalDiaryEmotionUpdateResponse editSelfEmotions(PersonalDiaryEmotionUpdateRequest request, Long emotionId, String userEmail) {
-        User user = findUserByUserEmail(userEmail);
+    public PersonalDiaryEmotionUpdateResponse editSelfEmotions(PersonalDiaryEmotionUpdateRequest request, Long emotionId, User user) {
         // 수정할 감정이 있는지 확인
-        PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findByIdAndUser(emotionId, user).orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findByIdAndUser(emotionId, user)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
         //수정
         PersonalDiaryEmotion editedEmotions = emotions.edit(request);
 
         return PersonalDiaryEmotionUpdateResponse.of(editedEmotions);
     }
 
-    public PersonalDiaryCreateResponse createPersonalDiary(PersonalDiaryCreateRequest request, String userEmail, MultipartFile file) {
-        User user = findUserByUserEmail(userEmail);
+    public PersonalDiaryCreateResponse createPersonalDiary(PersonalDiaryCreateRequest request, User user, MultipartFile file) {
         //감정 수치 가져오기
         PersonalDiaryEmotion emotions = getTempEmotion(user.getUserEmail());
         //없으면 예외처리
@@ -99,7 +97,7 @@ public class PersonalDiaryService {
         personalDiaryEmotionRepository.save(emotions);
         removeTempEmotion(user.getUserEmail());
         //사진 업로드
-        String photoUrl = uploadPhoto(userEmail, file, emotions.getDate());
+        String photoUrl = uploadPhoto(user.getUserEmail(), file, emotions.getDate());
         PersonalDiary personalDiary = request.toEntity(user, emotions, photoUrl);
         //일기 저장
         PersonalDiary savedPersonalDiary = personalDiaryRepository.save(personalDiary);
@@ -108,21 +106,18 @@ public class PersonalDiaryService {
         return PersonalDiaryCreateResponse.of(savedPersonalDiary, user, emotions);
     }
 
-    public PersonalDiaryResponse getPersonalDiary(String userEmail, Long personalDiaryId) {
-        User user = findUserByUserEmail(userEmail);
-
+    public PersonalDiaryResponse getPersonalDiary(User user, Long personalDiaryId) {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
         return PersonalDiaryResponse.of(personalDiary);
     }
 
-    public PersonalDiaryResponse editPersonalDiary(PersonalDiaryUpdateRequest request, Long personalDiaryId, String userEmail, MultipartFile file) {
-        User user = findUserByUserEmail(userEmail);
+    public PersonalDiaryResponse editPersonalDiary(PersonalDiaryUpdateRequest request, Long personalDiaryId, User user, MultipartFile file) {
         // 수정할 일기가 있는지 확인
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
         //파일이 있으면 새로운 사진으로 수정 및 기존 사진 삭제, 파일이 없으면 그대로
         String updatedPhotoUrl = personalDiary.getPhotoUrl();
         if (file != null) {
-            updatedPhotoUrl = updateDiaryPhoto(userEmail, file, personalDiary);
+            updatedPhotoUrl = updateDiaryPhoto(user.getUserEmail(), file, personalDiary);
         }
         PersonalDiary editedPersonalDiary = personalDiary.edit(request, updatedPhotoUrl);
         analyzeEditedPersonalDiary(user, editedPersonalDiary);
@@ -153,31 +148,28 @@ public class PersonalDiaryService {
         personalDiaryAnalysis.edit(user, editedPersonalDiary, element, characters, harmonyTipsJson, analysisResults);
     }
 
-    public void deletePersonalDiary(String userEmail, Long personalDiaryId) {
-        User user = findUserByUserEmail(userEmail);
+    public void deletePersonalDiary(User user, Long personalDiaryId) {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
 
-        deletePhotoIfExists(userEmail, personalDiary);
+        deletePhotoIfExists(user.getUserEmail(), personalDiary);
         personalDiaryRepository.delete(personalDiary);
         personalDiaryEmotionRepository.delete(personalDiary.getEmotion());
         personalDiaryAnalysisRepository.delete(personalDiary.getPersonalDiaryAnalysis());
     }
 
 
-    public PersonalDiaryAnalyzeResponse getAnalyze(String userEmail, Long personalDiaryId) {
-        User user = findUserByUserEmail(userEmail);
+    public PersonalDiaryAnalyzeResponse getAnalyze(User user, Long personalDiaryId) {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
         PersonalDiaryAnalysis personalDiaryAnalysis = getPersonalDiaryAnalysisOrThrow(personalDiary.getPersonalDiaryAnalysis().getId());
 
         return PersonalDiaryAnalyzeResponse.of(personalDiaryAnalysis, user);
     }
 
-    public void deletePersonalDiaryPhoto(String userEmail, Long personalDiaryId) {
-        User user = findUserByUserEmail(userEmail);
+    public void deletePersonalDiaryPhoto(User user, Long personalDiaryId) {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
 
         validateIfPhotoExistsOrThrow(personalDiary);
-        deletePhotoIfExists(userEmail, personalDiary);
+        deletePhotoIfExists(user.getUserEmail(), personalDiary);
         personalDiary.deletePhotoUrl();
     }
 

@@ -78,8 +78,10 @@ public class PersonalDiaryService {
 
     public PersonalDiaryEmotionUpdateResponse editSelfEmotions(PersonalDiaryEmotionUpdateRequest request, Long emotionId, User user) {
         // 수정할 감정이 있는지 확인
-        PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findByIdAndUser(emotionId, user)
+        PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findById(emotionId)
                 .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        // 존재 하는 경우 유저가 동일한 지 확인
+        validateSameUser(emotions.getUser(), user);
         //수정
         PersonalDiaryEmotion editedEmotions = emotions.edit(request);
 
@@ -270,7 +272,6 @@ public class PersonalDiaryService {
         tempEmotions.remove(userEmail);
     }
 
-
     private void validateEmotionsExistenceAndThrow(PersonalDiaryEmotion emotions) {
         if (emotions == null) {
             throw new PersonalDiaryException(PersonalDiaryExceptionType.NO_EMOTION_DATA);
@@ -284,7 +285,9 @@ public class PersonalDiaryService {
         }
     }
 
-    private User findUserByUserEmail(String userEmail) {
-        return userRepository.findByUserEmail(userEmail).orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+    private void validateSameUser(User originalUser, User loggedInUser) {
+        if (!loggedInUser.equals(originalUser)) {
+            throw new UserException((UserExceptionType.UNAUTHORIZED_ACCESS));
+        }
     }
 }

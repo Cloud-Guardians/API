@@ -16,5 +16,12 @@ public class LoginResponse {
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
     }
+
+    public static LoginResponse of(String accessToken, String refreshToken) {
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
+    }
 }
 

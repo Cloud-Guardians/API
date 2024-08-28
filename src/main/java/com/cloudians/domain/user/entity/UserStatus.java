@@ -1,4 +1,4 @@
-package com.cloudians.domain.auth.entity;
+package com.cloudians.domain.user.entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

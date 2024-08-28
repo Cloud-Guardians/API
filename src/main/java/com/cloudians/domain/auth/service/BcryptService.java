@@ -1,7 +1,8 @@
 package com.cloudians.domain.auth.service;
 
-import com.password4j.Password;
 import org.springframework.stereotype.Service;
+
+import com.password4j.Password;
 
 @Service
 public class BcryptService {

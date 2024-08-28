@@ -17,7 +17,6 @@ import com.cloudians.domain.personaldiary.repository.*;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
-import com.cloudians.domain.user.repository.UserRepository;
 import com.cloudians.global.exception.FirebaseException;
 import com.cloudians.global.exception.JsonException;
 import com.cloudians.global.exception.JsonExceptionType;
@@ -46,7 +45,6 @@ public class PersonalDiaryService {
     private final ChatGptService chatGptService;
     private final FirebaseService firebaseService;
 
-    private final UserRepository userRepository;
     private final PersonalDiaryRepository personalDiaryRepository;
     private final PersonalDiaryEmotionRepository personalDiaryEmotionRepository;
     private final PersonalDiaryAnalysisRepository personalDiaryAnalysisRepository;
@@ -103,6 +101,7 @@ public class PersonalDiaryService {
         PersonalDiary personalDiary = request.toEntity(user, emotions, photoUrl);
         //일기 저장
         PersonalDiary savedPersonalDiary = personalDiaryRepository.save(personalDiary);
+        //일기 분석
         analyzePersonalDiary(user, savedPersonalDiary);
 
         return PersonalDiaryCreateResponse.of(savedPersonalDiary, user, emotions);
@@ -125,18 +124,6 @@ public class PersonalDiaryService {
         analyzeEditedPersonalDiary(user, editedPersonalDiary);
 
         return PersonalDiaryResponse.of(editedPersonalDiary);
-    }
-
-    private String updateDiaryPhoto(String userEmail, MultipartFile file, PersonalDiary personalDiary) {
-        String fileName = getFileName(personalDiary.getDate());
-        try {
-            Blob existingBlob = firebaseService.getBlob(userEmail, DOMAIN, fileName);
-            if (existingBlob != null && existingBlob.exists()) {
-                firebaseService.deleteFileUrl(userEmail, DOMAIN, fileName);
-            }
-        } catch (FirebaseException ignored) {
-        }
-        return uploadPhoto(userEmail, file, personalDiary.getDate());
     }
 
     public void analyzeEditedPersonalDiary(User user, PersonalDiary editedPersonalDiary) {
@@ -173,6 +160,18 @@ public class PersonalDiaryService {
         validateIfPhotoExistsOrThrow(personalDiary);
         deletePhotoIfExists(user.getUserEmail(), personalDiary);
         personalDiary.deletePhotoUrl();
+    }
+
+    private String updateDiaryPhoto(String userEmail, MultipartFile file, PersonalDiary personalDiary) {
+        String fileName = getFileName(personalDiary.getDate());
+        try {
+            Blob existingBlob = firebaseService.getBlob(userEmail, DOMAIN, fileName);
+            if (existingBlob != null && existingBlob.exists()) {
+                firebaseService.deleteFileUrl(userEmail, DOMAIN, fileName);
+            }
+        } catch (FirebaseException ignored) {
+        }
+        return uploadPhoto(userEmail, file, personalDiary.getDate());
     }
 
     private void analyzePersonalDiary(User user, PersonalDiary personalDiary) {
@@ -250,7 +249,11 @@ public class PersonalDiaryService {
     }
 
     private PersonalDiary getPersonalDiaryOrThrow(Long personalDiaryId, User user) {
-        return personalDiaryRepository.findByIdAndUser(personalDiaryId, user).orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        PersonalDiary personalDiary = personalDiaryRepository.findById(personalDiaryId)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+
+        validateSameUser(personalDiary.getUser(), user);
+        return personalDiary;
     }
 
     private void validateEmotionsValue(PersonalDiaryEmotionCreateRequest request) {

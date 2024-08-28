@@ -19,9 +19,9 @@ import com.cloudians.domain.publicdiary.entity.report.PublicDiaryReport;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
 import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRepositoryImpl;
+import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.like.PublicDiaryLikeLinkRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.report.PublicDiaryReportJpaRepository;
-import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
@@ -146,7 +146,11 @@ public class PublicDiaryService {
     }
 
     private PersonalDiary getPersonalDiaryOrThrow(Long personalDiaryId, User user) {
-        return personalDiaryRepository.findByIdAndUser(personalDiaryId, user).orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+        PersonalDiary personalDiary = personalDiaryRepository.findById(personalDiaryId)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+
+        validateSameUser(personalDiary.getUser(), user);
+        return personalDiary;
     }
 
     private PublicDiary getPublicDiaryOrThrow(Long publicDiaryId, User user) {
@@ -175,5 +179,11 @@ public class PublicDiaryService {
 
     private boolean isSameUser(PublicDiary reportedDiary, User reporter) {
         return reportedDiary.getAuthor().getUserEmail().equals(reporter.getUserEmail());
+    }
+
+    private void validateSameUser(User originalUser, User loggedInUser) {
+        if (!loggedInUser.equals(originalUser)) {
+            throw new UserException((UserExceptionType.UNAUTHORIZED_ACCESS));
+        }
     }
 }

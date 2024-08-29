@@ -12,8 +12,6 @@ import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.exception.UserException;
-import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,8 +32,7 @@ public class CalendarService {
 
     private final UserRepository userRepository;
 
-    public List<CalendarResponse> getDiaries(String userEmail) {
-        User user = findUserByUserEmail(userEmail);
+    public List<CalendarResponse> getDiaries(User user) {
 
 //        YearMonth yearMonth = YearMonth.from(date);
 //        LocalDate startOfMonth = yearMonth.atDay(1);
@@ -47,8 +44,7 @@ public class CalendarService {
         return getCalendarResponses(diaries, whisperMessageDates);
     }
 
-    public PersonalDiaryResponse getPersonalDiary(String userEmail, LocalDate date) {
-        User user = findUserByUserEmail(userEmail);
+    public PersonalDiaryResponse getPersonalDiary(User user, LocalDate date) {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(user, date);
 
         return PersonalDiaryResponse.of(personalDiary);
@@ -80,10 +76,5 @@ public class CalendarService {
     private List<PersonalDiary> getPersonalDiariesOrThrow(User user) {
         return personalDiaryRepository.findPersonalDiaryByUserOrderByDate(user)
                 .orElseThrow(() -> new CalendarException(CalendarExceptionType.NO_MORE_DATA));
-    }
-
-    private User findUserByUserEmail(String userEmail) {
-        return userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
     }
 }

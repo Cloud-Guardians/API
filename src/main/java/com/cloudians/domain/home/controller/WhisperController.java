@@ -1,10 +1,12 @@
 package com.cloudians.domain.home.controller;
 
+import com.cloudians.domain.auth.controller.AuthUser;
 import com.cloudians.domain.home.dto.request.WhisperMessageRequest;
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
 import com.cloudians.domain.home.dto.response.WhisperMessageResponse;
 import com.cloudians.domain.home.dto.response.WhisperResponse;
 import com.cloudians.domain.home.service.WhisperService;
+import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,9 +24,9 @@ public class WhisperController {
     private final WhisperService whisperService;
 
     @PostMapping("/answer")
-    public ResponseEntity<Message> createAnswer(@RequestParam String userEmail,
+    public ResponseEntity<Message> createAnswer(@AuthUser User user,
                                                 @RequestBody @Valid WhisperMessageRequest request) {
-        WhisperResponse response = whisperService.createAnswer(userEmail, request);
+        WhisperResponse response = whisperService.createAnswer(user, request);
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -32,7 +34,7 @@ public class WhisperController {
     }
 
     @GetMapping()
-    public ResponseEntity<Message> getMessages(@RequestParam String userEmail,
+    public ResponseEntity<Message> getMessages(@AuthUser User user,
                                                @RequestParam(required = false) Long cursor,
                                                @RequestParam(defaultValue = "10") Long count,
                                                @RequestParam(required = false) String keyword,
@@ -40,16 +42,16 @@ public class WhisperController {
         GeneralPaginatedResponse<WhisperMessageResponse> response;
         // keyword 검색 처리
         if (keyword != null && !keyword.isEmpty()) {
-            response = whisperService.getMessagesByKeyword(userEmail, cursor, count, keyword);
+            response = whisperService.getMessagesByKeyword(user, cursor, count, keyword);
             return createGetMessagesResponseEntity(response);
         }
         // 날짜 검색 처리
         if (date != null) {
-            response = whisperService.getMessagesByDate(userEmail, cursor, count, date);
+            response = whisperService.getMessagesByDate(user, cursor, count, date);
             return createGetMessagesResponseEntity(response);
         }
         // 기본 최근 메시지 조회
-        response = whisperService.getRecentMessages(userEmail, cursor, count);
+        response = whisperService.getRecentMessages(user, cursor, count);
         return createGetMessagesResponseEntity(response);
     }
 

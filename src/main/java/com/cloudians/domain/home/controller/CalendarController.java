@@ -24,9 +24,10 @@ import java.util.List;
 public class CalendarController {
     private final CalendarService calendarService;
 
-    @GetMapping()
-    public ResponseEntity<Message> getDiariesInMonth(@AuthUser User user) {
-        List<CalendarResponse> response = calendarService.getDiaries(user);
+    @GetMapping("/{date}")
+    public ResponseEntity<Message> getDiariesInMonth(@AuthUser User user,
+                                                     @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        List<CalendarResponse> response = calendarService.getDiariesInThreeMonths(user, date);
         Message message = new Message(response, HttpStatus.OK.value());
 
         return ResponseEntity.status(HttpStatus.OK)

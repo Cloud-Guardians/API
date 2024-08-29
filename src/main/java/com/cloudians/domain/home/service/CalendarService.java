@@ -12,12 +12,12 @@ import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -30,15 +30,13 @@ public class CalendarService {
     private final PersonalDiaryRepository personalDiaryRepository;
     private final WhisperMessageRepositoryImpl whisperMessageRepository;
 
-    private final UserRepository userRepository;
+    public List<CalendarResponse> getDiariesInThreeMonths(User user, LocalDate date) {
 
-    public List<CalendarResponse> getDiaries(User user) {
+        YearMonth yearMonth = YearMonth.from(date);
+        LocalDate startOfMonth = yearMonth.minusMonths(3).atDay(1);
+        LocalDate endOfMonth = yearMonth.atEndOfMonth();
 
-//        YearMonth yearMonth = YearMonth.from(date);
-//        LocalDate startOfMonth = yearMonth.atDay(1);
-//        LocalDate endOfMonth = yearMonth.atEndOfMonth();
-
-        List<PersonalDiary> diaries = getPersonalDiariesOrThrow(user);
+        List<PersonalDiary> diaries = getPersonalDiariesOrThrow(user, startOfMonth, endOfMonth);
         Set<LocalDate> whisperMessageDates = getWhisperMessageDates(user);
 
         return getCalendarResponses(diaries, whisperMessageDates);
@@ -73,8 +71,8 @@ public class CalendarService {
                 .collect(Collectors.toSet());
     }
 
-    private List<PersonalDiary> getPersonalDiariesOrThrow(User user) {
-        return personalDiaryRepository.findPersonalDiaryByUserOrderByDate(user)
+    private List<PersonalDiary> getPersonalDiariesOrThrow(User user, LocalDate startOfMonth, LocalDate endOfMonth) {
+        return personalDiaryRepository.findPersonalDiaryByUserAndDateBetweenOrderByDate(user, startOfMonth, endOfMonth)
                 .orElseThrow(() -> new CalendarException(CalendarExceptionType.NO_MORE_DATA));
     }
 }

@@ -2,7 +2,6 @@ package com.cloudians.domain.publicdiary.dto.response.diary;
 
 import com.cloudians.domain.publicdiary.dto.response.UserProfileResponse;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
-import com.cloudians.domain.user.entity.User;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -42,10 +41,10 @@ public class PublicDiaryResponse {
         this.createdAt = createdAt;
     }
 
-    public static PublicDiaryResponse of(PublicDiary publicDiary, User user) {
+    public static PublicDiaryResponse from(PublicDiary publicDiary) {
         return PublicDiaryResponse.builder()
                 .publicDiaryId(publicDiary.getId())
-                .author(UserProfileResponse.from(user))
+                .author(UserProfileResponse.from(publicDiary.getAuthor()))
                 .title(publicDiary.getPersonalDiary().getTitle())
                 .content(publicDiary.getPersonalDiary().getContent())
                 .photoUrl(publicDiary.getPersonalDiary().getPhotoUrl())

@@ -3,7 +3,6 @@ package com.cloudians.domain.publicdiary.repository.diary;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.publicdiary.entity.diary.SearchCondition;
 import com.cloudians.domain.publicdiary.entity.diary.SearchType;
-import com.cloudians.domain.user.entity.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -35,10 +34,6 @@ public class PublicDiaryRepositoryImpl {
 
     public boolean existsByPersonalDiaryId(Long personalDiaryId) {
         return publicDiaryJpaRepository.existsByPersonalDiaryId(personalDiaryId);
-    }
-
-    public Optional<PublicDiary> findByIdAndUser(Long publicDiaryId, User user) {
-        return publicDiaryJpaRepository.findByIdAndAuthor(publicDiaryId, user);
     }
 
     public List<PublicDiary> searchByTypeAndKeywordOrderByTimestampDesc(SearchCondition condition, Long cursor, Long count) {

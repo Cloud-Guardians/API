@@ -1,8 +1,8 @@
 package com.cloudians.domain.publicdiary.service;
 
 import com.cloudians.domain.home.dto.response.GeneralPaginatedResponse;
-import com.cloudians.domain.publicdiary.dto.request.comment.EditPublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.ReportRequest;
+import com.cloudians.domain.publicdiary.dto.request.comment.EditPublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.comment.WriteChildCommentRequest;
 import com.cloudians.domain.publicdiary.dto.request.comment.WritePublicDiaryCommentRequest;
 import com.cloudians.domain.publicdiary.dto.response.comment.ChildCommentResponse;
@@ -16,14 +16,13 @@ import com.cloudians.domain.publicdiary.entity.like.PublicDiaryCommentLikeLink;
 import com.cloudians.domain.publicdiary.entity.report.PublicDiaryCommentReport;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
-import com.cloudians.domain.publicdiary.repository.like.PublicDiaryCommentLikeLinkRepositoryImpl;
-import com.cloudians.domain.publicdiary.repository.report.PublicDiaryCommentReportJpaRepository;
 import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
+import com.cloudians.domain.publicdiary.repository.like.PublicDiaryCommentLikeLinkRepositoryImpl;
+import com.cloudians.domain.publicdiary.repository.report.PublicDiaryCommentReportJpaRepository;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
-import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,10 +39,7 @@ public class PublicDiaryCommentService {
     private final PublicDiaryCommentLikeLinkRepositoryImpl publicDiaryCommentLikeLinkRepository;
     private final PublicDiaryCommentReportJpaRepository publicDiaryCommentReportRepository;
 
-    private final UserRepository userRepository;
-
-    public PublicDiaryCommentResponse writeComment(String userEmail, Long publicDiaryId, WritePublicDiaryCommentRequest request) {
-        User author = findUserByUserEmail(userEmail);
+    public PublicDiaryCommentResponse writeComment(User author, Long publicDiaryId, WritePublicDiaryCommentRequest request) {
 
         PublicDiary publicDiary = findPublicDiaryByIdOrThrow(publicDiaryId);
         PublicDiaryComment publicDiaryComment = request.toEntity(publicDiary, author);
@@ -59,86 +55,81 @@ public class PublicDiaryCommentService {
         return GeneralPaginatedResponse.of(comments, count, PublicDiaryComment::getId, PublicDiaryCommentResponse::of);
     }
 
-    public PublicDiaryCommentResponse editComment(String userEmail, Long publicDiaryId, Long publicDiaryCommentId, EditPublicDiaryCommentRequest request) {
-        User user = findUserByUserEmail(userEmail);
-
+    public PublicDiaryCommentResponse editComment(User user, Long publicDiaryId, Long publicDiaryCommentId, EditPublicDiaryCommentRequest request) {
         findPublicDiaryByIdOrThrow(publicDiaryId);
-        PublicDiaryComment publicDiaryComment = findPublicDiaryCommentByIdAndUserOrThrow(publicDiaryCommentId, user);
+        PublicDiaryComment publicDiaryComment = getPublicDiaryCommentOrThrow(publicDiaryCommentId);
+        validateSameUser(publicDiaryComment.getAuthor(), user);
+
 
         PublicDiaryComment editedComment = publicDiaryComment.edit(request);
+
         return PublicDiaryCommentResponse.of(editedComment);
     }
 
-    public void deleteComment(String userEmail, Long publicDiaryId, Long publicDiaryCommentId) {
-        User user = findUserByUserEmail(userEmail);
-
+    public void deleteComment(User user, Long publicDiaryId, Long publicDiaryCommentId) {
         findPublicDiaryByIdOrThrow(publicDiaryId);
-        PublicDiaryComment publicDiaryComment = findPublicDiaryCommentByIdAndUserOrThrow(publicDiaryCommentId, user);
+        PublicDiaryComment publicDiaryComment = getPublicDiaryCommentOrThrow(publicDiaryCommentId);
+        validateSameUser(publicDiaryComment.getAuthor(), user);
 
         publicDiaryCommentRepository.deleteChildComments(publicDiaryComment.getId());
         publicDiaryCommentRepository.delete(publicDiaryComment);
     }
 
     // 대댓글
-    public ChildCommentResponse writeChildComment(String userEmail, Long publicDiaryId, Long parentCommentId, WriteChildCommentRequest request) {
-        User user = findUserByUserEmail(userEmail);
+    public ChildCommentResponse writeChildComment(User user, Long publicDiaryId, Long parentCommentId, WriteChildCommentRequest request) {
         PublicDiary publicDiary = findPublicDiaryByIdOrThrow(publicDiaryId);
 
-        PublicDiaryComment parentComment = findPublicDiaryCommentByIdOrThrow(parentCommentId);
+        PublicDiaryComment parentComment = getPublicDiaryCommentOrThrow(parentCommentId);
         validateIsParentComment(parentComment);
 
         PublicDiaryComment childComment = request.toEntity(publicDiary, user, parentComment.getId());
         publicDiaryCommentRepository.save(childComment);
 
-        return ChildCommentResponse.of(childComment);
+        return ChildCommentResponse.from(childComment);
     }
 
     public GeneralPaginatedResponse<ChildCommentResponse> getAllChildComments(Long cursor, Long count, Long publicDiaryId, Long parentCommentId) {
         findPublicDiaryByIdOrThrow(publicDiaryId);
 
-        PublicDiaryComment parentComment = findPublicDiaryCommentByIdOrThrow(parentCommentId);
+        PublicDiaryComment parentComment = getPublicDiaryCommentOrThrow(parentCommentId);
         validateIsParentComment(parentComment);
 
         List<PublicDiaryComment> comments = publicDiaryCommentRepository.findChildCommentsOrderByAsc(cursor, count, parentCommentId);
-        return GeneralPaginatedResponse.of(comments, count, PublicDiaryComment::getId, ChildCommentResponse::of);
+        return GeneralPaginatedResponse.of(comments, count, PublicDiaryComment::getId, ChildCommentResponse::from);
     }
 
-    public ChildCommentResponse editChildComment(String userEmail, Long publicDiaryId, Long parentCommentId, Long childCommentId, EditPublicDiaryCommentRequest request) {
-        User user = findUserByUserEmail(userEmail);
+    public ChildCommentResponse editChildComment(User user, Long publicDiaryId, Long parentCommentId, Long childCommentId, EditPublicDiaryCommentRequest request) {
         findPublicDiaryByIdOrThrow(publicDiaryId);
 
-        PublicDiaryComment parentComment = findPublicDiaryCommentByIdOrThrow(parentCommentId);
+        PublicDiaryComment parentComment = getPublicDiaryCommentOrThrow(parentCommentId);
         validateIsParentComment(parentComment);
 
-        PublicDiaryComment childComment = findPublicDiaryCommentByIdOrThrow(childCommentId);
+        PublicDiaryComment childComment = getPublicDiaryCommentOrThrow(childCommentId);
         validateIsChildComment(childComment);
-        validateSameUser(user, childComment);
+        validateSameUser(childComment.getAuthor(), user);
 
         PublicDiaryComment editedComment = childComment.edit(request);
 
-        return ChildCommentResponse.of(editedComment);
+        return ChildCommentResponse.from(editedComment);
     }
 
-    public void deleteChildComment(String userEmail, Long publicDiaryId, Long parentCommentId, Long childCommentId) {
-        User user = findUserByUserEmail(userEmail);
-
+    public void deleteChildComment(User user, Long publicDiaryId, Long parentCommentId, Long childCommentId) {
         findPublicDiaryByIdOrThrow(publicDiaryId);
 
-        PublicDiaryComment parentComment = findPublicDiaryCommentByIdOrThrow(parentCommentId);
+        PublicDiaryComment parentComment = getPublicDiaryCommentOrThrow(parentCommentId);
         validateIsParentComment(parentComment);
 
-        PublicDiaryComment childComment = findPublicDiaryCommentByIdOrThrow(childCommentId);
+        PublicDiaryComment childComment = getPublicDiaryCommentOrThrow(childCommentId);
         validateIsChildComment(childComment);
-        validateSameUser(user, childComment);
+        validateSameUser(childComment.getAuthor(), user);
 
         publicDiaryCommentRepository.delete(childComment);
     }
 
-    public LikeResponse toggleLike(String userEmail, Long publicDiaryId, Long publicDiaryCommentId) {
-        User user = findUserByUserEmail(userEmail);
+    public LikeResponse toggleLike(User user, Long publicDiaryId, Long publicDiaryCommentId) {
         findPublicDiaryByIdOrThrow(publicDiaryId);
 
-        PublicDiaryComment publicDiaryComment = findPublicDiaryCommentByIdOrThrow(publicDiaryCommentId);
+        PublicDiaryComment publicDiaryComment = getPublicDiaryCommentOrThrow(publicDiaryCommentId);
         Optional<PublicDiaryCommentLikeLink> existingLike = publicDiaryCommentLikeLinkRepository.findByPublicDiaryCommentAndUser(publicDiaryComment, user);
         if (existingLike.isPresent()) {
             publicDiaryCommentLikeLinkRepository.delete(existingLike.get());
@@ -154,7 +145,7 @@ public class PublicDiaryCommentService {
 
     public GeneralPaginatedResponse<PaginationLikesResponse> countLikes(Long cursor, Long count, Long publicDiaryId, Long publicDiaryCommentId) {
         findPublicDiaryByIdOrThrow(publicDiaryId);
-        findPublicDiaryCommentByIdOrThrow(publicDiaryCommentId);
+        getPublicDiaryCommentOrThrow(publicDiaryCommentId);
 
         List<PublicDiaryCommentLikeLink> likes = publicDiaryCommentLikeLinkRepository.findPublicDiaryCommentLikesOrderByDesc(cursor, count, publicDiaryCommentId);
         return GeneralPaginatedResponse.of(likes, count, PublicDiaryCommentLikeLink::getId, PaginationLikesResponse::from);
@@ -166,12 +157,7 @@ public class PublicDiaryCommentService {
         }
     }
 
-    private PublicDiaryComment findPublicDiaryCommentByIdAndUserOrThrow(Long publicDiaryCommentId, User user) {
-        return publicDiaryCommentRepository.findByIdAndUser(publicDiaryCommentId, user)
-                .orElseThrow(() -> new PublicDiaryException(PublicDiaryExceptionType.NON_EXIST_PUBLIC_DIARY_COMMENT));
-    }
-
-    private PublicDiaryComment findPublicDiaryCommentByIdOrThrow(Long publicDiaryCommentId) {
+    private PublicDiaryComment getPublicDiaryCommentOrThrow(Long publicDiaryCommentId) {
         return publicDiaryCommentRepository.findById(publicDiaryCommentId)
                 .orElseThrow(() -> new PublicDiaryException(PublicDiaryExceptionType.NON_EXIST_PUBLIC_DIARY_COMMENT));
     }
@@ -181,27 +167,15 @@ public class PublicDiaryCommentService {
                 .orElseThrow(() -> new PublicDiaryException(PublicDiaryExceptionType.NON_EXIST_PUBLIC_DIARY));
     }
 
-    private User findUserByUserEmail(String userEmail) {
-        return userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
-    }
-
-    private void validateSameUser(User user, PublicDiaryComment childComment) {
-        if (childComment.getAuthor() != user) {
-            throw new PublicDiaryException(PublicDiaryExceptionType.FORBIDDEN_USER);
-        }
-    }
-
     private void validateIsChildComment(PublicDiaryComment childComment) {
         if (childComment.getParentCommentId() == null) {
             throw new PublicDiaryException(PublicDiaryExceptionType.BAD_REQUEST);
         }
     }
 
-    public PublicDiaryCommentReportResponse reportPublicDiaryComment(String userEmail, Long publicDiaryId, Long publicDiaryCommentId, ReportRequest request) {
-        User reporter = findUserByUserEmail(userEmail);
+    public PublicDiaryCommentReportResponse reportPublicDiaryComment(User reporter, Long publicDiaryId, Long publicDiaryCommentId, ReportRequest request) {
         findPublicDiaryByIdOrThrow(publicDiaryId);
-        PublicDiaryComment reportedComment = findPublicDiaryCommentByIdOrThrow(publicDiaryCommentId);
+        PublicDiaryComment reportedComment = getPublicDiaryCommentOrThrow(publicDiaryCommentId);
 
         validateSelfReport(reportedComment, reporter);
         validateDuplicateReport(reporter, reportedComment);
@@ -225,6 +199,12 @@ public class PublicDiaryCommentService {
     private void validateSelfReport(PublicDiaryComment reportedComment, User reporter) {
         if (isSameUser(reporter, reportedComment)) {
             throw new PublicDiaryException(PublicDiaryExceptionType.SELF_REPORT);
+        }
+    }
+
+    private void validateSameUser(User originalUser, User loggedInUser) {
+        if (!loggedInUser.equals(originalUser)) {
+            throw new UserException((UserExceptionType.UNAUTHORIZED_ACCESS));
         }
     }
 }

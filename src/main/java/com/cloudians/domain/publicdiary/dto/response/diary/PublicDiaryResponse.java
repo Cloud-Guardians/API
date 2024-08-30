@@ -55,4 +55,18 @@ public class PublicDiaryResponse {
                 .createdAt(publicDiary.getCreatedAt())
                 .build();
     }
+
+    public static PublicDiaryResponse from(PublicDiary publicDiary) {
+        return PublicDiaryResponse.builder()
+                .publicDiaryId(publicDiary.getId())
+                .author(UserProfileResponse.from(publicDiary.getAuthor()))
+                .title(publicDiary.getPersonalDiary().getTitle())
+                .content(publicDiary.getPersonalDiary().getContent())
+                .photoUrl(publicDiary.getPersonalDiary().getPhotoUrl())
+                .date(publicDiary.getPersonalDiary().getDate())
+                .views(publicDiary.getViews())
+                .likes(publicDiary.getLikes())
+                .createdAt(publicDiary.getCreatedAt())
+                .build();
+    }
 }

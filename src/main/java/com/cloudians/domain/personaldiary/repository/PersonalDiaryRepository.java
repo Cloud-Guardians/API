@@ -13,8 +13,6 @@ public interface PersonalDiaryRepository extends JpaRepository<PersonalDiary, Lo
 
     Optional<PersonalDiary> findByUserAndDate(User user, LocalDate date);
 
-    Optional<PersonalDiary> findById(Long personalDiaryId);
-
     Optional<List<PersonalDiary>> findListByUser(User user);
 
     Optional<List<PersonalDiary>> findPersonalDiaryByUserAndDateBetweenOrderByDate(User user, LocalDate startOfMonth, LocalDate endOfMonth);

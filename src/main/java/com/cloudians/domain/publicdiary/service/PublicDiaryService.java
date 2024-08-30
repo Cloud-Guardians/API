@@ -25,7 +25,6 @@ import com.cloudians.domain.publicdiary.repository.report.PublicDiaryReportJpaRe
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
-import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,10 +43,7 @@ public class PublicDiaryService {
     private final PublicDiaryLikeLinkRepositoryImpl publicDiaryLikeLinkRepository;
     private final PublicDiaryReportJpaRepository publicDiaryReportRepository;
 
-    private final UserRepository userRepository;
-
-    public PublicDiaryResponse createPublicDiary(java.lang.String userEmail, Long personalDiaryId) {
-        User user = findUserByUserEmail(userEmail);
+    public PublicDiaryResponse createPublicDiary(User user, Long personalDiaryId) {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
         validateIfPublicDiaryExists(personalDiaryId);
 
@@ -57,8 +53,7 @@ public class PublicDiaryService {
         return PublicDiaryResponse.of(publicDiary, user);
     }
 
-    public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getPublicDiariesByKeyword(java.lang.String userEmail, Long cursor, Long count, java.lang.String searchType, java.lang.String keyword) {
-        findUserByUserEmail(userEmail);
+    public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getPublicDiariesByKeyword(Long cursor, Long count, java.lang.String searchType, java.lang.String keyword) {
         SearchCondition condition = SearchCondition.of(searchType, keyword);
         List<PublicDiary> searchedPublicDiaries = publicDiaryRepository.searchByTypeAndKeywordOrderByTimestampDesc(condition, cursor, count);
         List<PublicDiaryThumbnailResponse> thumbnailResponses = getPublicDiaryThumbnailResponses(searchedPublicDiaries);
@@ -66,47 +61,33 @@ public class PublicDiaryService {
         return GeneralPaginatedResponse.of(searchedPublicDiaries, count, PublicDiary::getId, diary -> thumbnailResponses.get(searchedPublicDiaries.indexOf(diary)));
     }
 
-    public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getAllPublicDiaries(java.lang.String userEmail, Long cursor, Long count) {
-        findUserByUserEmail(userEmail);
+    public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getAllPublicDiaries(Long cursor, Long count) {
         List<PublicDiary> publicDiaries = publicDiaryRepository.publicDiariesOrderByCreatedAtDescWithTop3Diaries(cursor, count);
         List<PublicDiaryThumbnailResponse> thumbnailResponses = getPublicDiaryThumbnailResponses(publicDiaries);
 
         return GeneralPaginatedResponse.of(publicDiaries, count, PublicDiary::getId, diary -> thumbnailResponses.get(publicDiaries.indexOf(diary)));
     }
 
-    private List<PublicDiaryThumbnailResponse> getPublicDiaryThumbnailResponses(List<PublicDiary> publicDiaries) {
-        return publicDiaries.stream().map(publicDiary -> {
-            Long commentsCount = getCommentsCount(publicDiary);
-            return PublicDiaryThumbnailResponse.of(publicDiary, commentsCount);
-        }).collect(Collectors.toList());
-    }
-
-    private Long getCommentsCount(PublicDiary publicDiary) {
-        return publicDiaryCommentRepository.getPublicDiaryCommentsCount(publicDiary);
-    }
-
-    public PublicDiaryResponse getPublicDiary(java.lang.String userEmail, Long publicDiaryId) {
-        User user = findUserByUserEmail(userEmail);
-
-        PublicDiary publicDiary = findByIdOrThrow(publicDiaryId);
+    public PublicDiaryResponse getPublicDiary(Long publicDiaryId) {
+        PublicDiary publicDiary = getPublicDiaryOrThrow(publicDiaryId);
         publicDiary.updateView(publicDiary.getViews());
-        return PublicDiaryResponse.of(publicDiary, user);
+        return PublicDiaryResponse.from(publicDiary);
     }
 
-    public void deletePublicDiary(java.lang.String userEmail, Long publicDiaryId) {
-        User user = findUserByUserEmail(userEmail);
-        PublicDiary publicDiary = getPublicDiaryOrThrow(publicDiaryId, user);
+    public void deletePublicDiary(User user, Long publicDiaryId) {
+        PublicDiary publicDiary = getPublicDiaryOrThrow(publicDiaryId);
+        validateSameUser(publicDiary.getAuthor(), user);
 
         publicDiaryRepository.delete(publicDiary);
         List<PublicDiaryComment> commentsInPublicDiary = publicDiaryCommentRepository.findByPublicDiary(publicDiary);
         publicDiaryCommentRepository.deleteAll(commentsInPublicDiary);
     }
 
-    public LikeResponse toggleLike(java.lang.String userEmail, Long publicDiaryId) {
-        User user = findUserByUserEmail(userEmail);
+    public LikeResponse toggleLike(User user, Long publicDiaryId) {
 
-        PublicDiary publicDiary = findByIdOrThrow(publicDiaryId);
+        PublicDiary publicDiary = getPublicDiaryOrThrow(publicDiaryId);
         Optional<PublicDiaryLikeLink> existingLike = publicDiaryLikeLinkRepository.findByPublicDiaryAndUser(publicDiary, user);
+
         if (existingLike.isPresent()) {
             publicDiaryLikeLinkRepository.delete(existingLike.get());
             publicDiary.decreaseLikeCount();
@@ -120,15 +101,14 @@ public class PublicDiaryService {
     }
 
     public GeneralPaginatedResponse<PaginationLikesResponse> countLikes(Long cursor, Long count, Long publicDiaryId) {
-        findByIdOrThrow(publicDiaryId);
+        getPublicDiaryOrThrow(publicDiaryId);
 
         List<PublicDiaryLikeLink> likes = publicDiaryLikeLinkRepository.findPublicDiaryLikesOrderByDesc(cursor, count, publicDiaryId);
         return GeneralPaginatedResponse.of(likes, count, PublicDiaryLikeLink::getId, PaginationLikesResponse::from);
     }
 
-    public PublicDiaryReportResponse reportPublicDiary(String userEmail, Long publicDiaryId, ReportRequest request) {
-        User reporter = findUserByUserEmail(userEmail);
-        PublicDiary reportedDiary = findByIdOrThrow(publicDiaryId);
+    public PublicDiaryReportResponse reportPublicDiary(User reporter, Long publicDiaryId, ReportRequest request) {
+        PublicDiary reportedDiary = getPublicDiaryOrThrow(publicDiaryId);
 
         validateSelfReport(reportedDiary, reporter);
         validateDuplicateReport(reporter, reportedDiary);
@@ -153,16 +133,20 @@ public class PublicDiaryService {
         return personalDiary;
     }
 
-    private PublicDiary getPublicDiaryOrThrow(Long publicDiaryId, User user) {
-        return publicDiaryRepository.findByIdAndUser(publicDiaryId, user).orElseThrow(() -> new PublicDiaryException(PublicDiaryExceptionType.NON_EXIST_PUBLIC_DIARY));
+    private List<PublicDiaryThumbnailResponse> getPublicDiaryThumbnailResponses(List<PublicDiary> publicDiaries) {
+        return publicDiaries.stream().map(publicDiary -> {
+            Long commentsCount = getCommentsCount(publicDiary);
+            return PublicDiaryThumbnailResponse.of(publicDiary, commentsCount);
+        }).collect(Collectors.toList());
     }
 
-    private User findUserByUserEmail(java.lang.String userEmail) {
-        return userRepository.findByUserEmail(userEmail).orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+    private Long getCommentsCount(PublicDiary publicDiary) {
+        return publicDiaryCommentRepository.getPublicDiaryCommentsCount(publicDiary);
     }
 
-    private PublicDiary findByIdOrThrow(Long publicDiaryId) {
-        return publicDiaryRepository.findById(publicDiaryId).orElseThrow(() -> new PublicDiaryException(PublicDiaryExceptionType.NON_EXIST_PUBLIC_DIARY));
+    private PublicDiary getPublicDiaryOrThrow(Long publicDiaryId) {
+        return publicDiaryRepository.findById(publicDiaryId)
+                .orElseThrow(() -> new PublicDiaryException(PublicDiaryExceptionType.NON_EXIST_PUBLIC_DIARY));
     }
 
     private void validateDuplicateReport(User reporter, PublicDiary reportedDiary) {

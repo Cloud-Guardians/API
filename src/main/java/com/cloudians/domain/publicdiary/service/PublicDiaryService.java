@@ -50,7 +50,7 @@ public class PublicDiaryService {
         PublicDiary publicDiary = PublicDiary.createPublicDiary(user, personalDiary);
         publicDiaryRepository.save(publicDiary);
 
-        return PublicDiaryResponse.of(publicDiary, user);
+        return PublicDiaryResponse.from(publicDiary);
     }
 
     public GeneralPaginatedResponse<PublicDiaryThumbnailResponse> getPublicDiariesByKeyword(Long cursor, Long count, java.lang.String searchType, java.lang.String keyword) {

@@ -1,6 +1,5 @@
 package com.cloudians.domain.user.entity;
 
-import com.cloudians.domain.auth.entity.UserStatus;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.validation.constraints.*;
 import java.time.LocalDate;
 
 import static javax.persistence.EnumType.STRING;

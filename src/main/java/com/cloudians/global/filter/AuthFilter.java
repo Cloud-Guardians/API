@@ -1,6 +1,6 @@
 package com.cloudians.global.filter;
 
-import com.cloudians.domain.auth.JwtProcessor;
+import com.cloudians.domain.auth.util.JwtProcessor;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
@@ -60,7 +60,7 @@ public class AuthFilter extends OncePerRequestFilter {
     private String getAccessToken(HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
         if (authorization == null || !authorization.startsWith("Bearer ")) {
-            throw new UserException(UserExceptionType.Null_TOKEN);
+            throw new UserException(UserExceptionType.NULL_TOKEN);
         }
         return authorization.substring(7);
     }

@@ -34,7 +34,7 @@ public class ChildCommentResponse {
         this.updatedAt = updatedAt;
     }
 
-    public static ChildCommentResponse of(PublicDiaryComment childComment) {
+    public static ChildCommentResponse from(PublicDiaryComment childComment) {
         return ChildCommentResponse.builder()
                 .publicDiaryCommentId(childComment.getId())
                 .parentCommentId(childComment.getParentCommentId())

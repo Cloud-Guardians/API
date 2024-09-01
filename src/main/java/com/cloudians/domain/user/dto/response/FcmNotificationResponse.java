@@ -1,5 +1,7 @@
 package com.cloudians.domain.user.dto.response;
 
+import com.cloudians.domain.user.dto.request.FcmNotificationRequest;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,5 +41,21 @@ public class FcmNotificationResponse {
         private String image;
     }
 
+    @Builder
+    public static FcmNotificationResponse of(FcmNotificationRequest request) {
+	FcmNotificationResponse.Notification notification = FcmNotificationResponse.Notification.builder()
+		.title(request.getTitle())
+		.body(request.getBody())
+		.image(null)
+		.build();
+	FcmNotificationResponse.Message message = FcmNotificationResponse.Message.builder()
+		.token(request.getToken())
+		.notification(notification)
+		.build();
+	return FcmNotificationResponse.builder()
+		.validateOnly(false)
+		.message(message)
+		.build();
+    }
  
 }

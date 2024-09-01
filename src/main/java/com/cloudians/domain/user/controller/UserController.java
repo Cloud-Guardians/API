@@ -99,12 +99,12 @@ public class UserController {
 	}
 
 	// 앱 잠금 번호 변경
-//		@PutMapping("user-lock")
-//		ResponseEntity<Message> userLockChange(@RequestParam("userEmail") String userEmail, String insertCode){
-//		    UserLockResponse user = userLockService.changeLock(userEmail,insertCode);
-//		    return successMessage(user);
-//
-//		}
+		@PutMapping("user-lock")
+		ResponseEntity<Message> userLockChange(@RequestParam("userEmail") String userEmail, String beforePass, String afterPass){
+		    UserLockResponse user = userLockService.changeLock(userEmail,beforePass, afterPass);
+		    return successMessage(user);
+
+		}
 
 	// 앱 잠금 비활성화
 	@PutMapping("/user-lock-toggle")

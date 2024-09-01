@@ -28,6 +28,12 @@ public class AuthService {
     private final UserRepository userRepository;
     private final JwtProcessor jwtProcessor;
     private final BcryptService bcryptService;
+    
+    
+    public String getUserEmail(String token) {
+	return jwtProcessor.verifyAuthTokenOrThrow(token).getUserEmail();
+    }
+    
     public SignupResponse signup(SignupRequest request){
         String encodedPassword = bcryptService.encodeBcrypt(request.getPassword());
        //TODO: 닉네임 랜덤 생성 필요

@@ -6,15 +6,14 @@ import java.util.Optional;
 
 import javax.transaction.Transactional;
 
-import com.cloudians.domain.user.entity.BirthTimeType;
-import com.cloudians.domain.user.entity.CalendarType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.cloudians.domain.auth.entity.UserToken;
 import com.cloudians.domain.user.dto.request.UserRequest;
 import com.cloudians.domain.user.dto.response.UserResponse;
+import com.cloudians.domain.user.entity.BirthTimeType;
+import com.cloudians.domain.user.entity.CalendarType;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;

@@ -37,6 +37,7 @@ repositories {
     mavenCentral()
 }
 
+
 dependencies {
     // spring boot
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
@@ -64,7 +65,7 @@ dependencies {
 
     // firebase stroage
     implementation group: 'com.google.firebase', name: 'firebase-admin', version: '9.3.0' // 최신 버전 확인 필요
-    // implementation 'com.google.firebase:firebase-storage:20.0.0'
+
 
     // JWT Libraries
     implementation 'com.auth0:java-jwt:3.19.2'

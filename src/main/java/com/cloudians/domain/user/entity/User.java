@@ -71,22 +71,6 @@ public class User {
         this.status = UserStatus.DEFAULT;
     }
 
-    //  Convert User entity to UserResponse DTO
-//    public UserResponse toDto() {
-//        return UserResponse.builder()
-//                .userEmail(this.userEmail)
-//                .signupType(this.signupType)
-//                .name(this.name)
-//                .nickname(this.nickname)
-//                .gender(this.gender)
-//                .profileUrl(this.profileUrl)
-//                .calendarType(this.calendarType)
-//                .birthdate(this.birthdate)
-//                .birthTime(this.birthTime)
-//                .totalReportCount(this.totalReportCount)
-//                .status(this.status)
-//                .build();
-//    }
 
 
 }

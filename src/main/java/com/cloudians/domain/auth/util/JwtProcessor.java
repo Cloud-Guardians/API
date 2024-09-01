@@ -1,42 +1,48 @@
 package com.cloudians.domain.auth.util;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.util.Date;
-
-import org.springframework.stereotype.Component;
-
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
-
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.JwtException;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
+import java.util.Date;
 
 @Component
 @RequiredArgsConstructor
 public class JwtProcessor {
 
-    // @Value("${jwt.secret.key}")
-    private final String SECRET_KEY = "dfhiwehdkfsjdxifsnfaklansdfiwenfsdklfnkelnfklneiofdf";
+    @Value("${jwt.secret.key}")
+    private String SECRET_KEY;
 
     public static final String USER_EMAIL_KEY = "userEmail";
     // cmd shift enter ;
+
     public static final int ACCESS_TOKEN_EXP = 60 * 60 * 1000;
+
+    public static final int REFRESH_TOKEN_EXP = 60 * 60 * 1000 * 24 * 7;
 
     private final UserRepository userRepository;
 
     public String createAccessToken(String userEmail) {
+            return createToken(userEmail, ACCESS_TOKEN_EXP);
+        // option cmd m
+    }
 
+    public String createRefreshToken(String userEmail) {
+        return createToken(userEmail, REFRESH_TOKEN_EXP);
+    }
+
+    private String createToken(String userEmail, int expirationTime) {
         Claims claims = createClaims(userEmail);
 
-        Date expiresIn = createExpiresIn();
+        Date expiresIn = createExpiresIn(expirationTime);
         Key signingKey = createSigningKey();
 
         return Jwts.builder()
@@ -44,12 +50,11 @@ public class JwtProcessor {
                 .setExpiration(expiresIn)
                 .signWith(signingKey)
                 .compact();
-        // option cmd m
     }
 
-    public User verifyAuthTokenOrThrow(String accessToken) {
+    public User verifyAuthTokenOrThrow(String token) {
         try {
-            Jws<Claims> claimJws = parseToClaimsJws(accessToken);
+            Jws<Claims> claimJws = parseToClaimsJws(token);
             Claims claims = claimJws.getBody();
             String userEmail = String.valueOf(claims.get(USER_EMAIL_KEY)).toString();
             return userRepository.findByUserEmail(userEmail)
@@ -57,7 +62,7 @@ public class JwtProcessor {
         } catch (ExpiredJwtException expiredJwtException) {
 
             throw new UserException(UserExceptionType.TOKEN_EXPIRED);
-        }catch(JwtException jwtException){
+        } catch (JwtException jwtException) {
 
             throw new UserException(UserExceptionType.TOKEN_INVALID);
         }
@@ -79,10 +84,9 @@ public class JwtProcessor {
         return claims;
     }
 
-    private Date createExpiresIn() {
+    private Date createExpiresIn(int expirationTime) {
         long currentDateTime = new Date().getTime();
-        Date ExpiresIn = new Date(currentDateTime + ACCESS_TOKEN_EXP);
-        return new Date(currentDateTime + ACCESS_TOKEN_EXP);
+        return new Date(currentDateTime + expirationTime);
     }
 
     private Key createSigningKey() {

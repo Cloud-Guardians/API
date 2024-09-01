@@ -14,8 +14,6 @@ import com.cloudians.domain.home.repository.ThankYouMessageRepository;
 import com.cloudians.domain.home.repository.WhisperMessageRepositoryImpl;
 import com.cloudians.domain.home.repository.WhisperQuestionRepository;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.exception.UserException;
-import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -52,15 +50,15 @@ public class WhisperService {
         }
     }
 
-    public void sendQuestion(User user, LocalDate today) {
+    public void
+    sendQuestion(User user, LocalDate today) {
         WhisperQuestion whisperQuestion = getQuestionIfExistsOrThrow(today);
         String content = whisperQuestion.getContent();
         WhisperMessage questionOfToday = WhisperMessage.createChatMessage(user, content, LocalDateTime.now(), SenderType.SYSTEM);
         whisperMessageRepository.save(questionOfToday);
     }
 
-    public WhisperResponse createAnswer(String userEmail, WhisperMessageRequest request) {
-        User user = findUserByUserEmail(userEmail);
+    public WhisperResponse createAnswer(User user, WhisperMessageRequest request) {
 
         LocalDateTime questionDateTime = LocalDate.now().atStartOfDay();
         LocalDateTime twentyFourHoursLater = questionDateTime.plusHours(24);
@@ -72,22 +70,19 @@ public class WhisperService {
         return WhisperResponse.of(userChatMessageResponse, systemChatMessageResponse);
     }
 
-    public GeneralPaginatedResponse<WhisperMessageResponse> getRecentMessages(String userEmail, Long cursor, Long count) {
-        User user = findUserByUserEmail(userEmail);
+    public GeneralPaginatedResponse<WhisperMessageResponse> getRecentMessages(User user, Long cursor, Long count) {
 
-        List<WhisperMessage> messages = whisperMessageRepository.findByUserOrderByTimeStampAsc(user, cursor, count);
+        List<WhisperMessage> messages = whisperMessageRepository.findByUserOrderByTimeStampDesc(user, cursor, count);
         return GeneralPaginatedResponse.of(messages, count, WhisperMessage::getId, WhisperMessageResponse::of);
     }
 
-    public GeneralPaginatedResponse<WhisperMessageResponse> getMessagesByKeyword(String userEmail, Long cursor, Long count, String keyword) {
-        User user = findUserByUserEmail(userEmail);
+    public GeneralPaginatedResponse<WhisperMessageResponse> getMessagesByKeyword(User user, Long cursor, Long count, String keyword) {
 
         List<WhisperMessage> messages = whisperMessageRepository.findBySearchKeywordOrderByTimeStampDesc(user, cursor, count, keyword);
         return GeneralPaginatedResponse.of(messages, count, WhisperMessage::getId, WhisperMessageResponse::of);
     }
 
-    public GeneralPaginatedResponse<WhisperMessageResponse> getMessagesByDate(String userEmail, Long cursor, Long count, LocalDate date) {
-        User user = findUserByUserEmail(userEmail);
+    public GeneralPaginatedResponse<WhisperMessageResponse> getMessagesByDate(User user, Long cursor, Long count, LocalDate date) {
 
         List<WhisperMessage> messages = whisperMessageRepository.findByDateOrderByTimestampDesc(user, cursor, count, date);
         return GeneralPaginatedResponse.of(messages, count, WhisperMessage::getId, WhisperMessageResponse::of);
@@ -117,12 +112,6 @@ public class WhisperService {
         WhisperMessage userChatMessage = request.toEntity(user, request.getContent(), LocalDateTime.now(), SenderType.USER);
         whisperMessageRepository.save(userChatMessage);
         return WhisperMessageResponse.of(userChatMessage);
-    }
-
-
-    private User findUserByUserEmail(String userEmail) {
-        return userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
     }
 
     private WhisperQuestion getQuestionIfExistsOrThrow(LocalDate today) {

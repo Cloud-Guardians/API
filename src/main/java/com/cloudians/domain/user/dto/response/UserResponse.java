@@ -1,9 +1,8 @@
 package com.cloudians.domain.user.dto.response;
 
-import java.sql.Date;
 import java.time.LocalDate;
 
-import com.cloudians.domain.auth.entity.UserStatus;
+import com.cloudians.domain.user.entity.UserStatus;
 import com.cloudians.domain.user.entity.BirthTimeType;
 import com.cloudians.domain.user.entity.CalendarType;
 import com.cloudians.domain.user.entity.SignupType;

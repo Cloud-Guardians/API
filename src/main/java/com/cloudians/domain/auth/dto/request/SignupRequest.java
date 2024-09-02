@@ -41,7 +41,6 @@ public class SignupRequest {
     @NotNull(message = "생시를 입력해 주세요.")
     private String birthTime;
 
-    //TODO: 각각 양식 넣어서 제한 두고 not null 안 들어오게 어노테이션 생성
     public SignupRequest(String userEmail, String password, String name, char gender, LocalDate birthdate, String birthTime) {
         this.userEmail = userEmail;
         this.password = password;

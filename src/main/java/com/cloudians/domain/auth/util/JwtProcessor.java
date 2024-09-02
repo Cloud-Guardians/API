@@ -32,7 +32,6 @@ public class JwtProcessor {
 
     public String createAccessToken(String userEmail) {
             return createToken(userEmail, ACCESS_TOKEN_EXP);
-        // option cmd m
     }
 
     public String createRefreshToken(String userEmail) {

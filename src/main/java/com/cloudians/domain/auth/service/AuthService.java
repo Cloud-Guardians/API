@@ -1,22 +1,27 @@
 package com.cloudians.domain.auth.service;
 
-import com.cloudians.domain.auth.dto.request.TokenRefreshRequest;
+import com.cloudians.domain.auth.dto.request.*;
+import com.cloudians.domain.auth.dto.response.FindPwResponse;
 import com.cloudians.domain.auth.dto.response.LoginResponse;
-import com.cloudians.domain.auth.util.JwtProcessor;
-import com.cloudians.domain.auth.dto.request.LoginRequest;
-import com.cloudians.domain.auth.dto.request.SignupRequest;
 import com.cloudians.domain.auth.dto.response.SignupResponse;
+import com.cloudians.domain.auth.entity.UserToken;
+import com.cloudians.domain.auth.repository.UserTokenRepository;
+import com.cloudians.domain.auth.util.JwtProcessor;
 import com.cloudians.domain.user.entity.SignupType;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import javax.validation.Valid;
+import java.security.SecureRandom;
 import java.util.Random;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +29,11 @@ import java.util.Random;
 public class AuthService {
     private final UserRepository userRepository;
 
+    private final UserTokenRepository userTokenRepository;
+
     private final JwtProcessor jwtProcessor;
+
+    private final JavaMailSender mailSender;
 
     private final BcryptService bcryptService;
 
@@ -40,7 +49,7 @@ public class AuthService {
     }
 
     // 회원가입 중복 여부
-    private void checkIfUserExists(SignupRequest request) {
+    public void checkIfUserExists(SignupRequest request) {
         if (userRepository.findByUserEmail(request.getUserEmail()).isPresent()) {
             throw new UserException(UserExceptionType.USER_ALREADY_EXIST);
         }
@@ -58,7 +67,74 @@ public class AuthService {
     // 들어온 토큰 검증
     public String refreshAccessToken(@Valid TokenRefreshRequest request) {
         User user = jwtProcessor.verifyAuthTokenOrThrow(request.getRefreshToken());
+
+        validateBlackListToken(request.getRefreshToken()); // 블랙리스트에 있는 토큰인지
         return jwtProcessor.createAccessToken(user.getUserEmail());
+    }
+
+    // 유효 기간 남은 토큰 블랙리스트
+    public void logout(User loggedInUser, String refreshToken) {
+        User originalUser = jwtProcessor.verifyAuthTokenOrThrow(refreshToken);
+
+        validateTokenOwner(loggedInUser, originalUser);
+        validateBlackListToken(refreshToken);
+
+        UserToken userToken = UserToken.blackListFrom(loggedInUser, refreshToken);
+        userTokenRepository.save(userToken);
+    }
+
+    // 비밀번호를 임시 비밀번호로 변경
+    public FindPwResponse updatePassword(FindPwRequest request) {
+        userEmailExist(request);
+
+        String tmpPassword = getTmpPassword();
+        String encodedPassword = bcryptService.encodeBcrypt(tmpPassword);
+
+        User user = userRepository.findByUserEmail(request.getUserEmail())
+                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+
+        user.setPassword(encodedPassword);
+        userRepository.save(user);
+
+        FindPwResponse findPwResponse = FindPwResponse.from(user, tmpPassword);
+
+        sendMail(findPwResponse);
+
+        return findPwResponse;
+    }
+
+    public void resetPassword(ResetPwRequest request) {
+        User user = userRepository.findByUserEmail(request.getUserEmail())
+                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
+
+        if (!bcryptService.matchBcrypt(request.getOldPassword(), user.getPassword())) {
+            throw new UserException(UserExceptionType.WRONG_PASSWORD);
+        }
+
+        if (!request.getNewPassword().equals(request.getConfirmPassword())) {
+            throw new UserException(UserExceptionType.PASSWORD_DO_NOT_MATCH);
+        }
+
+        String resetPassword = bcryptService.encodeBcrypt(request.getNewPassword());
+
+        user.setPassword(resetPassword);
+        userRepository.save(user);
+    }
+
+    private void sendMail(FindPwResponse response) {
+        SimpleMailMessage mailMessage = new SimpleMailMessage();
+        mailMessage.setTo(response.getTo());
+        mailMessage.setSubject(response.getSubject());
+        mailMessage.setText(response.getMessage());
+        mailMessage.setFrom(response.getFrom());
+        mailMessage.setReplyTo(response.getFrom());
+
+        mailSender.send(mailMessage);
+    }
+
+    private User userEmailExist(FindPwRequest request) {
+        return userRepository.findByUserEmail(request.getUserEmail())
+                .orElseThrow(() -> new UserException((UserExceptionType.USER_NOT_FOUND)));
     }
 
     // 암호화된 비밀번호과 매칭
@@ -105,6 +181,56 @@ public class AuthService {
         } while (userRepository.findByNickname(nickname).isPresent());
         return nickname;
     }
+
+    private void validateTokenOwner(User loggedInUser, User originalUser) {
+        if (!loggedInUser.getUserEmail().equals(originalUser.getUserEmail())) {
+            throw new UserException(UserExceptionType.USER_NOT_MATCHED);
+        }
+    }
+
+    private void validateBlackListToken(String refreshToken) {
+        boolean isBlackListed = userTokenRepository.existsByTokenValue(refreshToken);
+        if (isBlackListed) {
+            throw new UserException(UserExceptionType.ALREADY_LOGOUT_TOKEN);
+        }
+    }
+
+    // tmpPassword 랜덤으로
+    private String getTmpPassword() {
+        SecureRandom random = new SecureRandom();
+        StringBuilder stringBuilder = new StringBuilder();
+
+        int rndAllCharactersLength = rndAllCharacters.length;
+        for (int i = 0; i < 15; i++) {
+            stringBuilder.append(rndAllCharacters[random.nextInt(rndAllCharactersLength)]);
+        }
+
+        String randomPassword = stringBuilder.toString();
+
+        // 최소 8자리에 대문자, 소문자, 숫자, 특수문자 각 1개 이상 포함
+        String pattern = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{10,}";
+        if (!Pattern.matches(pattern, randomPassword)) {
+            return getTmpPassword();
+        }
+        return randomPassword;
+    }
+
+    private static final char[] rndAllCharacters = new char[]{
+            // 숫자
+            '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+
+            // 대문자
+            'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+            'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
+
+            // 소문자
+            'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+            'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+
+            // 특수 기호
+            '@', '$', '!', '%', '*', '?', '&'
+    };
 }
+
 
 

@@ -1,11 +1,13 @@
 package com.cloudians.domain.auth.service;
 
-import com.cloudians.domain.auth.dto.request.TokenRefreshRequest;
-import com.cloudians.domain.auth.dto.response.LoginResponse;
-import com.cloudians.domain.auth.util.JwtProcessor;
 import com.cloudians.domain.auth.dto.request.LoginRequest;
 import com.cloudians.domain.auth.dto.request.SignupRequest;
+import com.cloudians.domain.auth.dto.request.TokenRefreshRequest;
+import com.cloudians.domain.auth.dto.response.LoginResponse;
 import com.cloudians.domain.auth.dto.response.SignupResponse;
+import com.cloudians.domain.auth.entity.UserToken;
+import com.cloudians.domain.auth.repository.UserTokenRepository;
+import com.cloudians.domain.auth.util.JwtProcessor;
 import com.cloudians.domain.user.entity.SignupType;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
@@ -23,6 +25,8 @@ import java.util.Random;
 @Transactional
 public class AuthService {
     private final UserRepository userRepository;
+
+    private final UserTokenRepository userTokenRepository;
 
     private final JwtProcessor jwtProcessor;
 
@@ -58,7 +62,18 @@ public class AuthService {
     // 들어온 토큰 검증
     public String refreshAccessToken(@Valid TokenRefreshRequest request) {
         User user = jwtProcessor.verifyAuthTokenOrThrow(request.getRefreshToken());
+        validateBlackListToken(request.getRefreshToken());
+
         return jwtProcessor.createAccessToken(user.getUserEmail());
+    }
+
+    public void logout(User loggedInUser, String refreshToken) {
+        User originalUser = jwtProcessor.verifyAuthTokenOrThrow(refreshToken);
+        validateTokenOwner(loggedInUser, originalUser);
+        validateBlackListToken(refreshToken);
+
+        UserToken userToken = UserToken.blackListFrom(loggedInUser, refreshToken);
+        userTokenRepository.save(userToken);
     }
 
     // 암호화된 비밀번호과 매칭
@@ -104,6 +119,19 @@ public class AuthService {
             nickname = randomNickname();
         } while (userRepository.findByNickname(nickname).isPresent());
         return nickname;
+    }
+
+    private void validateTokenOwner(User loggedInUser, User originalUser) {
+        if (!loggedInUser.getUserEmail().equals(originalUser.getUserEmail())) {
+            throw new UserException(UserExceptionType.USER_NOT_MATCHED);
+        }
+    }
+
+    private void validateBlackListToken(String refreshToken) {
+        boolean isBlackListed = userTokenRepository.existsByTokenValue(refreshToken);
+        if (isBlackListed) {
+            throw new UserException(UserExceptionType.ALREADY_LOGOUT_TOKEN);
+        }
     }
 }
 

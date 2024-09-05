@@ -3,10 +3,10 @@ package com.cloudians.domain.auth.service;
 import com.cloudians.domain.auth.dto.request.*;
 import com.cloudians.domain.auth.dto.response.FindPwResponse;
 import com.cloudians.domain.auth.dto.response.LoginResponse;
+import com.cloudians.domain.auth.dto.response.SignupResponse;
 import com.cloudians.domain.auth.entity.UserToken;
 import com.cloudians.domain.auth.repository.UserTokenRepository;
 import com.cloudians.domain.auth.util.JwtProcessor;
-import com.cloudians.domain.auth.dto.response.SignupResponse;
 import com.cloudians.domain.user.entity.SignupType;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
@@ -66,8 +66,7 @@ public class AuthService {
 
     // 들어온 토큰 검증
     public String refreshAccessToken(@Valid TokenRefreshRequest request) {
-        //TODO: 더 나은 로직 찾기
-        User user = jwtProcessor.verifyAuthTokenOrThrow(request.getRefreshToken().substring(7));
+        User user = jwtProcessor.verifyAuthTokenOrThrow(request.getRefreshToken());
 
         validateBlackListToken(request.getRefreshToken()); // 블랙리스트에 있는 토큰인지
         return jwtProcessor.createAccessToken(user.getUserEmail());
@@ -75,8 +74,7 @@ public class AuthService {
 
     // 유효 기간 남은 토큰 블랙리스트
     public void logout(User loggedInUser, String refreshToken) {
-        //TODO: 더 나은 로직 찾기
-        User originalUser = jwtProcessor.verifyAuthTokenOrThrow(refreshToken.substring(7));
+        User originalUser = jwtProcessor.verifyAuthTokenOrThrow(refreshToken);
 
         validateTokenOwner(loggedInUser, originalUser);
         validateBlackListToken(refreshToken);

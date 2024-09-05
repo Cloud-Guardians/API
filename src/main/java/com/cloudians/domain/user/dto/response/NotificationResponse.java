@@ -34,4 +34,12 @@ public class NotificationResponse {
 		.build();
     }
     
+    public static NotificationResponse of(Notification notification) {
+	return NotificationResponse.builder()
+		.notificationDiaryTime(notification.getNotificationDiaryTime())
+		.notificationType(notification.getNotificationType())
+		.notificationStatus(notification.isNotificationStatus())
+		.build();
+    }
+    
 }

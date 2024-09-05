@@ -25,6 +25,7 @@ public class AuthController {
 
     @PostMapping("/signup")
     public ResponseEntity<Message> signup(@Valid @RequestBody SignupRequest request) {
+        // valid 붙여야지만 예외 처리 가능함
         SignupResponse response = authService.signup(request);
         Message message = new Message(response, HttpStatus.CREATED.value());
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -37,8 +38,8 @@ public class AuthController {
         LoginResponse response = authService.login(request);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Access-Token", "Bearer " + response.getAccessToken());
-        headers.set("Refresh-Token", "Bearer " + response.getRefreshToken());
+        headers.set("Access-Token", response.getAccessToken());
+        headers.set("Refresh-Token", response.getRefreshToken());
 
         Message message = new Message(null, HttpStatus.CREATED.value());
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -51,7 +52,7 @@ public class AuthController {
         String accessToken = authService.refreshAccessToken(request);
 
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Access-Token", "Bearer " + accessToken);
+        headers.set("Access-Token", accessToken);
 
         Message message = new Message(null, HttpStatus.CREATED.value());
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -60,7 +61,8 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<Message> logout(@AuthUser User user, @RequestHeader("Refresh-Token") String refreshToken) {
+    public ResponseEntity<Message> logout(@AuthUser User user,
+                                          @RequestHeader("Refresh-Token") String refreshToken) {
         authService.logout(user, refreshToken);
 
         Message message = new Message(null, HttpStatus.OK.value());
@@ -85,6 +87,5 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
     }
-
 
 }

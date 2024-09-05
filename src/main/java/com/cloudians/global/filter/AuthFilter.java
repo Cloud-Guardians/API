@@ -24,6 +24,7 @@ public class AuthFilter extends OncePerRequestFilter {
     private final JwtProcessor jwtProcessor;
 
     private static final String AUTH_API = "/api/auth";
+    private static final String AUTH_LOGOUT_API = "/api/auth/logout";
 
     private static final String AUTH_LOGOUT_API = "/api/auth/logout";
 

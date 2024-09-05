@@ -25,34 +25,52 @@ public class WhisperMessageRepositoryImpl {
     }
 
     public boolean existsByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime questionDateTime, LocalDateTime twentyFourHoursLater) {
-        return q.selectFrom(whisperMessage).where(whisperMessage.user.eq(user).and(whisperMessage.sender.eq(sender).and(whisperMessage.timestamp.between(questionDateTime, twentyFourHoursLater)))).fetchFirst() != null;
+        return q.selectFrom(whisperMessage)
+                .where(whisperMessage.user.eq(user)
+                        .and(whisperMessage.sender.eq(sender)
+                                .and(whisperMessage.timestamp.between(questionDateTime, twentyFourHoursLater))))
+                .fetchFirst() != null;
     }
 
-    public List<WhisperMessage> findByUserOrderByTimeStampAsc(User user, Long cursor, Long count) {
-        return q.selectFrom(whisperMessage).where(whisperMessage.user.eq(user).and(getGt(cursor))).limit(count + 1).orderBy(whisperMessage.timestamp.asc()).fetch();
+    public List<WhisperMessage> findByUserOrderByTimeStampDesc(User user, Long cursor, Long count) {
+        return q.selectFrom(whisperMessage)
+                .where(whisperMessage.user.eq(user)
+                        .and(getLt(cursor)))
+                .limit(count + 1)
+                .orderBy(whisperMessage.timestamp.desc())
+                .fetch();
     }
 
     public List<WhisperMessage> findBySearchKeywordOrderByTimeStampDesc(User user, Long cursor, Long count, String keyword) {
-        return q.selectFrom(whisperMessage).where(whisperMessage.user.eq(user).and(whisperMessage.message.containsIgnoreCase(keyword)).and(getLt(cursor))).limit(count + 1).orderBy(whisperMessage.timestamp.desc()).fetch();
+        return q.selectFrom(whisperMessage)
+                .where(whisperMessage.user.eq(user)
+                        .and(whisperMessage.message.containsIgnoreCase(keyword))
+                        .and(getLt(cursor))).limit(count + 1)
+                .orderBy(whisperMessage.timestamp.desc())
+                .fetch();
     }
 
     public List<WhisperMessage> findByDateOrderByTimestampDesc(User user, Long cursor, Long count, LocalDate date) {
-        return q.selectFrom(whisperMessage).where(whisperMessage.user.eq(user).and(whisperMessage.timestamp.between(date.atStartOfDay(), date.plusDays(1).atStartOfDay())).and(getLt(cursor))).limit(count + 1).orderBy(whisperMessage.timestamp.desc()).fetch();
+        return q.selectFrom(whisperMessage)
+                .where(whisperMessage.user.eq(user)
+                        .and(whisperMessage.timestamp.between(date.atStartOfDay(), date.plusDays(1).atStartOfDay()))
+                        .and(getLt(cursor)))
+                .limit(count + 1)
+                .orderBy(whisperMessage.timestamp.desc())
+                .fetch();
     }
 
     public List<WhisperMessage> findListByUser(User user) {
-        return q.selectFrom(whisperMessage).where(whisperMessage.user.eq(user)).fetch();
+        return q.selectFrom(whisperMessage)
+                .where(whisperMessage.user.eq(user))
+                .fetch();
     }
 
-    public List<WhisperMessage> findByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime TimeOfStartMonth, LocalDateTime TimeOfEndMonth) {
-        return whisperMessageJpaRepository.findByUserAndSenderAndTimestampBetween(user, sender, TimeOfStartMonth, TimeOfEndMonth);
+    public List<WhisperMessage> findByUserAndSender(User user, SenderType sender) {
+        return whisperMessageJpaRepository.findByUserAndSender(user, sender);
     }
 
     private BooleanExpression getLt(Long cursor) {
         return cursor == null ? null : whisperMessage.id.lt(cursor);
-    }
-
-    private BooleanExpression getGt(Long cursor) {
-        return cursor == null ? null : whisperMessage.id.gt(cursor);
     }
 }

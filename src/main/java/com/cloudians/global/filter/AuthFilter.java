@@ -25,6 +25,8 @@ public class AuthFilter extends OncePerRequestFilter {
 
     private static final String AUTH_API = "/api/auth";
 
+    private static final String AUTH_LOGOUT_API = "/api/auth/logout";
+    
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -47,7 +49,8 @@ public class AuthFilter extends OncePerRequestFilter {
     private boolean shouldSkipFilter(HttpServletRequest request) {
         String requestUri = request.getRequestURI();
         // request에서 uri 구분
-        if (requestUri.startsWith(AUTH_API)) return true;
+        if (requestUri.startsWith(AUTH_API) && !requestUri.equals(AUTH_LOGOUT_API))
+            return true;
         return false;
     }
 

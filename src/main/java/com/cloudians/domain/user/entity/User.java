@@ -34,6 +34,7 @@ public class User {
     @Column(unique = true)
     private String nickname;
 
+    @NotBlank
     private String password;
 
     private char gender;

@@ -20,6 +20,8 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import javax.validation.Valid;
 import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.regex.Pattern;
 
@@ -37,8 +39,10 @@ public class AuthService {
 
     private final BcryptService bcryptService;
 
+    private final Map<String, String> tempPasswords = new HashMap<>();
+
     // 회원가입
-    public SignupResponse signup(SignupRequest request) {
+    public SignupResponse signup(UpdateRequest request) {
         checkIfUserExists(request);
         String encodedPassword = bcryptService.encodeBcrypt(request.getPassword());
         String nickname = uniqueNickname();
@@ -49,7 +53,7 @@ public class AuthService {
     }
 
     // 회원가입 중복 여부
-    public void checkIfUserExists(SignupRequest request) {
+    public void checkIfUserExists(UpdateRequest request) {
         if (userRepository.findByUserEmail(request.getUserEmail()).isPresent()) {
             throw new UserException(UserExceptionType.USER_ALREADY_EXIST);
         }
@@ -84,41 +88,34 @@ public class AuthService {
     }
 
     // 비밀번호를 임시 비밀번호로 변경
-    public FindPwResponse updatePassword(FindPwRequest request) {
-        userEmailExist(request);
+    public void sendTempPw(SendTempPwRequest request) {
+        User user = userEmailExist(request);
 
         String tmpPassword = getTmpPassword();
-        String encodedPassword = bcryptService.encodeBcrypt(tmpPassword);
-
-        User user = userRepository.findByUserEmail(request.getUserEmail())
-                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
-
-        user.setPassword(encodedPassword);
-        userRepository.save(user);
+        tempPasswords.put(user.getUserEmail(), tmpPassword);
 
         FindPwResponse findPwResponse = FindPwResponse.from(user, tmpPassword);
 
         sendMail(findPwResponse);
-
-        return findPwResponse;
     }
 
-    public void resetPassword(ResetPwRequest request) {
+    public void updatePassword(UpdatePwRequest request) {
         User user = userRepository.findByUserEmail(request.getUserEmail())
                 .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
 
-        if (!bcryptService.matchBcrypt(request.getOldPassword(), user.getPassword())) {
+        if (!request.getTempPassword().equals(tempPasswords.get(user.getUserEmail()))) {
             throw new UserException(UserExceptionType.WRONG_PASSWORD);
         }
 
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new UserException(UserExceptionType.PASSWORD_DO_NOT_MATCH);
+            throw new UserException(UserExceptionType.WRONG_PASSWORD);
         }
 
         String resetPassword = bcryptService.encodeBcrypt(request.getNewPassword());
 
         user.setPassword(resetPassword);
-        userRepository.save(user);
+        tempPasswords.remove(user.getUserEmail());
+        //TODO 몇 분 유효하게 할 건지 할 거면 그리고 만료 시 remove 시켜 주기, 임시 코드 저장해 두고 비교하는 게 hashmap인지도
     }
 
     private void sendMail(FindPwResponse response) {
@@ -132,7 +129,7 @@ public class AuthService {
         mailSender.send(mailMessage);
     }
 
-    private User userEmailExist(FindPwRequest request) {
+    private User userEmailExist(SendTempPwRequest request) {
         return userRepository.findByUserEmail(request.getUserEmail())
                 .orElseThrow(() -> new UserException((UserExceptionType.USER_NOT_FOUND)));
     }

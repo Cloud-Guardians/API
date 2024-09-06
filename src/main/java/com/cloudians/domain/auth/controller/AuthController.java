@@ -1,7 +1,6 @@
 package com.cloudians.domain.auth.controller;
 
 import com.cloudians.domain.auth.dto.request.*;
-import com.cloudians.domain.auth.dto.response.FindPwResponse;
 import com.cloudians.domain.auth.dto.response.LoginResponse;
 import com.cloudians.domain.auth.dto.response.SignupResponse;
 import com.cloudians.domain.auth.service.AuthService;
@@ -24,7 +23,7 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/signup")
-    public ResponseEntity<Message> signup(@Valid @RequestBody SignupRequest request) {
+    public ResponseEntity<Message> signup(@Valid @RequestBody UpdateRequest request) {
         // valid 붙여야지만 예외 처리 가능함
         SignupResponse response = authService.signup(request);
         Message message = new Message(response, HttpStatus.CREATED.value());
@@ -70,18 +69,18 @@ public class AuthController {
                 .body(message);
     }
 
-    @PostMapping("/findPw")
-    public ResponseEntity<Message> findPw(@Valid @RequestBody FindPwRequest request) {
-        FindPwResponse findPwResponse = authService.updatePassword(request);
+    @PostMapping("/send-temp-pw")
+    public ResponseEntity<Message> sendTempPw(@Valid @RequestBody SendTempPwRequest request) {
+        authService.sendTempPw(request);
 
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
     }
 
-    @PutMapping("/resetPw")
-    public ResponseEntity<Message> resetPw(@Valid @RequestBody ResetPwRequest request) {
-        authService.resetPassword(request);
+    @PutMapping("/update-pw")
+    public ResponseEntity<Message> updatePw(@Valid @RequestBody UpdatePwRequest request) {
+        authService.updatePassword(request);
 
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)

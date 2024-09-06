@@ -184,7 +184,7 @@ public class AuthService {
         } while (userRepository.findByNickname(nickname).isPresent());
         return nickname;
     }
-}
+
 
     private void validateTokenOwner(User loggedInUser, User originalUser) {
         if (!loggedInUser.getUserEmail().equals(originalUser.getUserEmail())) {

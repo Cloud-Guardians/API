@@ -57,7 +57,7 @@ public class PersonalDiaryController {
                                                        @RequestPart(value = "file", required = false) MultipartFile file) {
         PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, user, file);
         // TODO - 예삔님 user.getUserEmail() -> user로 바꾸셔도 상관없어요
-        monthlyService.addDiaryEntry(user.getUserEmail(), response.getDate());
+        monthlyService.addDiaryEntry(user, response.getDate());
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -83,9 +83,9 @@ public class PersonalDiaryController {
                                                      @RequestPart @Valid PersonalDiaryUpdateRequest request,
                                                      @RequestPart(value = "file", required = false) MultipartFile file) {
         // TODO - 예삔님 user.getUserEmail() -> user로 바꾸셔도 상관없어요
-        monthlyService.deleteDiaryEntry(user.getUserEmail(), personalDiaryId);
+        monthlyService.deleteDiaryEntry(user, personalDiaryId);
         PersonalDiaryResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, user, file);
-        monthlyService.addDiaryEntry(user.getUserEmail(), response.getDate());
+        monthlyService.addDiaryEntry(user, response.getDate());
         Message message = new Message(response, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
@@ -98,7 +98,7 @@ public class PersonalDiaryController {
                                                        @PathVariable("personal-diary-id") Long personalDiaryId) {
         personalDiaryService.deletePersonalDiary(user, personalDiaryId);
         // TODO - 예삔님 user.getUserEmail() -> user로 바꾸셔도 상관없어요
-        monthlyService.deleteDiaryEntry(user.getUserEmail(), personalDiaryId);
+        monthlyService.deleteDiaryEntry(user, personalDiaryId);
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);

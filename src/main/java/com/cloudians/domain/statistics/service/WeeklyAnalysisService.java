@@ -53,15 +53,10 @@ public class WeeklyAnalysisService {
     private final FiveElementCharacterRepository fiveElementCharacterRepository;
     private final FiveElementRepository fiveElementRepository;
 
-    private User findUserByUserEmail(String userEmail) {
-   	User user = userRepository.findByUserEmail(userEmail)
-   		.orElseThrow(()-> new UserException(UserExceptionType.USER_NOT_FOUND));
-   	return user;
-       }
+ 
        
     // personalDiaryList 가져오기
-    private List<PersonalDiary> getDiaryList(String userEmail){
-	User user = findUserByUserEmail(userEmail);
+    private List<PersonalDiary> getDiaryList(User user){
 	List<PersonalDiary> list = diaryRepository.findListByUser(user)
 		.orElseThrow(()->  new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
 	return list;
@@ -82,8 +77,8 @@ public class WeeklyAnalysisService {
 	return week;
     }
     // yearMonthWeek 2024081
-    public List<PersonalDiary> getWeeklyDiaryList(String userEmail, String yearMonth, String week){
- 	List<PersonalDiary> totalList = getDiaryList(userEmail);
+    public List<PersonalDiary> getWeeklyDiaryList(User user, String yearMonth, String week){
+ 	List<PersonalDiary> totalList = getDiaryList(user);
  	List<PersonalDiary> weeklyList = new ArrayList<>();
  	for(PersonalDiary diary : totalList) {
  	 String diaryMonth =  diary.getDate().toString().split("-")[0]+diary.getDate().toString().split("-")[1];
@@ -99,13 +94,12 @@ public class WeeklyAnalysisService {
  	}
  	return weeklyList;
      }
-    private List<WhisperMessage> getWhisperList(String userEmail){
-	User user = findUserByUserEmail(userEmail);
+    private List<WhisperMessage> getWhisperList(User user){
  	List<WhisperMessage> list = whisperRepository.findListByUser(user);
  	return list;
      }
-    public List<WhisperMessage> getWeeklyWhisperList(String userEmail, String yearMonth, String week){
- 	List<WhisperMessage> totalList = getWhisperList(userEmail);
+    public List<WhisperMessage> getWeeklyWhisperList(User user, String yearMonth, String week){
+ 	List<WhisperMessage> totalList = getWhisperList(user);
  	List<WhisperMessage> weeklyList = new ArrayList<>();
  	
  	for(WhisperMessage message : totalList) {
@@ -122,17 +116,17 @@ public class WeeklyAnalysisService {
      }
     
     // 주간 위스퍼 답변 수 
-    public int getWeeklyDiaryAndAnswer(String userEmail, String yearMonth, String week) {
-	List<WhisperMessage> whisperList = getWeeklyWhisperList(userEmail, yearMonth, week);
+    public int getWeeklyDiaryAndAnswer(User user, String yearMonth, String week) {
+	List<WhisperMessage> whisperList = getWeeklyWhisperList(user, yearMonth, week);
 	 int totalWhisper = whisperList.size();
 	 return totalWhisper;
     }
     
     // 주간 평균 감정
     // 월간 평균 기운 가져오기 
-    public  List<Map.Entry<Object, Long>> getWeeklyMostElement(String userEmail, String yearMonth, String week) {
+    public  List<Map.Entry<Object, Long>> getWeeklyMostElement(User user, String yearMonth, String week) {
 System.out.println("service start");
-	List<PersonalDiary> diaryList = getWeeklyDiaryList(userEmail,yearMonth,week);
+	List<PersonalDiary> diaryList = getWeeklyDiaryList(user,yearMonth,week);
 	System.out.println("list start:"+diaryList.toString());
 	
 	List<String> elementList = new ArrayList<>();
@@ -167,19 +161,18 @@ System.out.println("service start");
     }
     
     // 주간 통계 업데이트
-  public Map<String, Object> getWeeklyAnalysis(String userEmail, String yearMonth, String week){
-      List<PersonalDiary> diaryList = getWeeklyDiaryList(userEmail, yearMonth, week);
-      User user = findUserByUserEmail(userEmail);
-      List<Map.Entry<Object, Long>> elementList =  getWeeklyMostElement(userEmail, yearMonth, week);
+  public Map<String, Object> getWeeklyAnalysis(User user, String yearMonth, String week){
+      List<PersonalDiary> diaryList = getWeeklyDiaryList(user, yearMonth, week);
+      List<Map.Entry<Object, Long>> elementList =  getWeeklyMostElement(user, yearMonth, week);
       String most = elementList.get(0).getKey().toString();
       FiveElement mostElement = fiveElementRepository.findByName(most).get();
       // List<FiveElementCharacter>로 보내면 Jackson 직렬화 때문에 오류 나서 이렇게 코드 짠 건데 나중에 복습하기 
       List<String> mostElementChar = fiveElementCharacterRepository.findRandomCharactersByElementId(mostElement.getId()).stream().map(FiveElementCharacter::getCharacter).collect(Collectors.toList());;
-      WeeklyAnalysis anal = getOrCreateWeeklyAnalysis(userEmail, yearMonth, String.valueOf(week));
+      WeeklyAnalysis anal = getOrCreateWeeklyAnalysis(user, yearMonth, String.valueOf(week));
       for(PersonalDiary diary : diaryList) {
 	  PersonalDiaryEmotion emotion = emotionRepository.findPersonalDiaryEmotionByUserAndDate(user, diary.getDate());
 	  anal.setTotalDiary(anal.getTotalDiary()+1);
-	  anal.setTotalAnswer(getWeeklyDiaryAndAnswer(userEmail,yearMonth,week));
+	  anal.setTotalAnswer(getWeeklyDiaryAndAnswer(user,yearMonth,week));
 	  anal.setWeeklyJoy(anal.getWeeklyJoy()+emotion.getJoy());
 	  anal.setWeeklySadness(anal.getWeeklySadness()+emotion.getSadness());
 	  anal.setWeeklyAnger(anal.getWeeklyAnger()+emotion.getAnger());
@@ -194,18 +187,16 @@ System.out.println("service start");
       return map;
   }
   
-  private PersonalDiaryEmotion findEmotionByUserAndDate(String userEmail, LocalDate date) {
-	User user = findUserByUserEmail(userEmail);
+  private PersonalDiaryEmotion findEmotionByUserAndDate(User user, LocalDate date) {
 	PersonalDiaryEmotion emotion = emotionRepository.findPersonalDiaryEmotionByUserAndDate(user, date);
 	return emotion;
   }
 
-  private WeeklyAnalysis getOrCreateWeeklyAnalysis(String userEmail, String yearMonth, String week) {
-	User user = findUserByUserEmail(userEmail);
-	    return weeklyRepository.findByUserEmailAndWeeklyDate(userEmail, yearMonth+week)
+  private WeeklyAnalysis getOrCreateWeeklyAnalysis(User user, String yearMonth, String week) {
+	    return weeklyRepository.findByUserAndWeeklyDate(user, yearMonth+week)
 	        .orElseGet(() -> {
 	            WeeklyAnalysis newAnalysis = new WeeklyAnalysis();
-	            newAnalysis.setUserEmail(userEmail);
+	            newAnalysis.setUser(user);
 	            newAnalysis.setWeeklyDate(yearMonth+week);
 	            newAnalysis.setTotalDiary(0);
 	            newAnalysis.setTotalAnswer(0);

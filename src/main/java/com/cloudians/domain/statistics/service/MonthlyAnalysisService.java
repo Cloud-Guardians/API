@@ -46,26 +46,22 @@ public class MonthlyAnalysisService {
     private final CollectionRepository collectionRepository;
 
 
-    private PersonalDiaryEmotion findEmotionByUserAndDate(String userEmail, LocalDate date) {
-        User user = findUserByUserEmail(userEmail);
+    private PersonalDiaryEmotion findEmotionByUserAndDate(User user, LocalDate date) {
         PersonalDiaryEmotion emotion = emotionRepository.findPersonalDiaryEmotionByUserAndDate(user, date);
         return emotion;
     }
 
-    private PersonalDiary findDiaryByIdAndUser(String userEmail, Long personalDiaryId) {
-        User user = findUserByUserEmail(userEmail);
+    private PersonalDiary findDiaryByIdAndUser(User user, Long personalDiaryId) {
         PersonalDiary diary = diaryRepository.findById(personalDiaryId)
                 .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
         return diary;
-
     }
 
-    private MonthlyAnalysis getOrCreateMonthlyAnalysis(String userEmail, String yearMonth) {
-        User user = findUserByUserEmail(userEmail);
-        return monthlyRepository.findByUserEmailAndMonthlyDate(userEmail, yearMonth)
+    private MonthlyAnalysis getOrCreateMonthlyAnalysis(User user, String yearMonth) {
+        return monthlyRepository.findByUserAndMonthlyDate(user, yearMonth)
                 .orElseGet(() -> {
                     MonthlyAnalysis newAnalysis = new MonthlyAnalysis();
-                    newAnalysis.setUserEmail(userEmail);
+                    newAnalysis.setUser(user);
                     newAnalysis.setMonthlyDate(yearMonth);
                     newAnalysis.setTotalDiary(0);
                     newAnalysis.setTotalAnswer(0);
@@ -74,28 +70,28 @@ public class MonthlyAnalysisService {
                 });
     }
 
-    private MonthlyAnalysis findAnalysisByuserEmailAndMonthlyDate(String userEmail, String date) {
-        MonthlyAnalysis analysis = monthlyRepository.findByUserEmailAndMonthlyDate(userEmail, date)
+    private MonthlyAnalysis findAnalysisByUserAndMonthlyDate(User user, String date) {
+        MonthlyAnalysis analysis = monthlyRepository.findByUserAndMonthlyDate(user, date)
                 .orElseThrow(() -> new AnalysisException(AnalysisExceptionType.MONTHLY_ANALYSIS_NOT_FOUND));
         return analysis;
     }
 
     // 월간 통계 제공
-    public MonthlyAnalysisResponse getMonthlyAnalysis(String userEmail, String yearMonth) {
+    public MonthlyAnalysisResponse getMonthlyAnalysis(User user, String yearMonth) {
 
-        if (monthlyRepository.findByUserEmailAndMonthlyDate(userEmail, yearMonth).isEmpty()) {
-            MonthlyAnalysis newAnalysis = updateMonthlyAnalysis(userEmail, yearMonth);
+        if (monthlyRepository.findByUserAndMonthlyDate(user, yearMonth).isEmpty()) {
+            MonthlyAnalysis newAnalysis = updateMonthlyAnalysis(user, yearMonth);
             return newAnalysis.toDto();
         } else {
             System.out.println("있지롱");
-            MonthlyAnalysis analysis = findAnalysisByuserEmailAndMonthlyDate(userEmail, yearMonth);
+            MonthlyAnalysis analysis = findAnalysisByUserAndMonthlyDate(user, yearMonth);
             return analysis.toDto();
         }
     }
 
 
     // 월간 통계 없을 시
-    public MonthlyAnalysis updateMonthlyAnalysis(String userEmail, String yearMonth) {
+    public MonthlyAnalysis updateMonthlyAnalysis(User user, String yearMonth) {
         MonthlyAnalysis analysis = new MonthlyAnalysis();
         int totalDiary = 0;
         int monthlyJoy = 0;
@@ -106,19 +102,19 @@ public class MonthlyAnalysisService {
         String most1 = "";
         String most2 = "";
         String most3 = "";
-        List<WhisperMessage> whisperList = getMonthlyWhisperList(userEmail, yearMonth);
+        List<WhisperMessage> whisperList = getMonthlyWhisperList(user, yearMonth);
         // 월간 일기 수와 5 emotion 누적
-        List<PersonalDiary> diaryList = getMonthlyDiaryList(userEmail, yearMonth);
+        List<PersonalDiary> diaryList = getMonthlyDiaryList(user, yearMonth);
         for (PersonalDiary diary : diaryList) {
             totalDiary++;
-            PersonalDiaryEmotion emotion = findEmotionByUserAndDate(userEmail, diary.getDate());
+            PersonalDiaryEmotion emotion = findEmotionByUserAndDate(user, diary.getDate());
             monthlyJoy += emotion.getJoy();
             monthlySadness += emotion.getSadness();
             monthlyAnxiety += emotion.getAnxiety();
             monthlyBoredom += emotion.getBoredom();
         }
 
-        List<Map.Entry<Object, Long>> list = getMonthlyMostElement(userEmail, yearMonth);
+        List<Map.Entry<Object, Long>> list = getMonthlyMostElement(user, yearMonth);
         if (list.size() == 3) {
             most1 = list.get(0).getKey().toString() + "=" + list.get(0).getValue().toString();
             most2 = list.get(1).getKey().toString() + "=" + list.get(1).getValue().toString();
@@ -129,7 +125,7 @@ public class MonthlyAnalysisService {
         } else {
             most1 = list.get(0).getKey().toString() + "=" + list.get(0).getValue().toString();
         }
-        analysis.setUserEmail(userEmail);
+        analysis.setUser(user);
         analysis.setMonthlyDate(yearMonth);
         analysis.setTotalDiary(totalDiary);
         analysis.setTotalAnswer(whisperList.size());
@@ -150,10 +146,10 @@ public class MonthlyAnalysisService {
 
 
     // 월간 통계 데이터 있다고 가정하고 5개의 감정과 일기 수 누적
-    public void addDiaryEntry(String userEmail, LocalDate date) {
+    public void addDiaryEntry(User user, LocalDate date) {
         String yearMonth = getMonth();
-        MonthlyAnalysis anal = getOrCreateMonthlyAnalysis(userEmail, yearMonth);
-        PersonalDiaryEmotion emotion = findEmotionByUserAndDate(userEmail, date);
+        MonthlyAnalysis anal = getOrCreateMonthlyAnalysis(user, yearMonth);
+        PersonalDiaryEmotion emotion = findEmotionByUserAndDate(user, date);
 
         anal.setTotalDiary(anal.getTotalDiary() + 1);
         anal.setMonthlyJoy(anal.getMonthlyJoy() + emotion.getJoy());
@@ -167,13 +163,13 @@ public class MonthlyAnalysisService {
     }
 
     // 다이어리 삭제 시
-    public void deleteDiaryEntry(String userEmail, Long personalDiaryId) {
-        PersonalDiary diary = findDiaryByIdAndUser(userEmail, personalDiaryId);
+    public void deleteDiaryEntry(User user, Long personalDiaryId) {
+        PersonalDiary diary = findDiaryByIdAndUser(user, personalDiaryId);
         String year = diary.getDate().toString().split("-")[0];
         String month = diary.getDate().toString().split("-")[1];
         String date = year + month;
-        MonthlyAnalysis anal = getOrCreateMonthlyAnalysis(userEmail, date);
-        PersonalDiaryEmotion emotion = findEmotionByUserAndDate(userEmail, diary.getDate());
+        MonthlyAnalysis anal = getOrCreateMonthlyAnalysis(user, date);
+        PersonalDiaryEmotion emotion = findEmotionByUserAndDate(user, diary.getDate());
 
 
         anal.setTotalDiary(anal.getTotalDiary() - 1);
@@ -209,16 +205,16 @@ public class MonthlyAnalysisService {
 
 
     // 위스퍼 대답 수 누적
-    public void addWhisperEntry(String userEmail, String yearMonth) {
+    public void addWhisperEntry(User user, String yearMonth) {
 
-        MonthlyAnalysis anal = getOrCreateMonthlyAnalysis(userEmail, yearMonth);
+        MonthlyAnalysis anal = getOrCreateMonthlyAnalysis(user, yearMonth);
         anal.setTotalAnswer(anal.getTotalAnswer() + 1);
         monthlyRepository.save(anal);
     }
 
     // 월간 정리
-    public Map<String, Object> getMonthlyReport(String userEmail, String yearMonth) {
-        List<Map.Entry<Object, Long>> elementList = getMonthlyMostElement(userEmail, yearMonth);
+    public Map<String, Object> getMonthlyReport(User user, String yearMonth) {
+        List<Map.Entry<Object, Long>> elementList = getMonthlyMostElement(user, yearMonth);
         Map.Entry<Object, Long> maxEntry = elementList.stream()
                 .max(Map.Entry.comparingByValue())
                 .orElseThrow(() -> new RuntimeException("List is empty"));
@@ -247,9 +243,9 @@ public class MonthlyAnalysisService {
     }
 
     // 월간 평균 기운 가져오기
-    public List<Map.Entry<Object, Long>> getMonthlyMostElement(String userEmail, String yearMonth) {
+    public List<Map.Entry<Object, Long>> getMonthlyMostElement(User user, String yearMonth) {
         System.out.println("service start");
-        List<PersonalDiary> diaryList = getMonthlyDiaryList(userEmail, yearMonth);
+        List<PersonalDiary> diaryList = getMonthlyDiaryList(user, yearMonth);
         System.out.println("list start:" + diaryList.toString());
         List<String> elementList = new ArrayList<>();
         for (PersonalDiary diary : diaryList) {
@@ -286,29 +282,22 @@ public class MonthlyAnalysisService {
         return year + todayMonth;
     }
 
-    private User findUserByUserEmail(String userEmail) {
-        User user = userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
-        return user;
-    }
-
+  
     // personalDiaryList 가져오기
-    private List<PersonalDiary> getDiaryList(String userEmail) {
-        User user = findUserByUserEmail(userEmail);
+    private List<PersonalDiary> getDiaryList(User user) {
         List<PersonalDiary> list = diaryRepository.findListByUser(user)
                 .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
         return list;
     }
 
 
-    private List<WhisperMessage> getWhisperList(String userEmail) {
-        User user = findUserByUserEmail(userEmail);
+    private List<WhisperMessage> getWhisperList(User user) {
         List<WhisperMessage> list = whisperRepository.findListByUser(user);
         return list;
     }
 
-    public List<WhisperMessage> getMonthlyWhisperList(String userEmail, String yearMonth) {
-        List<WhisperMessage> totalList = getWhisperList(userEmail);
+    public List<WhisperMessage> getMonthlyWhisperList(User user, String yearMonth) {
+        List<WhisperMessage> totalList = getWhisperList(user);
         System.out.println("여긴가?" + totalList.toString());
         List<WhisperMessage> monthlyList = new ArrayList<>();
         for (WhisperMessage message : totalList) {
@@ -322,8 +311,8 @@ public class MonthlyAnalysisService {
     }
 
     // 이번 달
-    private List<PersonalDiary> getThisMonthlyDiaryList(String userEmail) {
-        List<PersonalDiary> totalList = getDiaryList(userEmail);
+    private List<PersonalDiary> getThisMonthlyDiaryList(User user) {
+        List<PersonalDiary> totalList = getDiaryList(user);
         String thisMonth = getMonth();
         List<PersonalDiary> monthlyList = new ArrayList<>();
         for (PersonalDiary diary : totalList) {
@@ -337,8 +326,8 @@ public class MonthlyAnalysisService {
     }
 
     // yearMonth 202408 
-    public List<PersonalDiary> getMonthlyDiaryList(String userEmail, String yearMonth) {
-        List<PersonalDiary> totalList = getDiaryList(userEmail);
+    public List<PersonalDiary> getMonthlyDiaryList(User user, String yearMonth) {
+        List<PersonalDiary> totalList = getDiaryList(user);
         System.out.println("여긴가?" + totalList.toString());
         List<PersonalDiary> monthlyList = new ArrayList<>();
         for (PersonalDiary diary : totalList) {
@@ -352,23 +341,23 @@ public class MonthlyAnalysisService {
     }
 
     // 일기 작성 시 콜렉션 리스트 추가 
-    public void addCollection(String userEmail, LocalDate date) {
-    }
+//    public void addCollection(String userEmail, LocalDate date) {
+//    }
 
     // 월간 콜렉션
-    public List<CollectionResponse> getMonthlyCollection(String userEmail, String yearMonth) {
-        List<Collection> totalCollectionList = collectionRepository.findListByUserEmail(userEmail);
-        List<CollectionResponse> collectionList = new ArrayList<>();
-
-        for (Collection col : totalCollectionList) {
-            String colDate = col.getDate().toString().split("-")[0] + col.getDate().toString().split("-")[1];
-            if (colDate.equals(yearMonth)) {
-                collectionList.add(col.toDto());
-            }
-        }
-        return collectionList;
-
-    }
+//    public List<CollectionResponse> getMonthlyCollection(User user, String yearMonth) {
+//        List<Collection> totalCollectionList = collectionRepository.findListByUser(user);
+//        List<CollectionResponse> collectionList = new ArrayList<>();
+//
+//        for (Collection col : totalCollectionList) {
+//            String colDate = col.getDate().toString().split("-")[0] + col.getDate().toString().split("-")[1];
+//            if (colDate.equals(yearMonth)) {
+//                collectionList.add(col.toDto());
+//            }
+//        }
+//        return collectionList;
+//
+//    }
 
 
 }

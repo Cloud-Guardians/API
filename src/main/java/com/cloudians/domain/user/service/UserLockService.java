@@ -21,22 +21,18 @@ import lombok.RequiredArgsConstructor;
 @Transactional
 public class UserLockService {
     
-	private final UserRepository userRepository;
+    	private final UserRepository userRepository;
     	private final UserLockRepository userLockRepository;
     
-    private UserLock findUserLockByUserEmail(String userEmail) {
-	UserLock userLock = userLockRepository.findByUserEmail(userEmail)
+    private UserLock findUserLockByUser(User user) {
+	UserLock userLock = userLockRepository.findByUser(user)
 		.orElseThrow(()-> new UserException(UserExceptionType. USER_LOCK_NOT_FOUND));
 	return userLock;
     }
-    private User findUseByUserEmail(String userEmail) {
-	User user = userRepository.findByUserEmail(userEmail)
-		.orElseThrow(()-> new UserException(UserExceptionType. USER_NOT_FOUND));
-	return user;
-    }
+ 
     // lock 입력 화면
-    public boolean checkLock(String userEmail, String insertCode) {
-	UserLock userLock = findUserLockByUserEmail(userEmail);
+    public boolean checkLock(User user, String insertCode) {
+	UserLock userLock = findUserLockByUser(user);
 	if(insertCode == null) throw new UserException(UserExceptionType. USER_LOCK_NOT_NULL);
 	if(insertCode.length()<4) throw  new UserException(UserExceptionType. USER_LOCK_LENGTH_INVALID);
 	if(userLock.getPasscode().equals(insertCode)) {
@@ -47,39 +43,35 @@ public class UserLockService {
     
     // lock 등록
     public UserLockResponse addNewLock(UserLockRequest request) {
-	User user = findUseByUserEmail(request.getUserEmail());
-	    UserLock userLock = new UserLock();
-	     userLock.setUserEmail(request.getUserEmail());
-		   userLock.setPasscode(request.getPasscode());
-		   userLock.setStatus(true);
-		   userLockRepository.save(userLock);
-		   return userLock.toDto();
+	User user = userRepository.findByUserEmail(request.getUserEmail())
+		.orElseThrow(()-> new UserException(UserExceptionType.USER_NOT_FOUND));
+	if(userLockRepository.existsByUser(user)) {
+	    UserLock userLock = new UserLock(user, request.getPasscode(), true);
+	    return UserLockResponse.fromUserLock(userLock);
+	} else throw new UserException(UserExceptionType.USER_LOCK_DEACTIVATION_FAILED);
     }
     
     // lock 삭제
-    public void deleteLock(String userEmail, String insertCode) {
-	UserLock userLock = findUserLockByUserEmail(userEmail);
-	if(userLock.getPasscode().equals(insertCode)) {
-	userLockRepository.delete(userLock);}
-	else throw new UserException(UserExceptionType.USER_LOCK_DEACTIVATION_FAILED);
+    public void deleteLock(User user, String insertCode) {
+	UserLock userLock = userLockRepository.findByUserAndPasscode(user,insertCode)
+		.orElseThrow(()-> new UserException(UserExceptionType.USER_LOCK_DEACTIVATION_FAILED));
+	userLockRepository.delete(userLock);
     }
     
 
     // lock 수정
-    public UserLockResponse changeLock(String userEmail, String beforePass, String afterPass) {
-	UserLock userLock = findUserLockByUserEmail(userEmail);
-	if(userLock.getPasscode().equals(beforePass)) {
-	    userLock.setPasscode(afterPass);
-		userLockRepository.save(userLock);   
-	}
+    public UserLockResponse changeLock(User user, String beforePass, String afterPass) {
+
+	UserLock userLock = userLockRepository.findByUserAndPasscode(user,beforePass)
+		.orElseThrow(()-> new UserException(UserExceptionType.USER_LOCK_DEACTIVATION_FAILED));
+	userLock.edit(user, afterPass);
 	return userLock.toDto();
     }
     
     // lock toggle on, off 
-    public boolean toggleLock(String userEmail) {
-	UserLock userLock = findUserLockByUserEmail(userEmail);
-	userLock.setStatus(!userLock.getStatus());
-	userLockRepository.save(userLock);
+    public boolean toggleLock(User user) {
+	UserLock userLock = findUserLockByUser(user);
+	userLock.toggle(user);
 	return userLock.getStatus();
     }
    

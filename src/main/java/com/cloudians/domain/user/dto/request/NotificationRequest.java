@@ -2,6 +2,8 @@ package com.cloudians.domain.user.dto.request;
 
 import java.time.LocalTime;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import com.cloudians.domain.user.entity.Notification;
 
 import lombok.AllArgsConstructor;
@@ -16,6 +18,7 @@ import lombok.NoArgsConstructor;
 public class NotificationRequest {
     private Long notificationId;
     private String userEmail;
+    @DateTimeFormat(pattern = "HH:mm")
     private LocalTime notificationDiaryTime;
     private String notificationType;
     private String notificationContent;
@@ -25,7 +28,7 @@ public class NotificationRequest {
     public static NotificationRequest fromNotification(Notification notification) {
  	return NotificationRequest.builder()
  		.notificationId(notification.getNotificationId())
- 		.userEmail(notification.getUserEmail())
+ 		.userEmail(notification.getUser().getUserEmail())
  		.notificationDiaryTime(notification.getNotificationDiaryTime())
  		.notificationType(notification.getNotificationType())
  		.notificationContent(notification.getNotificationContent())
@@ -34,15 +37,5 @@ public class NotificationRequest {
  		.build();
      }
     
-    public Notification toEntity(NotificationRequest notification) {
-	return Notification.builder()
-		.notificationId(notification.getNotificationId())
- 		.userEmail(notification.getUserEmail())
- 		.notificationDiaryTime(notification.getNotificationDiaryTime())
- 		.notificationType(notification.getNotificationType())
- 		.notificationContent(notification.getNotificationContent())
- 		.notificationStatus(notification.isNotificationStatus())
- 		.notificationIsRead(notification.isNotificationIsRead())
- 		.build();
-    }
+ 
 }

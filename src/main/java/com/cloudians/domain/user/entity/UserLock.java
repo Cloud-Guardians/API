@@ -2,12 +2,12 @@ package com.cloudians.domain.user.entity;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-import java.sql.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
 
 import com.cloudians.domain.user.dto.response.UserLockResponse;
 
@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 @Entity
 public class UserLock {
     
@@ -27,8 +28,9 @@ public class UserLock {
     @Column(name = "lock_id")
     private Long id;
     
-    @Column(name="user_email")
-    private String userEmail;
+    @OneToOne
+    @JoinColumn(name = "user_email")
+    private User user;
     
     @Column(name="passcode")
     private String passcode;
@@ -36,9 +38,28 @@ public class UserLock {
     @Column(name="status")
     private Boolean status;
     
+    public UserLock(User user, String passcode, boolean status) {
+	this.user=user;
+	this.passcode=passcode;
+	this.status=status;
+    }
+  
+    public UserLock edit(User user, String afterCode) {
+	this.user=user;
+	this.passcode=afterCode;
+	this.status=true;
+	return this;
+    }
+    
+    public UserLock toggle(User user) {
+	this.user=user;
+	this.status=!status;
+	return this;
+    }
+    
     public UserLockResponse toDto() {
 	 return  UserLockResponse.builder()
-		 .userEmail(this.userEmail)
+		 .userEmail(this.user.getUserEmail())
 			.passcode(this.passcode)
 			.status(this.status)
 			.build();

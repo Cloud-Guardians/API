@@ -48,7 +48,10 @@ public class AuthService {
 
     // 로그인
     public LoginResponse login(LoginRequest request) {
+	 System.out.println("로그인 서비스 시작");
         User user = getUserOrThrow(request);
+        System.out.println("유저 검증 완료:"+user.getUserEmail());
+        System.out.println("비번 검증 시작");
         validatePassword(request, user);
         String accessToken = jwtProcessor.createAccessToken(user.getUserEmail());
         String refreshToken = jwtProcessor.createRefreshToken(user.getUserEmail());
@@ -63,9 +66,12 @@ public class AuthService {
 
     // 암호화된 비밀번호과 매칭
     private void validatePassword(LoginRequest request, User user) {
+	 System.out.println("비번 검증 서비스 시작");
+	 System.out.println(bcryptService.encodeBcrypt(request.getPassword()));
         boolean isMatchingPassword = bcryptService.matchBcrypt(request.getPassword(), user.getPassword());
         // plain: getPassword
         if (!isMatchingPassword) {
+            System.out.println("아무튼 에러라는 건데~");
             throw new UserException(UserExceptionType.WRONG_PASSWORD);
         }
     }

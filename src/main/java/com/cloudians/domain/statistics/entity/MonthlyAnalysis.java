@@ -6,8 +6,11 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
 import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
+import com.cloudians.domain.user.entity.User;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,12 +25,10 @@ public class MonthlyAnalysis {
     @Column(name="monthly_id")
     private Long monthlyId;
     
-//    @ManyToOne
-//    @JoinColumn(name = "user_email")
-//    private User user;
+    @ManyToOne
+    @JoinColumn(name = "user_email")
+    private User user;
     
-    @Column(name="user_email")
-    private String userEmail;
 
     
     @Column(name="monthly_date")
@@ -62,7 +63,7 @@ public class MonthlyAnalysis {
     
     public MonthlyAnalysisResponse toDto() {
 	return MonthlyAnalysisResponse.builder()
-		.userEmail(userEmail)
+		.userEmail(user.getUserEmail())
 		.monthlyDate(monthlyDate)
 		.totalDiary(totalDiary)
 		.totalAnswer(totalAnswer)

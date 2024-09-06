@@ -1,5 +1,14 @@
 package com.cloudians.global.service;
 
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.util.Map;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.repository.UserRepository;
 import com.cloudians.global.Message;
 import com.cloudians.global.exception.FirebaseException;
@@ -7,15 +16,8 @@ import com.cloudians.global.exception.FirebaseExceptionType;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
 import com.google.firebase.cloud.StorageClient;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.util.Map;
-
 @Service
 @RequiredArgsConstructor
 public class FirebaseService {
@@ -26,6 +28,7 @@ public class FirebaseService {
         return StorageClient.getInstance().bucket(firebaseBucket);
     }
 
+   
     // user folder
     public String folderPath(String userEmail, String domain, String fileName) {
         // 사용자 폴더 경로 설정

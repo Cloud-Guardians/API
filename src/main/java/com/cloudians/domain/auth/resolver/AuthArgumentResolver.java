@@ -1,9 +1,6 @@
 package com.cloudians.domain.auth.resolver;
 
 
-import com.cloudians.domain.auth.controller.AuthUser;
-import com.cloudians.domain.user.entity.User;
-import com.google.rpc.context.AttributeContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.support.WebDataBinderFactory;
@@ -11,6 +8,9 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.method.support.ModelAndViewContainer;
+
+import com.cloudians.domain.auth.controller.AuthUser;
+import com.cloudians.domain.user.entity.User;
 
 @Component
 public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
@@ -23,6 +23,7 @@ public class AuthArgumentResolver implements HandlerMethodArgumentResolver {
         boolean isUserType = User.class.isAssignableFrom(parameter.getParameterType());
         return hasAuthUserAnnotation && isUserType;
     }
+
 
     // 어노테이션이 있으면 Attribute에서 user 빼서 리턴
     @Override

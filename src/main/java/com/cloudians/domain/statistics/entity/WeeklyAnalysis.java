@@ -26,13 +26,10 @@ public class WeeklyAnalysis {
     @Column(name="weekly_id")
     private Long weeklyId;
     
-//    @ManyToOne
-//    @JoinColumn(name = "user_email")
-//    private User user;
-    
-    
-    @Column(name="user_email")
-    private String userEmail;
+    @ManyToOne
+    @JoinColumn(name = "user_email")
+    private User user;
+
     
     @Column(name="weekly_date")
     private String weeklyDate;
@@ -61,7 +58,7 @@ public class WeeklyAnalysis {
     
     public WeeklyAnalysisResponse toDto() {
   	return WeeklyAnalysisResponse.builder()
-  		.userEmail(userEmail)
+  		.userEmail(user.getUserEmail())
   		.weeklyDate(weeklyDate)
   		.totalDiary(totalDiary)
   		.totalAnswer(totalAnswer)

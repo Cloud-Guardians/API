@@ -13,11 +13,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cloudians.domain.auth.controller.AuthUser;
 import com.cloudians.domain.personaldiary.entity.analysis.FiveElement;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.domain.statistics.dto.response.CollectionResponse;
 import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
 import com.cloudians.domain.statistics.service.MonthlyAnalysisService;
+import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.Message;
 
 import lombok.RequiredArgsConstructor;
@@ -42,10 +44,10 @@ public class MonthlyAnalysisController {
     }
     
     @GetMapping("/monthly/{year}/{month}")
-    public ResponseEntity<Message> monthlyReport(@RequestParam("userEmail") String userEmail, @PathVariable("year") String year, @PathVariable("month") String month){	
+    public ResponseEntity<Message> monthlyReport(@AuthUser User user, @PathVariable("year") String year, @PathVariable("month") String month){	
 	String yearMonth = year+month;
-	MonthlyAnalysisResponse response = monthlyService.getMonthlyAnalysis(userEmail, yearMonth);
-	Map<String, Object> map = monthlyService.getMonthlyReport(userEmail,yearMonth);
+	MonthlyAnalysisResponse response = monthlyService.getMonthlyAnalysis(user, yearMonth);
+	Map<String, Object> map = monthlyService.getMonthlyReport(user,yearMonth);
 	FiveElement max = (FiveElement)map.get("max");
 	System.out.println("컨트롤러에서:"+max.toString());
 	FiveElement min = (FiveElement)map.get("min");
@@ -63,14 +65,14 @@ public class MonthlyAnalysisController {
 	
     }
     
-    @GetMapping("/collection")
-    public ResponseEntity<Message> monthlyCollection(@RequestParam String userEmail, @RequestParam String yearMonth){
-	List<CollectionResponse> collection = monthlyService.getMonthlyCollection(userEmail, yearMonth);
-	Message message = new Message(collection, HttpStatus.OK.value());
-	return ResponseEntity.status(HttpStatus.OK).body(message);
-	
-    }
-   
+//    @GetMapping("/collection")
+//    public ResponseEntity<Message> monthlyCollection(@AuthUser User user, @RequestParam String yearMonth){
+//	List<CollectionResponse> collection = monthlyService.getMonthlyCollection(user, yearMonth);
+//	Message message = new Message(collection, HttpStatus.OK.value());
+//	return ResponseEntity.status(HttpStatus.OK).body(message);
+//	
+//    }
+//   
     
 
     

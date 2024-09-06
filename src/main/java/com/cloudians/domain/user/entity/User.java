@@ -1,17 +1,20 @@
 package com.cloudians.domain.user.entity;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import static javax.persistence.EnumType.STRING;
+
+import java.time.LocalDate;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
-import javax.validation.constraints.*;
-import java.time.LocalDate;
 
-import static javax.persistence.EnumType.STRING;
+import com.cloudians.domain.user.dto.request.UserProfileRequest;
+import com.cloudians.domain.user.dto.request.UserRequest;
+
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 @Data
@@ -71,23 +74,41 @@ public class User {
         this.totalReportCount = 0;
         this.status = UserStatus.DEFAULT;
     }
+    
+    public User edit(UserRequest request) {
+	if (request.getName() != null) {
+           this.name=request.getName();
+        }
 
-    //  Convert User entity to UserResponse DTO
-//    public UserResponse toDto() {
-//        return UserResponse.builder()
-//                .userEmail(this.userEmail)
-//                .signupType(this.signupType)
-//                .name(this.name)
-//                .nickname(this.nickname)
-//                .gender(this.gender)
-//                .profileUrl(this.profileUrl)
-//                .calendarType(this.calendarType)
-//                .birthdate(this.birthdate)
-//                .birthTime(this.birthTime)
-//                .totalReportCount(this.totalReportCount)
-//                .status(this.status)
-//                .build();
-//    }
+        if (request.getGender() != '\0') {
+            this.gender=request.getGender();
+        }
+        if (request.getBirthdate() != null) {
+          this.birthdate = request.getBirthdate();
+        }
+        if (request.getBirthTime() != null) {
+          this.birthTime= BirthTimeType.from(request.getBirthTime());
+        }
+        if (request.getCalendarType() != null) {
+           this.calendarType=CalendarType.from(request.getCalendarType());
+        }
+        
+        return this;
+    }
+    
+    public User profileEdit(UserProfileRequest request, User user) {
+	
+	if(request.getProfileUrl()!=null) {
+	    user.profileUrl = request.getProfileUrl();
+	}
+	if(request.getNickname()!=null) {
+	    user.nickname = request.getNickname();
+	}
+	
+	return this;
+    }
+
+
 
 
 }

@@ -10,8 +10,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cloudians.domain.auth.controller.AuthUser;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.domain.statistics.service.WeeklyAnalysisService;
+import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.Message;
 
 import lombok.RequiredArgsConstructor;
@@ -26,9 +28,9 @@ public class WeeklyAnalysisController {
     private final WeeklyAnalysisService weeklyService;
     
     @GetMapping("/{year}/{month}/{week}")
-    public ResponseEntity<Message> getMonth(@RequestParam("userEmail") String userEmail, @PathVariable("year") String year, @PathVariable("month") String month, @PathVariable("week") String week){
+    public ResponseEntity<Message> getMonth(@AuthUser User user, @PathVariable("year") String year, @PathVariable("month") String month, @PathVariable("week") String week){
 	String yearMonth = year+month;
-	Map<String, Object> thisMonth = weeklyService.getWeeklyAnalysis(userEmail,yearMonth,week);
+	Map<String, Object> thisMonth = weeklyService.getWeeklyAnalysis(user,yearMonth,week);
 	    Message message = new Message(thisMonth, HttpStatus.OK.value());
 	return ResponseEntity.status(HttpStatus.OK).body(message);
 	

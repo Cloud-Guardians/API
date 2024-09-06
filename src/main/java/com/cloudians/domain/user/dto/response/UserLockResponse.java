@@ -18,7 +18,7 @@ public class UserLockResponse {
     
     public static UserLockResponse fromUserLock(UserLock userLock) {
 	return UserLockResponse.builder()
-		.userEmail(userLock.getUserEmail())
+		.userEmail(userLock.getUser().getUserEmail())
 		.passcode(userLock.getPasscode())
 		.status(userLock.getStatus())
 		.build();

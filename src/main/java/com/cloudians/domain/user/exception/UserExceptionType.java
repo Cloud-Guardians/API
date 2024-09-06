@@ -7,6 +7,7 @@ public enum UserExceptionType implements BaseExceptionType {
     USER_NOT_FOUND(404, HttpStatus.NOT_FOUND, "해당 이메일을 가진 사용자 조회에 실패하였습니다."),
     USER_LOCK_NOT_FOUND(404, HttpStatus.NOT_FOUND, "사용자의 암호 조회에 실패하였습니다."),
     USER_ALREADY_EXIST(409, HttpStatus.CONFLICT, "이미 존재하는 회원 정보입니다."),
+    NICKNAME_ALREADY_EXIST(409, HttpStatus.CONFLICT, "이미 존재하는 닉네임입니다."),
     USER_LOCK_NOT_NULL(400, HttpStatus.BAD_REQUEST, "암호를 입력해 주세요"),
     USER_LOCK_LENGTH_INVALID(400, HttpStatus.BAD_REQUEST, "암호를 제대로 입력해 주세요"),
     USER_LOCK_DEACTIVATION_FAILED(401, HttpStatus.UNAUTHORIZED, "잘못된 접근입니다."),

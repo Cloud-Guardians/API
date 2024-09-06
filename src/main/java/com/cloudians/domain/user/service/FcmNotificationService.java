@@ -5,13 +5,11 @@ package com.cloudians.domain.user.service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalTime;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import javax.transaction.Transactional;
 
-import com.cloudians.domain.auth.repository.UserTokenRepository;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,7 +25,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.cloudians.domain.auth.entity.UserToken;
+import com.cloudians.domain.auth.repository.UserTokenRepository;
 import com.cloudians.domain.user.dto.request.FcmNotificationRequest;
+import com.cloudians.domain.user.dto.request.NotificationRequest;
 import com.cloudians.domain.user.dto.response.FcmNotificationResponse;
 import com.cloudians.domain.user.dto.response.NotificationResponse;
 import com.cloudians.domain.user.entity.Notification;
@@ -56,50 +56,48 @@ public class FcmNotificationService {
     public final String firebaseConfigPath = "cloudians-photo-key.json";
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
-	private final UserTokenRepository userTokenRepository;
-	private final TaskScheduler taskScheduler;
+    private final UserTokenRepository userTokenRepository; 
+    private final TaskScheduler taskScheduler; 
     private  boolean updated = false;
     
 	
  // uesr home notification insert O
- 	public NotificationResponse insertHomeNotification(String userEmail, NotificationType type, LocalTime time) {
+ 	public NotificationResponse insertHomeNotification(User user, NotificationType type, LocalTime time) {
  	    System.out.println("일단 들어옴");
  	    // time 형식 21:00:00 .. 이렇게 해야 댐
- 	    User user = findUserByUserEmail(userEmail);
  	    Notification notification = new Notification();
- 	    notification.setUserEmail(userEmail);
+ 	    notification.setUser(user);
  	    notification.setNotificationDiaryTime(time);
  	    notification.setNotificationType(type.toString());
  	    notification.setNotificationStatus(true);
  	    notification.setNotificationIsRead(true);   
  	    notificationRepository.save(notification);
- 	    return NotificationResponse.of(notification);	}
+ 	    return notification.toDto();	}
     
     
- 	private Notification findNotificationByUserEmailAndType(String userEmail, NotificationType type) {
- 	    Notification notification = notificationRepository.findByUserEmailAndNotificationType(userEmail, type.toString())
+ 	private Notification findNotificationByUserEmailAndType(User user, NotificationType type) {
+ 	    Notification notification = notificationRepository.findByUserAndNotificationType(user, type.toString())
  		    .orElseThrow(()-> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
  	    return notification;
  	}
 	
 	// user home notification time change O
-	public void changeHomeNotification(String userEmail, NotificationType type, LocalTime time) {
-	    Notification notification = findNotificationByUserEmailAndType(userEmail, type);
-	    notification.setNotificationDiaryTime(time);
-	    notificationRepository.save(notification);
+	public NotificationResponse editHomeNotification(User user, NotificationRequest request, NotificationType type) {
+	    Notification notification = findNotificationByUserAndType(user, type);
+	    notification.diaryTimeEdit(request);
+	    return NotificationResponse.of(notification);
 	}
 	
 	 // home toggle on, off 
-	    public boolean toggleHomeNotification(String userEmail,NotificationType type) {
-		  Notification notification = findNotificationByUserEmailAndType(userEmail, type);
-		  notification.setNotificationStatus(!notification.isNotificationStatus());
-			    notificationRepository.save(notification);
+	    public boolean toggleHomeNotification(User user,NotificationType type) {
+		  Notification notification = findNotificationByUserEmailAndType(user, type);
+		  notification.toggle(user);
 			    return true;    
 	    }
 	    
 	// user home notification time delete
-	public void deleteHomeNotification(String userEmail,NotificationType type) {
-	    Notification notification = findNotificationByUserEmailAndType(userEmail, type);
+	public void deleteHomeNotification(User user, NotificationType type) {
+	    Notification notification = findNotificationByUserEmailAndType(user, type);
 	    notificationRepository.delete(notification);
 	}
     // whisper&diary
@@ -111,19 +109,17 @@ public void sendHomeNotificationToAll() {
     List<Notification> notifications = notificationRepository.findAll();
     for(Notification notification:notifications) {
 	if(notification.getNotificationType().equals(NotificationType.DIARY.toString())) {
-	    sendHomeNotification(notification.getUserEmail(),NotificationType.DIARY);
+	    sendHomeNotification(notification,NotificationType.DIARY);
 	} else if(notification.getNotificationType().equals(NotificationType.WHISPER.toString())) {
-	    sendHomeNotification(notification.getUserEmail(),NotificationType.WHISPER);
+	    sendHomeNotification(notification,NotificationType.WHISPER);
 	}
     }
 }
 
 
-    public void sendHomeNotification(String userEmail, NotificationType type) {
+    public void sendHomeNotification(Notification notification, NotificationType type) {
 	// notification entity에서 값을 받아와 가지고, 알림 타입과 알림 상태가 일치하면 지정 알림 시간을 등록하여, 알림을 전송 
-	Map<Object, Object> param =  findByUserEmail(userEmail);
-	User user = (User)param.get("user");
-	Notification notification = findNotificationByUserEmailAndType(userEmail, type);
+
 	
 	  
 	String hours = notification.getNotificationDiaryTime().toString().split(":")[0];
@@ -131,13 +127,14 @@ public void sendHomeNotificationToAll() {
 	String cronText = minutes+" "+hours+" * * * *";
 
 	// cronText : 0 0 1 2 * *로 나타나고, 매일 정각 열두시를 의미
-	UserToken token = (UserToken)param.get("token");
+	
+	String accessToken = "";
 	
 	FcmNotificationRequest request = new FcmNotificationRequest();
 	if(type==NotificationType.DIARY && notification.isNotificationStatus()) {
-	    request.sendForDiary(token.getTokenValue());
+	    request.sendForDiary(accessToken);
 	} else if(type==NotificationType.WHISPER && notification.isNotificationStatus()) {
-	    request.sendForWhisper(token.getTokenValue());
+	    request.sendForWhisper(accessToken);
 	}
 
 	taskScheduler.schedule(() -> {
@@ -155,18 +152,17 @@ public void sendHomeNotificationToAll() {
     }
     
     // 댓글과 좋아요 알림  ... 수정중 
-    public void communityNotificationPush(String userEmail, NotificationType type) {
-	Map<Object, Object> param =  findByUserEmail(userEmail);
-	List<Notification> notifications = (List<Notification>)param.get("notification");
-	Notification notification = new Notification();
-	for(Notification not : notifications) {
-	    if(not.getNotificationType().equals(type.toString()) && not.isNotificationStatus()) {
-		notification = not;
-	    }
-	}
-	
-	
-    }
+//    public void communityNotificationPush(String userEmail, NotificationType type) {
+//	List<Notification> notifications = (List<Notification>)param.get("notification");
+//	Notification notification = new Notification();
+//	for(Notification not : notifications) {
+//	    if(not.getNotificationType().equals(type.toString()) && not.isNotificationStatus()) {
+//		notification = not;
+//	    }
+//	}
+//	
+//	
+//    }
     
     /**
      * 푸시 메시지 처리를 수행하는 비즈니스 로직
@@ -273,40 +269,15 @@ public void sendHomeNotificationToAll() {
         return om.writeValueAsString(response);
     }
     
-    public void saveToken(String token) {
-        // TODO: Implement token storage logic, e.g., saving to a database
-        System.out.println("Received token: " + token);
+   
+    private Notification findNotificationByUserAndType(User user, NotificationType type) {
+	return  notificationRepository.findByUserAndNotificationType(user, type.toString())
+		.orElseThrow(()-> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
     }
-    private Map<Object, Object> findByUserEmail(String userEmail){
-   	User user = findUserByUserEmail(userEmail);
-   	List<Notification> notification =  notificationRepository.findByUserEmail(userEmail)
-                   .orElseThrow(() -> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
-   	List<UserToken> tokenList = userTokenRepository.findListByUserEmail(userEmail)
-   		 .orElseThrow(() -> new UserException(UserExceptionType.TOKEN_NOT_FOUND));
-   	
-   	UserToken token = new UserToken();
-   	
-   	for(UserToken tok : tokenList) {
-   	    if(tok.getTokenType().equals("fcm")) 
-   		token = tok;}
-   	    
-   	Map<Object, Object> param = new HashMap<>();
-   	param.put("notification",notification);
-   	param.put("user",user);
-   	param.put("token",token);
-   	return param;
-       }
-
-	private  List<Notification> findNotificationListByUserEmail(String userEmail) {
-	    List<Notification> notification =  notificationRepository.findByUserEmail(userEmail)
-	                   .orElseThrow(() -> new NotificationException(NotificationExceptionType.NOTIFICATION_NOT_FOUND));
-	    return notification;
-	}
 	
-	private User findUserByUserEmail(String userEmail) {
-	    User user = userRepository.findByUserEmail(userEmail)
+	private User findUserByUserEmail(User user) {
+	   return userRepository.findByUserEmail(user.getUserEmail())
 	                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
-	    return user;
 	}
     
 }

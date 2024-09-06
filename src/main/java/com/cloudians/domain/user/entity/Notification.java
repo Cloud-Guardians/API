@@ -8,7 +8,10 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 
+import com.cloudians.domain.user.dto.request.NotificationRequest;
 import com.cloudians.domain.user.dto.response.NotificationResponse;
 
 import lombok.Builder;
@@ -25,8 +28,9 @@ public class Notification {
     @Column(name="notification_id")
     private Long notificationId;
     
-    @Column(name="user_email")
-    private String userEmail;
+    @ManyToOne
+    @JoinColumn(name = "user_email")
+    private User user;
     
     @Column(name="notification_diary_time")
     private  LocalTime notificationDiaryTime;
@@ -44,9 +48,9 @@ public class Notification {
     private boolean notificationIsRead;
     
     @Builder
-    public Notification(Long notificationId, String userEmail, LocalTime notificationDiaryTime, String notificationType, String notificationContent, boolean notificationStatus, boolean notificationIsRead) {
+    public Notification(Long notificationId, User user, LocalTime notificationDiaryTime, String notificationType, String notificationContent, boolean notificationStatus, boolean notificationIsRead) {
 	this.notificationId=notificationId;
-	this.userEmail=userEmail;
+	this.user=user;
 	this.notificationDiaryTime=notificationDiaryTime;
 	this.notificationType=notificationType;
 	this.notificationContent=notificationContent;
@@ -54,10 +58,23 @@ public class Notification {
 	this.notificationIsRead=notificationIsRead;
     }
     
+    public Notification diaryTimeEdit(NotificationRequest request) {
+	if(request.getNotificationDiaryTime()!=null) {
+	    this.notificationDiaryTime=request.getNotificationDiaryTime();
+	}
+	return this;
+    }
+    
+    public Notification toggle(User user) {
+	this.user=user;
+	this.notificationStatus=!notificationStatus;
+	return this;
+    }
+    
     public NotificationResponse toDto() {
 	return NotificationResponse.builder()
 		.notificationId(this.notificationId)
-		.userEmail(this.userEmail)
+		.userEmail(this.user.getUserEmail())
 		.notificationDiaryTime(this.notificationDiaryTime)
 		.notificationType(this.notificationType)
 		.notificationContent(this.notificationContent)

@@ -10,6 +10,8 @@ import com.cloudians.domain.user.entity.User;
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
 	
+    boolean existsByNickname(String nickname);
+    
 	// 내 정보 조회
 	Optional<User> findByUserEmail(String userEmail);
 	Optional<User> findByNickname(String userNickname);

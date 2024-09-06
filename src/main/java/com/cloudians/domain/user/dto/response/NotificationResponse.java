@@ -22,17 +22,7 @@ public class NotificationResponse {
     private boolean notificationStatus;
     private boolean notificationIsRead;
     
-    public static NotificationResponse fromNotification(Notification notification) {
-	return NotificationResponse.builder()
-		.notificationId(notification.getNotificationId())
-		.userEmail(notification.getUserEmail())
-		.notificationDiaryTime(notification.getNotificationDiaryTime())
-		.notificationType(notification.getNotificationType())
-		.notificationContent(notification.getNotificationContent())
-		.notificationStatus(notification.isNotificationStatus())
-		.notificationIsRead(notification.isNotificationIsRead())
-		.build();
-    }
+
     
     public static NotificationResponse of(Notification notification) {
 	return NotificationResponse.builder()

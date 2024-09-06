@@ -5,7 +5,6 @@ import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -14,7 +13,7 @@ import java.time.LocalDate;
 
 @Getter
 @NoArgsConstructor
-public class SignupRequest {
+public class UpdateRequest {
 
     @Pattern(regexp = "^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])+[.][a-zA-Z]{2,3}$", message = "이메일 양식을 확인해 주세요.")
     @NotBlank(message = "이메일을 입력해 주세요.")
@@ -41,7 +40,7 @@ public class SignupRequest {
     @NotNull(message = "생시를 입력해 주세요.")
     private String birthTime;
 
-    public SignupRequest(String userEmail, String password, String name, char gender, LocalDate birthdate, String birthTime) {
+    public UpdateRequest(String userEmail, String password, String name, char gender, LocalDate birthdate, String birthTime) {
         this.userEmail = userEmail;
         this.password = password;
         this.name = name;

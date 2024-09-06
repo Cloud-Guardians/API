@@ -29,9 +29,9 @@ public class FindPwResponse {
         return FindPwResponse.builder()
                 .to(user.getUserEmail())
                 .from("cloudians12@gmail.com")
-                .subject("구르미 그린 그림 임시 비밀번호 안내 메일입니다.")
+                .subject("구르미 그린 그림 임시 비밀번호 안내 메일입니다.\n")
                 .message("구르미 그린 일기의 임시 비밀번호 안내 메일입니다.\n"
-                        + "회원님의 임시 비밀번호는 아래와 같습니다. 로그인 후 반드시 비밀번호를 변경해 주세요.\n" + tempPassword)
+                        + "회원님의 임시 비밀번호는 아래와 같습니다. \n" + tempPassword)
                 .build();
     }
 

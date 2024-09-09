@@ -56,7 +56,6 @@ public class PersonalDiaryController {
                                                        @RequestPart @Valid PersonalDiaryCreateRequest request,
                                                        @RequestPart(value = "file", required = false) MultipartFile file) {
         PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, user, file);
-        // TODO - 예삔님 user.getUserEmail() -> user로 바꾸셔도 상관없어요
         monthlyService.addDiaryEntry(user, response.getDate());
         Message message = new Message(response, HttpStatus.CREATED.value());
 
@@ -82,7 +81,6 @@ public class PersonalDiaryController {
                                                      @PathVariable("personal-diary-id") Long personalDiaryId,
                                                      @RequestPart @Valid PersonalDiaryUpdateRequest request,
                                                      @RequestPart(value = "file", required = false) MultipartFile file) {
-        // TODO - 예삔님 user.getUserEmail() -> user로 바꾸셔도 상관없어요
         monthlyService.deleteDiaryEntry(user, personalDiaryId);
         PersonalDiaryResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, user, file);
         monthlyService.addDiaryEntry(user, response.getDate());
@@ -97,7 +95,6 @@ public class PersonalDiaryController {
     public ResponseEntity<Message> deletePersonalDiary(@AuthUser User user,
                                                        @PathVariable("personal-diary-id") Long personalDiaryId) {
         personalDiaryService.deletePersonalDiary(user, personalDiaryId);
-        // TODO - 예삔님 user.getUserEmail() -> user로 바꾸셔도 상관없어요
         monthlyService.deleteDiaryEntry(user, personalDiaryId);
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)

@@ -2,7 +2,6 @@ package com.cloudians.domain.publicdiary.repository.like;
 
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.like.PublicDiaryCommentLikeLink;
-import com.cloudians.domain.publicdiary.repository.like.PublicDiaryCommentLikeLinkJpaRepository;
 import com.cloudians.domain.user.entity.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -17,22 +16,26 @@ import static com.cloudians.domain.publicdiary.entity.like.QPublicDiaryCommentLi
 
 @Repository
 @RequiredArgsConstructor
-public class PublicDiaryCommentLikeLinkRepositoryImpl {
+public class PublicDiaryCommentLikeLinkRepositoryImpl implements PublicDiaryCommentLikeLinkRepository {
     private final PublicDiaryCommentLikeLinkJpaRepository publicDiaryCommentLikeLinkJpaRepository;
     private final JPAQueryFactory q;
 
+    @Override
     public void save(PublicDiaryCommentLikeLink publicDiaryCommentLikeLink) {
         publicDiaryCommentLikeLinkJpaRepository.save(publicDiaryCommentLikeLink);
     }
 
+    @Override
     public void delete(PublicDiaryCommentLikeLink publicDiaryCommentLikeLink) {
         publicDiaryCommentLikeLinkJpaRepository.delete(publicDiaryCommentLikeLink);
     }
 
+    @Override
     public Optional<PublicDiaryCommentLikeLink> findByPublicDiaryCommentAndUser(PublicDiaryComment publicDiaryComment, User user) {
         return publicDiaryCommentLikeLinkJpaRepository.findByPublicDiaryCommentAndUser(publicDiaryComment, user);
     }
 
+    @Override
     public List<PublicDiaryCommentLikeLink> findPublicDiaryCommentLikesOrderByDesc(Long cursor, Long count, Long publicDiaryCommentId) {
         return q.selectFrom(publicDiaryCommentLikeLink)
                 .where(publicDiaryCommentLikeLink.publicDiaryComment.id.eq(publicDiaryCommentId)
@@ -45,5 +48,4 @@ public class PublicDiaryCommentLikeLinkRepositoryImpl {
     private BooleanExpression getLt(Long cursor) {
         return cursor == null ? null : publicDiaryCommentLikeLink.id.lt(cursor);
     }
-
 }

@@ -15,22 +15,26 @@ import static com.cloudians.domain.publicdiary.entity.like.QPublicDiaryLikeLink.
 
 @Repository
 @RequiredArgsConstructor
-public class PublicDiaryLikeLinkRepositoryImpl {
+public class PublicDiaryLikeLinkRepositoryImpl implements PublicDiaryLikeLinkRepository {
     private final PublicDiaryLikeLinkJpaRepository publicDiaryLikeLinkJpaRepository;
     private final JPAQueryFactory q;
 
+    @Override
     public void save(PublicDiaryLikeLink publicDiaryLikeLink) {
         publicDiaryLikeLinkJpaRepository.save(publicDiaryLikeLink);
     }
 
+    @Override
     public void delete(PublicDiaryLikeLink publicDiaryLikeLink) {
         publicDiaryLikeLinkJpaRepository.delete(publicDiaryLikeLink);
     }
 
+    @Override
     public Optional<PublicDiaryLikeLink> findByPublicDiaryAndUser(PublicDiary publicDiary, User user) {
         return publicDiaryLikeLinkJpaRepository.findByPublicDiaryAndUser(publicDiary, user);
     }
 
+    @Override
     public List<PublicDiaryLikeLink> findPublicDiaryLikesOrderByDesc(Long cursor, Long count, Long publicDiaryId) {
         return q.selectFrom(publicDiaryLikeLink)
                 .where(publicDiaryLikeLink.publicDiary.id.eq(publicDiaryId)

@@ -2,8 +2,6 @@ package com.cloudians.domain.publicdiary.repository.comment;
 
 import com.cloudians.domain.publicdiary.entity.comment.PublicDiaryComment;
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
-import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentJpaRepository;
-import com.cloudians.domain.user.entity.User;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import lombok.RequiredArgsConstructor;
@@ -16,30 +14,27 @@ import static com.cloudians.domain.publicdiary.entity.comment.QPublicDiaryCommen
 
 @Repository
 @RequiredArgsConstructor
-public class PublicDiaryCommentRepositoryImpl {
+public class PublicDiaryCommentRepositoryImpl implements PublicDiaryCommentRepository {
     private final PublicDiaryCommentJpaRepository publicDiaryCommentJpaRepository;
     private final JPAQueryFactory q;
 
+    @Override
     public void save(PublicDiaryComment publicDiaryComment) {
         publicDiaryCommentJpaRepository.save(publicDiaryComment);
     }
 
+    @Override
     public void delete(PublicDiaryComment publicDiaryComment) {
         publicDiaryCommentJpaRepository.delete(publicDiaryComment);
     }
 
+    @Override
     public Optional<PublicDiaryComment> findById(Long publicDiaryCommentId) {
         return publicDiaryCommentJpaRepository.findById(publicDiaryCommentId);
     }
 
-    public Optional<PublicDiaryComment> findByIdAndUser(Long publicDiaryCommentId, User user) {
-        return publicDiaryCommentJpaRepository.findByIdAndAuthor(publicDiaryCommentId, user);
-    }
 
-    private BooleanExpression getGt(Long cursor) {
-        return cursor == null ? null : publicDiaryComment.id.gt(cursor);
-    }
-
+    @Override
     public List<PublicDiaryComment> findCommentsOrderByCreatedAtAsc(Long publicDiaryId, Long cursor, Long count) {
         return q.selectFrom(publicDiaryComment)
                 .where(publicDiaryComment.publicDiary.id.eq(publicDiaryId)
@@ -49,18 +44,22 @@ public class PublicDiaryCommentRepositoryImpl {
                 .fetch();
     }
 
+    @Override
     public List<PublicDiaryComment> findByPublicDiary(PublicDiary publicDiary) {
         return publicDiaryCommentJpaRepository.findByPublicDiary(publicDiary);
     }
 
+    @Override
     public void deleteAll(List<PublicDiaryComment> commentsInPublicDiary) {
         publicDiaryCommentJpaRepository.deleteAll(commentsInPublicDiary);
     }
 
+    @Override
     public void deleteChildComments(Long parentCommentId) {
         publicDiaryCommentJpaRepository.deletePublicDiaryCommentByParentCommentId(parentCommentId);
     }
 
+    @Override
     public List<PublicDiaryComment> findChildCommentsOrderByAsc(Long cursor, Long count, Long parentCommentId) {
         return q.selectFrom(publicDiaryComment)
                 .where(publicDiaryComment.parentCommentId.eq(parentCommentId)
@@ -70,10 +69,15 @@ public class PublicDiaryCommentRepositoryImpl {
                 .fetch();
     }
 
+    @Override
     public Long getPublicDiaryCommentsCount(PublicDiary publicDiary) {
         return q.select(publicDiaryComment.count())
                 .from(publicDiaryComment)
                 .where(publicDiaryComment.publicDiary.eq(publicDiary))
                 .fetchOne();
+    }
+
+    private BooleanExpression getGt(Long cursor) {
+        return cursor == null ? null : publicDiaryComment.id.gt(cursor);
     }
 }

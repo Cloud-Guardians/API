@@ -11,7 +11,7 @@ import com.cloudians.domain.home.entity.WhisperQuestion;
 import com.cloudians.domain.home.exception.WhisperException;
 import com.cloudians.domain.home.exception.WhisperExceptionType;
 import com.cloudians.domain.home.repository.ThankYouMessageRepository;
-import com.cloudians.domain.home.repository.WhisperMessageRepositoryImpl;
+import com.cloudians.domain.home.repository.WhisperMessageRepository;
 import com.cloudians.domain.home.repository.WhisperQuestionRepository;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.repository.UserRepository;
@@ -33,7 +33,7 @@ import java.util.Random;
 public class WhisperService {
     private final WhisperQuestionRepository whisperQuestionRepository;
     private final ThankYouMessageRepository thankYouMessageRepository;
-    private final WhisperMessageRepositoryImpl whisperMessageRepository;
+    private final WhisperMessageRepository whisperMessageRepository;
 
     private final UserRepository userRepository;
 

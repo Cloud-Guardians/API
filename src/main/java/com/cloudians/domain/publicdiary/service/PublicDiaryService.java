@@ -18,10 +18,10 @@ import com.cloudians.domain.publicdiary.entity.like.PublicDiaryLikeLink;
 import com.cloudians.domain.publicdiary.entity.report.PublicDiaryReport;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
-import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRepositoryImpl;
-import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
-import com.cloudians.domain.publicdiary.repository.like.PublicDiaryLikeLinkRepositoryImpl;
-import com.cloudians.domain.publicdiary.repository.report.PublicDiaryReportJpaRepository;
+import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRepository;
+import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepository;
+import com.cloudians.domain.publicdiary.repository.like.PublicDiaryLikeLinkRepository;
+import com.cloudians.domain.publicdiary.repository.report.PublicDiaryReportRepository;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
@@ -37,11 +37,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class PublicDiaryService {
-    private final PublicDiaryRepositoryImpl publicDiaryRepository;
-    private final PublicDiaryCommentRepositoryImpl publicDiaryCommentRepository;
+    private final PublicDiaryRepository publicDiaryRepository;
+    private final PublicDiaryCommentRepository publicDiaryCommentRepository;
     private final PersonalDiaryRepository personalDiaryRepository;
-    private final PublicDiaryLikeLinkRepositoryImpl publicDiaryLikeLinkRepository;
-    private final PublicDiaryReportJpaRepository publicDiaryReportRepository;
+    private final PublicDiaryLikeLinkRepository publicDiaryLikeLinkRepository;
+    private final PublicDiaryReportRepository publicDiaryReportRepository;
 
     public PublicDiaryResponse createPublicDiary(User user, Long personalDiaryId) {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);

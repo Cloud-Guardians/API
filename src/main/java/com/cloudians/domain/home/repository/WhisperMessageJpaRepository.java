@@ -9,5 +9,4 @@ import java.util.List;
 
 public interface WhisperMessageJpaRepository extends JpaRepository<WhisperMessage, Long> {
     List<WhisperMessage> findByUserAndSender(User user, SenderType sender);
-
 }

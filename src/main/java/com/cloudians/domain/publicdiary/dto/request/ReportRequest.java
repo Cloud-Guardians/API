@@ -5,6 +5,7 @@ import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.publicdiary.entity.report.PublicDiaryCommentReport;
 import com.cloudians.domain.publicdiary.entity.report.PublicDiaryReport;
 import com.cloudians.domain.publicdiary.entity.report.ReportReason;
+import com.cloudians.domain.publicdiary.entity.report.ReportStatus;
 import com.cloudians.domain.user.entity.User;
 import lombok.Builder;
 import lombok.Getter;
@@ -31,6 +32,7 @@ public class ReportRequest {
                 .reporter(user)
                 .reason(reasonEnum)
                 .customReason(customReason)
+                .status(ReportStatus.PENDING)
                 .build();
     }
 
@@ -42,6 +44,7 @@ public class ReportRequest {
                 .reporter(user)
                 .reason(reasonEnum)
                 .customReason(customReason)
+                .status(ReportStatus.PENDING)
                 .build();
     }
 }

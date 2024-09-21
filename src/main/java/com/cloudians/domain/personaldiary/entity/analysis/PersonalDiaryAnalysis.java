@@ -1,19 +1,5 @@
 package com.cloudians.domain.personaldiary.entity.analysis;
 
-import static javax.persistence.FetchType.LAZY;
-import static javax.persistence.GenerationType.IDENTITY;
-
-import java.util.List;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.OneToOne;
-
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.entity.BaseTimeEntity;
@@ -21,10 +7,15 @@ import com.cloudians.global.exception.JsonException;
 import com.cloudians.global.exception.JsonExceptionType;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import javax.persistence.*;
+import java.util.List;
+
+import static javax.persistence.FetchType.LAZY;
+import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
@@ -40,7 +31,6 @@ public class PersonalDiaryAnalysis extends BaseTimeEntity {
     @JoinColumn(name = "user_email")
     private User user;
 
-  
     @OneToOne(fetch = LAZY)
     @JoinColumn(name = "personal_diary_id")
     private PersonalDiary personalDiary;

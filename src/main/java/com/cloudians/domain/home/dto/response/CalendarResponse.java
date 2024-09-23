@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDate;
+
 @Getter
 public class CalendarResponse {
     private Long personalDiaryId;
@@ -30,7 +31,7 @@ public class CalendarResponse {
         return CalendarResponse.builder()
                 .personalDiaryId(personalDiary.getId())
                 .date(personalDiary.getDate())
-                .elementPhotoUrl(personalDiary.getPersonalDiaryAnalysis().getFiveElement().getElementPhotoUrl())
+                .elementPhotoUrl(personalDiary.getPersonalDiaryAnalysis().getFiveElement().getElementPhotoName())
                 .emotionsResponse(emotionsResponse)
                 .hasAnswer(hasAnswer)
                 .build();

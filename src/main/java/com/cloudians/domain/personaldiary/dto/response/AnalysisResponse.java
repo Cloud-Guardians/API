@@ -10,9 +10,9 @@ import java.util.List;
 public class AnalysisResponse {
     private String elementName;
 
-    private String elementPhotoUrl;
+    private String elementPhotoName;
 
-    private String fiveElementsPhotoUrl;
+    private String fiveElementsPhotoName;
 
     private List<String> characters;
 
@@ -22,10 +22,10 @@ public class AnalysisResponse {
 
 
     @Builder
-    private AnalysisResponse(String elementName, String elementPhotoUrl, String fiveElementsPhotoUrl, List<String> characters, String plusElement, String minusElement) {
+    private AnalysisResponse(String elementName, String elementPhotoName, String fiveElementsPhotoName, List<String> characters, String plusElement, String minusElement) {
         this.elementName = elementName;
-        this.elementPhotoUrl = elementPhotoUrl;
-        this.fiveElementsPhotoUrl = fiveElementsPhotoUrl;
+        this.elementPhotoName = elementPhotoName;
+        this.fiveElementsPhotoName = fiveElementsPhotoName;
         this.characters = characters;
         this.plusElement = plusElement;
         this.minusElement = minusElement;
@@ -34,8 +34,8 @@ public class AnalysisResponse {
     public static AnalysisResponse of(FiveElement element, List<String> characters) {
         return AnalysisResponse.builder()
                 .elementName(element.getName())
-                .elementPhotoUrl(element.getElementPhotoUrl())
-                .fiveElementsPhotoUrl(element.getFiveElementsPhotoUrl())
+                .elementPhotoName(element.getElementPhotoName())
+                .fiveElementsPhotoName(element.getFiveElementsPhotoName())
                 .characters(characters)
                 .plusElement(element.getPlusElement())
                 .minusElement(element.getMinusElement())

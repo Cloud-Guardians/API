@@ -26,5 +26,5 @@ public class FiveElementCharacter {
     @JoinColumn(name = "element_id")
     private FiveElement element;
 
-    private String character;
+    private String characteristic;
 }

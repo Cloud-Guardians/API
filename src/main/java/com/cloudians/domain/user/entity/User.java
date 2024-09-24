@@ -21,15 +21,16 @@ import static javax.persistence.EnumType.STRING;
 public class User {
 
     @Id
-    @Column(name = "user_email")
+    @Column(name = "user_email", length = 100)
     private String userEmail;
 
     @Enumerated(STRING)
     private SignupType signupType;
 
+    @Column(length = 10)
     private String name;
 
-    @Column(unique = true)
+    @Column(unique = true, length = 20)
     private String nickname;
 
     private String password;

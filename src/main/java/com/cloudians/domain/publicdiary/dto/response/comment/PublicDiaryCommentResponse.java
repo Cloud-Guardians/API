@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 public class PublicDiaryCommentResponse {
     private Long publicDiaryCommentId;
 
+    private Long parentCommentId;
+
     private UserProfileResponse author;
 
     private String content;
@@ -22,8 +24,9 @@ public class PublicDiaryCommentResponse {
     private LocalDateTime updatedAt;
 
     @Builder
-    private PublicDiaryCommentResponse(Long publicDiaryCommentId, UserProfileResponse author, String content, Long likes, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private PublicDiaryCommentResponse(Long publicDiaryCommentId, Long parentCommentId, UserProfileResponse author, String content, Long likes, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.publicDiaryCommentId = publicDiaryCommentId;
+        this.parentCommentId = parentCommentId;
         this.author = author;
         this.content = content;
         this.likes = likes;
@@ -34,6 +37,7 @@ public class PublicDiaryCommentResponse {
     public static PublicDiaryCommentResponse of(PublicDiaryComment publicDiaryComment) {
         return PublicDiaryCommentResponse.builder()
                 .publicDiaryCommentId(publicDiaryComment.getId())
+                .parentCommentId(publicDiaryComment.getParentCommentId())
                 .author(UserProfileResponse.from(publicDiaryComment.getAuthor()))
                 .content(publicDiaryComment.getContent())
                 .likes(publicDiaryComment.getLikes())

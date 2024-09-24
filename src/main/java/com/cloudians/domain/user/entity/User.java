@@ -8,6 +8,7 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
+import javax.validation.constraints.NotBlank;
 
 import com.cloudians.domain.user.dto.request.UserProfileRequest;
 import com.cloudians.domain.user.dto.request.UserRequest;
@@ -55,7 +56,6 @@ public class User {
     @Column(name = "total_report_count")
     private int totalReportCount;
 
-    // TODO: 관리자, 일반, 차단 enum
     @Enumerated(STRING)
     private UserStatus status;
 
@@ -74,38 +74,38 @@ public class User {
         this.totalReportCount = 0;
         this.status = UserStatus.DEFAULT;
     }
-    
+
     public User edit(UserRequest request) {
-	if (request.getName() != null) {
-           this.name=request.getName();
+        if (request.getName() != null) {
+            this.name=request.getName();
         }
 
         if (request.getGender() != '\0') {
             this.gender=request.getGender();
         }
         if (request.getBirthdate() != null) {
-          this.birthdate = request.getBirthdate();
+            this.birthdate = request.getBirthdate();
         }
         if (request.getBirthTime() != null) {
-          this.birthTime= BirthTimeType.from(request.getBirthTime());
+            this.birthTime= BirthTimeType.from(request.getBirthTime());
         }
         if (request.getCalendarType() != null) {
-           this.calendarType=CalendarType.from(request.getCalendarType());
+            this.calendarType=CalendarType.from(request.getCalendarType());
         }
-        
+
         return this;
     }
-    
+
     public User profileEdit(UserProfileRequest request, User user) {
-	
-	if(request.getProfileUrl()!=null) {
-	    user.profileUrl = request.getProfileUrl();
-	}
-	if(request.getNickname()!=null) {
-	    user.nickname = request.getNickname();
-	}
-	
-	return this;
+
+        if(request.getProfileUrl()!=null) {
+            user.profileUrl = request.getProfileUrl();
+        }
+        if(request.getNickname()!=null) {
+            user.nickname = request.getNickname();
+        }
+
+        return this;
     }
 
 

@@ -57,6 +57,7 @@ public class AuthController {
                 .headers(headers)
                 .body(message);
 }
+
     @PostMapping("/logout")
     public ResponseEntity<Message> logout(@AuthUser User user,
                                           @RequestHeader("Refresh-Token") String refreshToken) {

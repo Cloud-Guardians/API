@@ -2,13 +2,14 @@ package com.cloudians.global.service;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.repository.UserRepository;
 import com.cloudians.global.Message;
 import com.cloudians.global.exception.FirebaseException;
@@ -40,7 +41,10 @@ public class FirebaseService {
     public String uploadFile(MultipartFile file, String userEmail, String domain, String fileName) {
         try (InputStream content = new ByteArrayInputStream(file.getBytes())) {
             Blob blob = bucket().create(folderPath(userEmail, domain, fileName), content, file.getContentType());
-            return blob.getMediaLink();
+            URL signedUrl = blob.signUrl(7, TimeUnit.DAYS);
+         
+            System.out.println("sign:"+signedUrl.toString());
+            return  blob.signUrl(365, TimeUnit.DAYS).toString();
         } catch (Exception e) {
             Message message = new Message(e, HttpStatus.BAD_REQUEST.value());
             return message.toString();
@@ -60,18 +64,21 @@ public class FirebaseService {
     // get file url
     public String getFileUrl(String userEmail, String domain, String fileName) {
         String folderPath = folderPath(userEmail, domain, fileName);
+       System.out.println("folder Path:"+folderPath);
         Blob blob = bucket().get(folderPath);
         if (blob != null) {
-            String urlPath = folderPath.split("/")[0] + "%2F" + folderPath.split("/")[1] + "%2F" + folderPath.split("/")[2] + "%2F" + folderPath.split("/")[3];
-            System.out.println(folderPath);
-            System.out.println("mediaLink:" + blob.getMediaLink());
-            System.out.println("selfLink:" + blob.getSelfLink());
-            System.out.println("blob:" + blob.toString());
-            Map<String, String> metadata = blob.getMetadata();
-            String tokens = metadata.get("firebaseStorageDownloadTokens");
-
-            String dap = "https://firebasestorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/" + urlPath + "?alt=media&token=" + tokens;
-            return dap;
+//            System.out.println("yeah");
+//            String urlPath = folderPath.split("/")[0] + "%2F" + folderPath.split("/")[1] + "%2F" + folderPath.split("/")[2] + "%2F" + folderPath.split("/")[3];
+//            System.out.println(folderPath);
+//            System.out.println("mediaLink:" + blob.getMediaLink());
+//            System.out.println("selfLink:" + blob.getSelfLink());
+//            System.out.println("blob:" +  blob);
+//            Map<String, String> metadata = blob.getMetadata();
+//            System.out.println("tokens:"+metadata.toString());
+//            String tokens = metadata.get("firebaseStorageDownloadTokens");
+//          
+//            String dap = "https://firebasestorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/" + urlPath + "?alt=media&token=" + tokens;
+            return blob.signUrl(365, TimeUnit.DAYS).toString();
         } else throw new FirebaseException(FirebaseExceptionType.PHOTO_VALUE_NOT_FOUND);
     }
 

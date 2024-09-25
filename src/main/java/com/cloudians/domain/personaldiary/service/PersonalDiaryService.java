@@ -119,6 +119,7 @@ public class PersonalDiaryService {
         String updatedPhotoUrl = personalDiary.getPhotoUrl();
         if (file != null) {
             updatedPhotoUrl = updateDiaryPhoto(user.getUserEmail(), file, personalDiary);
+            System.out.println("photo not null");
         }
         PersonalDiary editedPersonalDiary = personalDiary.edit(request, updatedPhotoUrl);
         analyzeEditedPersonalDiary(user, editedPersonalDiary);

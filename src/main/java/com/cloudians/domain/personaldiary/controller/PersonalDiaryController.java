@@ -84,6 +84,8 @@ public class PersonalDiaryController {
         monthlyService.deleteDiaryEntry(user, personalDiaryId);
         PersonalDiaryResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, user, file);
         monthlyService.addDiaryEntry(user, response.getDate());
+        System.out.println("photo url:"+response.getPhotoUrl());
+       
         Message message = new Message(response, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);

@@ -20,4 +20,6 @@ public interface PublicDiaryRepository {
     List<PublicDiary> searchByTypeAndKeywordOrderByTimestampDesc(SearchCondition condition, Long cursor, Long count);
 
     List<PublicDiary> publicDiariesOrderByCreatedAtDescWithTop3Diaries(Long cursor, Long count);
+
+    Optional<PublicDiary> findByPersonalDiaryId(Long personalDiaryId);
 }

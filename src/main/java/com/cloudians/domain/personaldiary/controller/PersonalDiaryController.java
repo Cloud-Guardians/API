@@ -94,8 +94,8 @@ public class PersonalDiaryController {
     @DeleteMapping("/{personal-diary-id}")
     public ResponseEntity<Message> deletePersonalDiary(@AuthUser User user,
                                                        @PathVariable("personal-diary-id") Long personalDiaryId) {
-        personalDiaryService.deletePersonalDiary(user, personalDiaryId);
         monthlyService.deleteDiaryEntry(user, personalDiaryId);
+        personalDiaryService.deletePersonalDiary(user, personalDiaryId);
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);

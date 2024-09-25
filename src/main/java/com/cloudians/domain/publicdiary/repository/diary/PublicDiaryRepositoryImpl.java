@@ -63,6 +63,11 @@ public class PublicDiaryRepositoryImpl implements PublicDiaryRepository {
         return getLeftPublicDiariesOrderByDesc(cursor, count, Collections.emptyList());
     }
 
+    @Override
+    public Optional<PublicDiary> findByPersonalDiaryId(Long personalDiaryId) {
+        return publicDiaryJpaRepository.findByPersonalDiaryId(personalDiaryId);
+    }
+
     private List<PublicDiary> getLeftPublicDiariesOrderByDesc(Long cursor, Long count, List<PublicDiary> top3Diaries) {
         if (!top3Diaries.isEmpty()) {
             return getPublicDiariesWithoutTop3(cursor, count, top3Diaries);

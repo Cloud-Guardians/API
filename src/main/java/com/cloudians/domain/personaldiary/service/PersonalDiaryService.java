@@ -73,8 +73,12 @@ public class PersonalDiaryService {
         return PersonalDiaryEmotionCreateResponse.of(personalDiaryEmotion, user);
     }
 
+    public PersonalDiaryEmotionResponse getSelfEmotions(Long emotionId, User user) {
+        PersonalDiaryEmotion emotions = getSelfEmotionsOrThrow(emotionId, user);
+        return PersonalDiaryEmotionResponse.of(emotions);
+    }
 
-    public PersonalDiaryEmotionUpdateResponse editSelfEmotions(PersonalDiaryEmotionUpdateRequest request, Long emotionId, User user) {
+    public PersonalDiaryEmotionResponse editSelfEmotions(PersonalDiaryEmotionUpdateRequest request, Long emotionId, User user) {
         // 수정할 감정이 있는지 확인
         PersonalDiaryEmotion emotions = personalDiaryEmotionRepository.findById(emotionId)
                 .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
@@ -83,7 +87,7 @@ public class PersonalDiaryService {
         //수정
         PersonalDiaryEmotion editedEmotions = emotions.edit(request);
 
-        return PersonalDiaryEmotionUpdateResponse.of(editedEmotions);
+        return PersonalDiaryEmotionResponse.of(editedEmotions);
     }
 
     public PersonalDiaryCreateResponse createPersonalDiary(PersonalDiaryCreateRequest request, User user, MultipartFile file) {
@@ -270,6 +274,14 @@ public class PersonalDiaryService {
 
         validateSameUser(personalDiary.getUser(), user);
         return personalDiary;
+    }
+
+    private PersonalDiaryEmotion getSelfEmotionsOrThrow(Long emotionId, User user) {
+        PersonalDiaryEmotion personalDiaryEmotion = personalDiaryEmotionRepository.findById(emotionId)
+                .orElseThrow(() -> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_EMOTIONS));
+
+        validateSameUser(personalDiaryEmotion.getUser(), user);
+        return personalDiaryEmotion;
     }
 
     private void validateEmotionsValue(PersonalDiaryEmotionCreateRequest request) {

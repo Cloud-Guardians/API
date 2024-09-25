@@ -38,12 +38,23 @@ public class PersonalDiaryController {
                 .body(message);
     }
 
+    // 자가 감정 측정 읽기
+    @GetMapping("/self-emotions/{emotion-id}")
+    public ResponseEntity<Message> getSelfEmotions(@AuthUser User user,
+                                                   @PathVariable("emotion-id") Long emotionId) {
+        PersonalDiaryEmotionResponse response = personalDiaryService.getSelfEmotions(emotionId, user);
+        Message message = new Message(response, HttpStatus.OK.value());
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(message);
+    }
+
     // 자가 감정 측정 수정
     @PutMapping("/self-emotions/{emotion-id}")
     public ResponseEntity<Message> editSelfEmotions(@AuthUser User user,
                                                     @PathVariable("emotion-id") Long emotionId,
                                                     @Valid @RequestBody PersonalDiaryEmotionUpdateRequest request) {
-        PersonalDiaryEmotionUpdateResponse response = personalDiaryService.editSelfEmotions(request, emotionId, user);
+        PersonalDiaryEmotionResponse response = personalDiaryService.editSelfEmotions(request, emotionId, user);
         Message message = new Message(response, HttpStatus.OK.value());
 
         return ResponseEntity.status(HttpStatus.OK)

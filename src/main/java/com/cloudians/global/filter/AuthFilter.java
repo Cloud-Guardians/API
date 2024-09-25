@@ -1,12 +1,16 @@
 package com.cloudians.global.filter;
 
+import com.cloudians.domain.admin.exception.AdminException;
+import com.cloudians.domain.admin.exception.AdminExceptionType;
 import com.cloudians.domain.auth.util.JwtProcessor;
 import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.entity.UserStatus;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.global.Message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -26,7 +30,9 @@ public class AuthFilter extends OncePerRequestFilter {
     private static final String AUTH_API = "/api/auth";
 
     private static final String AUTH_LOGOUT_API = "/api/auth/logout";
-    
+
+    private static final String ADMIN = "/api/admin";
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
@@ -37,12 +43,26 @@ public class AuthFilter extends OncePerRequestFilter {
         try {
             User loginUser = getAuthenticatedUserFromToken(request);
             request.setAttribute("user", loginUser);
+
+            if (isAdminFilter(request) && !isUserAdmin(loginUser)) {
+                throw new UserException(UserExceptionType.FORBIDDEN_ACCESS);
+            }
+
             filterChain.doFilter(request, response);
         } catch (UserException e) {
             handleException(response, e);
-            // command + p: 인자 확인
         }
+    }
 
+    // 관리자 경로
+    private boolean isAdminFilter(HttpServletRequest request) {
+        return request.getRequestURI().startsWith(ADMIN);
+    }
+
+    // 유저가 관리자인지 검증
+    private boolean isUserAdmin(User user) {
+       UserStatus ADMIN = UserStatus.ADMIN;
+        return ADMIN.equals(user.getStatus());
     }
 
     // /api/auth는 로그인해야 돼서 필터 처리 안 함

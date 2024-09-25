@@ -23,7 +23,8 @@ public enum UserExceptionType implements BaseExceptionType {
     NULL_TOKEN(401, HttpStatus.UNAUTHORIZED, "토큰이 존재하지 않습니다."),
     WRONG_CALENDAR_TYPE(400, HttpStatus.BAD_REQUEST, "잘못된 캘린더 타입입니다."),
     ALREADY_LOGOUT_TOKEN(401, HttpStatus.UNAUTHORIZED, "이미 로그아웃한 회원입니다."),
-    UNAUTHORIZED_ACCESS(401, HttpStatus.UNAUTHORIZED, "접근 권한이 없는 사용자입니다.");
+    UNAUTHORIZED_ACCESS(401, HttpStatus.UNAUTHORIZED, "접근 권한이 없는 사용자입니다."),
+    FORBIDDEN_ACCESS(403, HttpStatus.FORBIDDEN, "권한이 없는 페이지입니다.");
 
 
     private final int statusCode;

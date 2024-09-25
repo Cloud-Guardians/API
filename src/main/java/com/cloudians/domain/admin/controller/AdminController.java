@@ -109,8 +109,8 @@ public class AdminController {
     public ResponseEntity<Message> rejectReport(@PathVariable("report-id") Long reportId, @RequestBody ProcessReportsRequest request){//, @RequestBody RejectRequest request) {
         adminService.editReport(reportId, request);
 
-        Message message = new Message(null, HttpStatus.OK.value());
-        return ResponseEntity.status(HttpStatus.OK)
+        Message message = new Message(null, HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(message);
     }
 
@@ -119,8 +119,8 @@ public class AdminController {
     public ResponseEntity<Message> rejectCommentReport(@PathVariable("comment-id") Long commentId, @RequestBody ProcessReportsRequest request){//, @RequestBody RejectRequest request) {
         adminService.editCommentReport(commentId, request);
 
-        Message message = new Message(null, HttpStatus.OK.value());
-        return ResponseEntity.status(HttpStatus.OK)
+        Message message = new Message(null, HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(message);
     }
 
@@ -129,8 +129,8 @@ public class AdminController {
     public ResponseEntity<Message> updateReport(@RequestBody UpdateReportRequest updateReportRequest) {
         adminService.updateReports(updateReportRequest);
 
-        Message message = new Message(null, HttpStatus.OK.value());
-        return ResponseEntity.status(HttpStatus.OK)
+        Message message = new Message(null, HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(message);
     }
 
@@ -139,8 +139,8 @@ public class AdminController {
     public ResponseEntity<Message> updateCommentReport(@RequestBody UpdateReportRequest updateReportRequest) {
         adminService.updateCommentsReport(updateReportRequest);
 
-        Message message = new Message(null, HttpStatus.OK.value());
-        return ResponseEntity.status(HttpStatus.OK)
+        Message message = new Message(null, HttpStatus.CREATED.value());
+        return ResponseEntity.status(HttpStatus.CREATED)
                 .body(message);
     }
 }

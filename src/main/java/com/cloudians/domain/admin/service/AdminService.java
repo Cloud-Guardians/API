@@ -48,8 +48,6 @@ public class AdminService {
     private final PublicDiaryCommentRepositoryImpl publicDiaryCommentRepository;
 
     public List<AdminReportResponse> getAllReports(ReportStatus status, User user) {
-        System.out.println(user.getUserEmail());
-
         checkAdminStatus(user.getUserEmail());
 
         List<PublicDiaryReport> response = publicDiaryReportRepository.findByStatus(status);
@@ -96,7 +94,8 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
-    public List<AdminReportCommentResponse> getAllComments(ReportStatus status) {
+    public List<AdminReportCommentResponse> getAllComments(ReportStatus status, User user) {
+        checkAdminStatus(user.getUserEmail());
         List<PublicDiaryCommentReport> response = publicDiaryCommentReportRepository.findByStatus(status);
 
         if (response.isEmpty()) {
@@ -143,37 +142,7 @@ public class AdminService {
             throw new AdminException(AdminExceptionType.UNAUTHORIZED_ACCESS);
         }
     }
-
-    private PublicDiaryReport getPublicDiaryReport(Long publicDiaryReportId) {
-        return publicDiaryReportRepository.findById(publicDiaryReportId)
-                .orElseThrow(() -> new AdminException(AdminExceptionType.REPORT_NOT_FOUND));
-    }
-
-    private PublicDiaryCommentReport getPublicDiaryCommentReport(Long publicDiaryCommentReportId) {
-        return publicDiaryCommentReportRepository.findById(publicDiaryCommentReportId)
-                .orElseThrow(() -> new AdminException(AdminExceptionType.REPORT_NOT_FOUND));
-    }
-
-    private PublicDiary getPublicDiary(Long publicDiaryId) {
-        return publicDiaryRepository.findById(publicDiaryId)
-                .orElseThrow(() -> new AdminException(AdminExceptionType.NON_EXIST_REPORTED_DIARY));
-    }
-
-    private PublicDiaryComment getPublicDiaryComment(Long publicDiaryCommentId) {
-        return publicDiaryCommentRepository.findById(publicDiaryCommentId)
-                .orElseThrow(() -> new AdminException(AdminExceptionType.NON_EXIST_REPORTED_COMMENT));
-    }
-
-    private void processReport(PublicDiaryReport report, ReportStatus status) {
-        report.changeStatus(status);
-    }
-
-    private void processCommentReport(PublicDiaryCommentReport commentReport, ReportStatus status) {
-        commentReport.changeStatus(status);
-        publicDiaryCommentReportRepository.save(commentReport);
-    }
-
-
+  
     public AdminReportCommentResponse getReportedComment(Long commentId) {
         PublicDiaryCommentReport response = getPublicDiaryCommentReport(commentId);
 
@@ -193,6 +162,8 @@ public class AdminService {
 
         } else if ("update".equals(action)) {
             PublicDiaryReport response = getPublicDiaryReport(reportId);
+            response.setStatus(DISMISS);
+            response.setRead(true);
             response.changeStatus(DISMISS);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
@@ -210,6 +181,8 @@ public class AdminService {
 
         } else if ("update".equals(action)) {
             PublicDiaryCommentReport response = getPublicDiaryCommentReport(reportId);
+            response.setStatus(DISMISS);
+            response.setRead(true);
             response.changeStatus(DISMISS);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
@@ -224,7 +197,6 @@ public class AdminService {
         }
     }
 
-
     public void updateCommentsReport(UpdateReportRequest request) {
         String action = request.getAction();
 
@@ -233,5 +205,25 @@ public class AdminService {
 
             editCommentReport(reportId, processRequest);
         }
+    }
+
+    private PublicDiaryReport getPublicDiaryReport(Long publicDiaryReportId) {
+        return publicDiaryReportRepository.findById(publicDiaryReportId)
+                .orElseThrow(() -> new AdminException(AdminExceptionType.REPORT_NOT_FOUND));
+    }
+
+    private PublicDiaryCommentReport getPublicDiaryCommentReport(Long publicDiaryCommentReportId) {
+        return publicDiaryCommentReportRepository.findById(publicDiaryCommentReportId)
+                .orElseThrow(() -> new AdminException(AdminExceptionType.REPORT_NOT_FOUND));
+    }
+
+    private PublicDiary getPublicDiary(Long publicDiaryId) {
+        return publicDiaryRepository.findById(publicDiaryId)
+                .orElseThrow(() -> new AdminException(AdminExceptionType.NON_EXIST_REPORTED_DIARY));
+    }
+
+    private PublicDiaryComment getPublicDiaryComment(Long publicDiaryCommentId) {
+        return publicDiaryCommentRepository.findById(publicDiaryCommentId)
+                .orElseThrow(() -> new AdminException(AdminExceptionType.NON_EXIST_REPORTED_COMMENT));
     }
 }

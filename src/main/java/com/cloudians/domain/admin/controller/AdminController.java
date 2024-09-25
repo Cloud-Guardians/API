@@ -55,7 +55,7 @@ public class AdminController {
     }
 
     // 게시글 중복 신고 목록 조회
-    @GetMapping("/public-diary/{public-diary-id}/duplicate")
+    @GetMapping("/public-diaries/{public-diary-id}/duplicate")
     public ResponseEntity<Message> getDuplicateReports(@PathVariable("public-diary-id") Long publicDiaryId) {
         List<AdminReportResponse> response = adminService.getDuplicateReports(publicDiaryId);
 
@@ -66,8 +66,8 @@ public class AdminController {
 
     // 신고 댓글 목록 조회(+삭제된 댓글 반려된 댓글 구분 조회)
     @GetMapping("/comments")
-    public ResponseEntity<Message> getReportComments(@RequestParam ReportStatus status) {
-        List<AdminReportCommentResponse> response = adminService.getAllComments(status);
+    public ResponseEntity<Message> getReportComments(@RequestParam ReportStatus status, @AuthUser User user) {
+        List<AdminReportCommentResponse> response = adminService.getAllComments(status, user);
 
         Message message = new Message(response, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)

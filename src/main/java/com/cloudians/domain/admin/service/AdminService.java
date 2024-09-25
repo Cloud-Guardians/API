@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.cloudians.domain.publicdiary.entity.report.ReportStatus.DISMISS;
@@ -96,6 +97,7 @@ public class AdminService {
 
     public List<AdminReportCommentResponse> getAllComments(ReportStatus status, User user) {
         checkAdminStatus(user.getUserEmail());
+
         List<PublicDiaryCommentReport> response = publicDiaryCommentReportRepository.findByStatus(status);
 
         if (response.isEmpty()) {
@@ -142,7 +144,7 @@ public class AdminService {
             throw new AdminException(AdminExceptionType.UNAUTHORIZED_ACCESS);
         }
     }
-  
+
     public AdminReportCommentResponse getReportedComment(Long commentId) {
         PublicDiaryCommentReport response = getPublicDiaryCommentReport(commentId);
 
@@ -162,9 +164,8 @@ public class AdminService {
 
         } else if ("update".equals(action)) {
             PublicDiaryReport response = getPublicDiaryReport(reportId);
-            response.setStatus(DISMISS);
-            response.setRead(true);
             response.changeStatus(DISMISS);
+            response.changeReadStatus(true);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
 
@@ -181,9 +182,8 @@ public class AdminService {
 
         } else if ("update".equals(action)) {
             PublicDiaryCommentReport response = getPublicDiaryCommentReport(reportId);
-            response.setStatus(DISMISS);
-            response.setRead(true);
             response.changeStatus(DISMISS);
+            response.changeReadStatus(true);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
 

@@ -34,11 +34,12 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<Message> login(@Valid @RequestBody LoginRequest request) {
         // valid 붙여야지만 예외 처리 가능함
-	LoginResponse response = authService.login(request);
+        LoginResponse response = authService.login(request);
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Access-Token", "Bearer " + response.getAccessToken());
-        headers.set("Refresh-Token", "Bearer " + response.getRefreshToken());
-        headers.set("Fcm-Token","Bearer "+response.getFcmToken());
+        headers.set("Access-Token", response.getAccessToken());
+        headers.set("Refresh-Token", response.getRefreshToken());
+        headers.set("Fcm-Token", response.getFcmToken());
+
         Message message = new Message(headers, HttpStatus.CREATED.value());
         return ResponseEntity.status(HttpStatus.CREATED)
                 .headers(headers)
@@ -56,7 +57,7 @@ public class AuthController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .headers(headers)
                 .body(message);
-}
+    }
 
     @PostMapping("/logout")
     public ResponseEntity<Message> logout(@AuthUser User user,

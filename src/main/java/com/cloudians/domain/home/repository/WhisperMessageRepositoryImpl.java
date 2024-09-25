@@ -16,14 +16,17 @@ import static com.cloudians.domain.home.entity.QWhisperMessage.whisperMessage;
 
 @Repository
 @RequiredArgsConstructor
-public class WhisperMessageRepositoryImpl {
+public class WhisperMessageRepositoryImpl implements WhisperMessageRepository {
+
     private final WhisperMessageJpaRepository whisperMessageJpaRepository;
     private final JPAQueryFactory q;
 
+    @Override
     public void save(WhisperMessage whisperMessage) {
         whisperMessageJpaRepository.save(whisperMessage);
     }
 
+    @Override
     public boolean existsByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime questionDateTime, LocalDateTime twentyFourHoursLater) {
         return q.selectFrom(whisperMessage)
                 .where(whisperMessage.user.eq(user)
@@ -32,6 +35,7 @@ public class WhisperMessageRepositoryImpl {
                 .fetchFirst() != null;
     }
 
+    @Override
     public List<WhisperMessage> findByUserOrderByTimeStampDesc(User user, Long cursor, Long count) {
         return q.selectFrom(whisperMessage)
                 .where(whisperMessage.user.eq(user)
@@ -41,6 +45,7 @@ public class WhisperMessageRepositoryImpl {
                 .fetch();
     }
 
+    @Override
     public List<WhisperMessage> findBySearchKeywordOrderByTimeStampDesc(User user, Long cursor, Long count, String keyword) {
         return q.selectFrom(whisperMessage)
                 .where(whisperMessage.user.eq(user)
@@ -50,6 +55,7 @@ public class WhisperMessageRepositoryImpl {
                 .fetch();
     }
 
+    @Override
     public List<WhisperMessage> findByDateOrderByTimestampDesc(User user, Long cursor, Long count, LocalDate date) {
         return q.selectFrom(whisperMessage)
                 .where(whisperMessage.user.eq(user)
@@ -60,12 +66,14 @@ public class WhisperMessageRepositoryImpl {
                 .fetch();
     }
 
+    @Override
     public List<WhisperMessage> findListByUser(User user) {
         return q.selectFrom(whisperMessage)
                 .where(whisperMessage.user.eq(user))
                 .fetch();
     }
 
+    @Override
     public List<WhisperMessage> findByUserAndSender(User user, SenderType sender) {
         return whisperMessageJpaRepository.findByUserAndSender(user, sender);
     }

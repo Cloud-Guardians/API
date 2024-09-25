@@ -16,10 +16,10 @@ import com.cloudians.domain.publicdiary.entity.like.PublicDiaryCommentLikeLink;
 import com.cloudians.domain.publicdiary.entity.report.PublicDiaryCommentReport;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryException;
 import com.cloudians.domain.publicdiary.exception.PublicDiaryExceptionType;
-import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRepositoryImpl;
-import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
-import com.cloudians.domain.publicdiary.repository.like.PublicDiaryCommentLikeLinkRepositoryImpl;
-import com.cloudians.domain.publicdiary.repository.report.PublicDiaryCommentReportJpaRepository;
+import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRepository;
+import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepository;
+import com.cloudians.domain.publicdiary.repository.like.PublicDiaryCommentLikeLinkRepository;
+import com.cloudians.domain.publicdiary.repository.report.PublicDiaryCommentReportRepository;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
@@ -34,10 +34,10 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Transactional
 public class PublicDiaryCommentService {
-    private final PublicDiaryCommentRepositoryImpl publicDiaryCommentRepository;
-    private final PublicDiaryRepositoryImpl publicDiaryRepository;
-    private final PublicDiaryCommentLikeLinkRepositoryImpl publicDiaryCommentLikeLinkRepository;
-    private final PublicDiaryCommentReportJpaRepository publicDiaryCommentReportRepository;
+    private final PublicDiaryCommentRepository publicDiaryCommentRepository;
+    private final PublicDiaryRepository publicDiaryRepository;
+    private final PublicDiaryCommentLikeLinkRepository publicDiaryCommentLikeLinkRepository;
+    private final PublicDiaryCommentReportRepository publicDiaryCommentReportRepository;
 
     public PublicDiaryCommentResponse writeComment(User author, Long publicDiaryId, WritePublicDiaryCommentRequest request) {
 

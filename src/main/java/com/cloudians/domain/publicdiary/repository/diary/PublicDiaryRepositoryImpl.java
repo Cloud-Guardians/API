@@ -16,26 +16,31 @@ import static com.cloudians.domain.publicdiary.entity.diary.QPublicDiary.publicD
 
 @Repository
 @RequiredArgsConstructor
-public class PublicDiaryRepositoryImpl {
+public class PublicDiaryRepositoryImpl implements PublicDiaryRepository {
     private final PublicDiaryJpaRepository publicDiaryJpaRepository;
     private final JPAQueryFactory q;
 
+    @Override
     public void save(PublicDiary publicDiary) {
         publicDiaryJpaRepository.save(publicDiary);
     }
 
+    @Override
     public void delete(PublicDiary publicDiary) {
         publicDiaryJpaRepository.delete(publicDiary);
     }
 
+    @Override
     public Optional<PublicDiary> findById(Long publicDiaryId) {
         return publicDiaryJpaRepository.findById(publicDiaryId);
     }
 
+    @Override
     public boolean existsByPersonalDiaryId(Long personalDiaryId) {
         return publicDiaryJpaRepository.existsByPersonalDiaryId(personalDiaryId);
     }
 
+    @Override
     public List<PublicDiary> searchByTypeAndKeywordOrderByTimestampDesc(SearchCondition condition, Long cursor, Long count) {
         return q.selectFrom(publicDiary)
                 .where(isSearchable(condition.getType(), condition.getContent())
@@ -45,6 +50,7 @@ public class PublicDiaryRepositoryImpl {
                 .fetch();
     }
 
+    @Override
     public List<PublicDiary> publicDiariesOrderByCreatedAtDescWithTop3Diaries(Long cursor, Long count) {
         if (cursor == null) {
             List<PublicDiary> top3Diaries = findTop3DiariesByLikes();
@@ -55,6 +61,11 @@ public class PublicDiaryRepositoryImpl {
             return top3Diaries;
         }
         return getLeftPublicDiariesOrderByDesc(cursor, count, Collections.emptyList());
+    }
+
+    @Override
+    public Optional<PublicDiary> findByPersonalDiaryId(Long personalDiaryId) {
+        return publicDiaryJpaRepository.findByPersonalDiaryId(personalDiaryId);
     }
 
     private List<PublicDiary> getLeftPublicDiariesOrderByDesc(Long cursor, Long count, List<PublicDiary> top3Diaries) {

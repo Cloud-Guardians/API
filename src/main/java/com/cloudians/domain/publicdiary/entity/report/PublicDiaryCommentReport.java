@@ -6,7 +6,6 @@ import com.cloudians.global.entity.BaseTimeEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import javax.persistence.*;
 
@@ -15,7 +14,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 public class PublicDiaryCommentReport extends BaseTimeEntity {
 
@@ -53,5 +51,13 @@ public class PublicDiaryCommentReport extends BaseTimeEntity {
         this.customReason = customReason;
         this.status = ReportStatus.PENDING;
         this.isRead = false;
+    }
+
+    public void changeReadStatus(boolean isRead) {
+        this.isRead = isRead;
+    }
+
+    public void changeStatus(ReportStatus status) {
+        this.status = status;
     }
 }

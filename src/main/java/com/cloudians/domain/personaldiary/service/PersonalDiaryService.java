@@ -14,6 +14,7 @@ import com.cloudians.domain.personaldiary.entity.analysis.PersonalDiaryAnalysis;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.*;
+import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepository;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.domain.user.exception.UserException;
 import com.cloudians.domain.user.exception.UserExceptionType;
@@ -31,10 +32,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,6 +49,8 @@ public class PersonalDiaryService {
     private final FiveElementCharacterRepository fiveElementCharacterRepository;
     private final FiveElementRepository fiveElementRepository;
     private final HarmonyTipRepository harmonyTipRepository;
+
+    private final PublicDiaryRepository publicDiaryRepository;
 
     private Map<String, PersonalDiaryEmotion> tempEmotions = new HashMap<>();
     public static String DOMAIN = "diary";
@@ -141,11 +141,12 @@ public class PersonalDiaryService {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
 
         deletePhotoIfExists(user.getUserEmail(), personalDiary);
-        personalDiaryRepository.delete(personalDiary);
+        publicDiaryRepository.findByPersonalDiaryId(personalDiaryId)
+                .ifPresent(publicDiaryRepository::delete);
         personalDiaryEmotionRepository.delete(personalDiary.getEmotion());
         personalDiaryAnalysisRepository.delete(personalDiary.getPersonalDiaryAnalysis());
+        personalDiaryRepository.delete(personalDiary);
     }
-
 
     public PersonalDiaryAnalyzeResponse getAnalyze(User user, Long personalDiaryId) {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
@@ -160,6 +161,10 @@ public class PersonalDiaryService {
         validateIfPhotoExistsOrThrow(personalDiary);
         deletePhotoIfExists(user.getUserEmail(), personalDiary);
         personalDiary.deletePhotoUrl();
+    }
+
+    public List<String> getElementCharacters(FiveElement element) {
+        return fiveElementCharacterRepository.findRandomCharactersByElementId(element.getId()).stream().map(FiveElementCharacter::getCharacteristic).collect(Collectors.toList());
     }
 
     private String updateDiaryPhoto(String userEmail, MultipartFile file, PersonalDiary personalDiary) {
@@ -197,11 +202,20 @@ public class PersonalDiaryService {
     private String[] analyzeDiaryWithChatGPT(PersonalDiary personalDiary, User user) {
         String answer = chatGptService.askQuestion(personalDiary, user);
         System.out.println("answer = " + answer);
-        String[] lines = answer.split(NEW_LINE_REGEX);
 
-        return new String[]{extractValue(lines, 0),  // elementName
-                extractValue(lines, 1),  // fortuneDetail
-                extractValue(lines, 2)   // advice
+        String[] lines = answer.split(NEW_LINE_REGEX);
+        List<String> filteredLines = new ArrayList<>();
+
+        for (String line : lines) {
+            if (line != null && !line.trim().isEmpty()) {
+                filteredLines.add(line.trim());
+            }
+        }
+
+        return new String[]{
+                extractValue(filteredLines.toArray(new String[0]), 0),  // elementName
+                extractValue(filteredLines.toArray(new String[0]), 1),  // fortuneDetail
+                extractValue(filteredLines.toArray(new String[0]), 2)   // advice
         };
     }
 
@@ -209,11 +223,12 @@ public class PersonalDiaryService {
         if (lines.length <= index) {
             throw new PersonalDiaryException(PersonalDiaryExceptionType.WRONG_CHATGPT_ANSWER_FORMAT);
         }
-        return lines[index].split(ANSWER_START_REGEX)[1].trim();
-    }
 
-    public List<String> getElementCharacters(FiveElement element) {
-        return fiveElementCharacterRepository.findRandomCharactersByElementId(element.getId()).stream().map(FiveElementCharacter::getCharacter).collect(Collectors.toList());
+        String[] parts = lines[index].split(ANSWER_START_REGEX, 2);
+        if (parts.length < 2) {
+            throw new PersonalDiaryException(PersonalDiaryExceptionType.WRONG_CHATGPT_ANSWER_FORMAT);
+        }
+        return parts[1].trim();
     }
 
     private String getHarmonyTipsJson() {

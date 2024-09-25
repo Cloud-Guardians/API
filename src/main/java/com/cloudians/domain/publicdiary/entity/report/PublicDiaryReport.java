@@ -1,29 +1,19 @@
 package com.cloudians.domain.publicdiary.entity.report;
 
-import static javax.persistence.FetchType.LAZY;
-import static javax.persistence.GenerationType.IDENTITY;
-
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-
 import com.cloudians.domain.publicdiary.entity.diary.PublicDiary;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.entity.BaseTimeEntity;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import javax.persistence.*;
+
+import static javax.persistence.FetchType.LAZY;
+import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 public class PublicDiaryReport extends BaseTimeEntity {
 
@@ -61,5 +51,13 @@ public class PublicDiaryReport extends BaseTimeEntity {
         this.customReason = customReason;
         this.status = ReportStatus.PENDING;
         this.isRead = false;
+    }
+
+    public void changeReadStatus(boolean isRead) {
+        this.isRead = isRead;
+    }
+
+    public void changeStatus(ReportStatus status) {
+        this.status = status;
     }
 }

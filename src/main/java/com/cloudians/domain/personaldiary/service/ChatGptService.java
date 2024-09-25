@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.sql.Date;
 import java.time.LocalDate;
 
 @Service
@@ -61,7 +60,7 @@ public class ChatGptService {
         String birthTime = user.getBirthTime().toString();
 
         String text = "일기 내용을 바탕으로 음양오행 요소와 그 요소의 영향을 받는 상황에서 생일:%s, 생시:%s인 사람의 내일의 운세 및 내일 운세에 따른 조언을 알려주세요. 다음 형식으로 답변해 주세요.\n" +
-                "요소: [화,수,목,금,토 중 하나만 한글자로 대답]\n" +
+                "요소: [음양오행 요소인 화,수,목,금,토 중 하나만 한글자로 대답]\n" +
                 "총운: [3-4문장으로 내일의 운세 설명]\n" +
                 "조언: [3-4문장으로 주어질 조언]";
 

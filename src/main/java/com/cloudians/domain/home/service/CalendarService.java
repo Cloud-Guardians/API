@@ -5,7 +5,7 @@ import com.cloudians.domain.home.dto.response.EmotionsResponse;
 import com.cloudians.domain.home.entity.SenderType;
 import com.cloudians.domain.home.exception.CalendarException;
 import com.cloudians.domain.home.exception.CalendarExceptionType;
-import com.cloudians.domain.home.repository.WhisperMessageRepositoryImpl;
+import com.cloudians.domain.home.repository.WhisperMessageRepository;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class CalendarService {
     private final PersonalDiaryRepository personalDiaryRepository;
-    private final WhisperMessageRepositoryImpl whisperMessageRepository;
+    private final WhisperMessageRepository whisperMessageRepository;
 
     public List<CalendarResponse> getDiariesInThreeMonths(User user, LocalDate date) {
 

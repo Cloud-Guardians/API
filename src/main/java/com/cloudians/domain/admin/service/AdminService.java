@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.cloudians.domain.publicdiary.entity.report.ReportStatus.DISMISS;
@@ -65,7 +64,7 @@ public class AdminService {
     public AdminReportResponse getReport(Long publicDiaryReportId) {
         PublicDiaryReport response = getPublicDiaryReport(publicDiaryReportId);
 
-        response.setRead(true);
+        response.changeReadStatus(true);
 
         return AdminReportResponse.of(response, response.getReporter());
     }
@@ -95,17 +94,8 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
-//    public void EditReport(Long reportId) {
-//        PublicDiaryReport report = getPublicDiaryReport(reportId);
-//        if(report.setStatus(DISMISS)){
-//
-//        }else()
-//        ReportedUserResponse.edit(report.getReportedDiary().getAuthor());
-//    }
-
     public List<AdminReportCommentResponse> getAllComments(ReportStatus status, User user) {
         checkAdminStatus(user.getUserEmail());
-
         List<PublicDiaryCommentReport> response = publicDiaryCommentReportRepository.findByStatus(status);
 
         if (response.isEmpty()) {
@@ -139,7 +129,7 @@ public class AdminService {
     public AdminReportCommentResponse getComment(Long commentReportId) {
         PublicDiaryCommentReport response = getPublicDiaryCommentReport(commentReportId);
 
-        response.setRead(true);
+        response.changeReadStatus(true);
 
         return AdminReportCommentResponse.of(response, response.getReporter());
     }
@@ -152,7 +142,7 @@ public class AdminService {
             throw new AdminException(AdminExceptionType.UNAUTHORIZED_ACCESS);
         }
     }
-
+  
     public AdminReportCommentResponse getReportedComment(Long commentId) {
         PublicDiaryCommentReport response = getPublicDiaryCommentReport(commentId);
 
@@ -174,6 +164,7 @@ public class AdminService {
             PublicDiaryReport response = getPublicDiaryReport(reportId);
             response.setStatus(DISMISS);
             response.setRead(true);
+            response.changeStatus(DISMISS);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
 
@@ -192,6 +183,7 @@ public class AdminService {
             PublicDiaryCommentReport response = getPublicDiaryCommentReport(reportId);
             response.setStatus(DISMISS);
             response.setRead(true);
+            response.changeStatus(DISMISS);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
 

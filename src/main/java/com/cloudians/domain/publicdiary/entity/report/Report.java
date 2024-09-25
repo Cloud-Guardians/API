@@ -4,6 +4,7 @@ import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.entity.BaseTimeEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 import javax.persistence.*;
@@ -13,6 +14,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @MappedSuperclass
 @Getter
+@Setter
 @NoArgsConstructor
 @SuperBuilder
 public abstract class Report extends BaseTimeEntity {

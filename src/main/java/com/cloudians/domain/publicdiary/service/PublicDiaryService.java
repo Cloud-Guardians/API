@@ -99,6 +99,7 @@ public class PublicDiaryService {
             return LikeResponse.of(publicDiaryLikeLink, true);
         }
     }
+    
 
     public GeneralPaginatedResponse<PaginationLikesResponse> countLikes(Long cursor, Long count, Long publicDiaryId) {
         getPublicDiaryOrThrow(publicDiaryId);

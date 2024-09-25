@@ -7,7 +7,6 @@ import com.cloudians.global.entity.BaseTimeEntity;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import javax.persistence.*;
 
@@ -16,7 +15,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 @Entity
 @Getter
-@Setter
 @NoArgsConstructor
 public class PublicDiaryComment extends BaseTimeEntity {
 

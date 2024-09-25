@@ -66,7 +66,7 @@ public class AdminService {
     public AdminReportResponse getReport(Long publicDiaryReportId) {
         PublicDiaryReport response = getPublicDiaryReport(publicDiaryReportId);
 
-        response.setRead(true);
+        response.changeReadStatus(true);
 
         return AdminReportResponse.of(response, response.getReporter());
     }
@@ -130,7 +130,7 @@ public class AdminService {
     public AdminReportCommentResponse getComment(Long commentReportId) {
         PublicDiaryCommentReport response = getPublicDiaryCommentReport(commentReportId);
 
-        response.setRead(true);
+        response.changeReadStatus(true);
 
         return AdminReportCommentResponse.of(response, response.getReporter());
     }
@@ -165,11 +165,11 @@ public class AdminService {
     }
 
     private void processReport(PublicDiaryReport report, ReportStatus status) {
-        report.setStatus(status);
+        report.changeStatus(status);
     }
 
     private void processCommentReport(PublicDiaryCommentReport commentReport, ReportStatus status) {
-        commentReport.setStatus(status);
+        commentReport.changeStatus(status);
         publicDiaryCommentReportRepository.save(commentReport);
     }
 
@@ -193,7 +193,7 @@ public class AdminService {
 
         } else if ("update".equals(action)) {
             PublicDiaryReport response = getPublicDiaryReport(reportId);
-            response.setStatus(DISMISS);
+            response.changeStatus(DISMISS);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
 
@@ -210,7 +210,7 @@ public class AdminService {
 
         } else if ("update".equals(action)) {
             PublicDiaryCommentReport response = getPublicDiaryCommentReport(reportId);
-            response.setStatus(DISMISS);
+            response.changeStatus(DISMISS);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
 

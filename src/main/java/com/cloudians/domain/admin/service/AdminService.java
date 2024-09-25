@@ -96,14 +96,6 @@ public class AdminService {
                 .collect(Collectors.toList());
     }
 
-//    public void EditReport(Long reportId) {
-//        PublicDiaryReport report = getPublicDiaryReport(reportId);
-//        if(report.setStatus(DISMISS)){
-//
-//        }else()
-//        ReportedUserResponse.edit(report.getReportedDiary().getAuthor());
-//    }
-
     public List<AdminReportCommentResponse> getAllComments(ReportStatus status) {
         List<PublicDiaryCommentReport> response = publicDiaryCommentReportRepository.findByStatus(status);
 

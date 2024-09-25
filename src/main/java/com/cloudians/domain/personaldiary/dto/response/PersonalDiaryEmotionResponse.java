@@ -1,7 +1,6 @@
 package com.cloudians.domain.personaldiary.dto.response;
 
 import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
-import com.cloudians.domain.user.entity.User;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,7 +8,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
-public class PersonalDiaryEmotionUpdateResponse {
+public class PersonalDiaryEmotionResponse {
     private Long emotionId;
 
     private String userEmail;
@@ -31,7 +30,7 @@ public class PersonalDiaryEmotionUpdateResponse {
     private LocalDateTime updatedAt;
 
     @Builder
-    private PersonalDiaryEmotionUpdateResponse(Long emotionId, String userEmail, int joy, int sadness, int anger, int anxiety, int boredom, LocalDate date, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    private PersonalDiaryEmotionResponse(Long emotionId, String userEmail, int joy, int sadness, int anger, int anxiety, int boredom, LocalDate date, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.emotionId = emotionId;
         this.userEmail = userEmail;
         this.joy = joy;
@@ -44,8 +43,8 @@ public class PersonalDiaryEmotionUpdateResponse {
         this.updatedAt = updatedAt;
     }
 
-    public static PersonalDiaryEmotionUpdateResponse of(PersonalDiaryEmotion editedEmotions) {
-        return PersonalDiaryEmotionUpdateResponse.builder()
+    public static PersonalDiaryEmotionResponse of(PersonalDiaryEmotion editedEmotions) {
+        return PersonalDiaryEmotionResponse.builder()
                 .emotionId(editedEmotions.getId())
                 .userEmail(editedEmotions.getUser().getUserEmail())
                 .joy(editedEmotions.getJoy())

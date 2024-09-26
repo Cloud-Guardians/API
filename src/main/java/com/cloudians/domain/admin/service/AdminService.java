@@ -17,20 +17,15 @@ import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRep
 import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.report.PublicDiaryCommentReportJpaRepository;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.exception.UserException;
-import com.cloudians.domain.user.exception.UserExceptionType;
-import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.cloudians.domain.publicdiary.entity.report.ReportStatus.DISMISS;
-import static com.cloudians.domain.user.entity.UserStatus.ADMIN;
 
 
 @Service
@@ -42,15 +37,11 @@ public class AdminService {
 
     private final PublicDiaryCommentReportJpaRepository publicDiaryCommentReportRepository;
 
-    private final UserRepository userRepository;
-
     private final PublicDiaryRepositoryImpl publicDiaryRepository;
 
     private final PublicDiaryCommentRepositoryImpl publicDiaryCommentRepository;
 
     public List<AdminReportResponse> getAllReports(ReportStatus status, User user) {
-        checkAdminStatus(user.getUserEmail());
-
         List<PublicDiaryReport> response = publicDiaryReportRepository.findByStatus(status);
 
         if (response.isEmpty()) {
@@ -96,8 +87,6 @@ public class AdminService {
     }
 
     public List<AdminReportCommentResponse> getAllComments(ReportStatus status, User user) {
-        checkAdminStatus(user.getUserEmail());
-
         List<PublicDiaryCommentReport> response = publicDiaryCommentReportRepository.findByStatus(status);
 
         if (response.isEmpty()) {
@@ -134,15 +123,6 @@ public class AdminService {
         response.changeReadStatus(true);
 
         return AdminReportCommentResponse.of(response, response.getReporter());
-    }
-
-    public void checkAdminStatus(String userEmail) {
-        User user = userRepository.findByUserEmail(userEmail)
-                .orElseThrow(() -> new UserException(UserExceptionType.USER_NOT_FOUND));
-
-        if (!ADMIN.equals(user.getStatus())) {
-            throw new AdminException(AdminExceptionType.UNAUTHORIZED_ACCESS);
-        }
     }
 
     public AdminReportCommentResponse getReportedComment(Long commentId) {

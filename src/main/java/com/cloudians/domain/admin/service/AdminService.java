@@ -17,6 +17,7 @@ import com.cloudians.domain.publicdiary.repository.comment.PublicDiaryCommentRep
 import com.cloudians.domain.publicdiary.repository.diary.PublicDiaryRepositoryImpl;
 import com.cloudians.domain.publicdiary.repository.report.PublicDiaryCommentReportJpaRepository;
 import com.cloudians.domain.user.entity.User;
+import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,8 @@ public class AdminService {
     private final AdminPublicDiaryReportJpaRepository publicDiaryReportRepository;
 
     private final PublicDiaryCommentReportJpaRepository publicDiaryCommentReportRepository;
+
+    private final UserRepository userRepository;
 
     private final PublicDiaryRepositoryImpl publicDiaryRepository;
 
@@ -139,6 +142,7 @@ public class AdminService {
 
         if ("delete".equals(action)) {
             reportedUser.setTotalReportCount(reportedUser.getTotalReportCount() + 1);
+            userRepository.save(reportedUser);
             publicDiaryRepository.delete(diary);
             publicDiaryReportRepository.delete(report);
 
@@ -146,6 +150,7 @@ public class AdminService {
             PublicDiaryReport response = getPublicDiaryReport(reportId);
             response.changeStatus(DISMISS);
             response.changeReadStatus(true);
+            publicDiaryReportRepository.save(response);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
 
@@ -157,6 +162,7 @@ public class AdminService {
 
         if ("delete".equals(action)) {
             reportedUser.setTotalReportCount(reportedUser.getTotalReportCount() + 1);
+            userRepository.save(reportedUser);
             publicDiaryCommentRepository.delete(comment);
             publicDiaryCommentReportRepository.delete(report);
 
@@ -164,6 +170,7 @@ public class AdminService {
             PublicDiaryCommentReport response = getPublicDiaryCommentReport(reportId);
             response.changeStatus(DISMISS);
             response.changeReadStatus(true);
+            publicDiaryCommentReportRepository.save(response);
         } else throw new AdminException(AdminExceptionType.INVALID_ACTION);
     }
 

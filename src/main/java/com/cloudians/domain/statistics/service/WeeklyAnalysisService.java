@@ -159,14 +159,16 @@ public class WeeklyAnalysisService {
         WeeklyAnalysis anal = getOrCreateWeeklyAnalysis(user, yearMonth, String.valueOf(week));
         for (PersonalDiary diary : diaryList) {
             PersonalDiaryEmotion emotion = emotionRepository.findPersonalDiaryEmotionByUserAndDate(user, diary.getDate());
-            anal.setTotalDiary(anal.getTotalDiary() + 1);
+            // 기존 값을 더하지 않고 주간 통계를 새롭게 계산
+            anal.setTotalDiary(diaryList.size());
             anal.setTotalAnswer(getWeeklyDiaryAndAnswer(user, yearMonth, week));
-            anal.setWeeklyJoy(anal.getWeeklyJoy() + emotion.getJoy());
-            anal.setWeeklySadness(anal.getWeeklySadness() + emotion.getSadness());
-            anal.setWeeklyAnger(anal.getWeeklyAnger() + emotion.getAnger());
-            anal.setWeeklyAnxiety(anal.getWeeklyAnxiety() + emotion.getAnxiety());
-            anal.setWeeklyBoredom(anal.getWeeklyBoredom() + emotion.getBoredom());
+            anal.setWeeklyJoy(diaryList.stream().mapToInt(d -> findEmotionByUserAndDate(user, d.getDate()).getJoy()).sum());
+            anal.setWeeklySadness(diaryList.stream().mapToInt(d -> findEmotionByUserAndDate(user, d.getDate()).getSadness()).sum());
+            anal.setWeeklyAnger(diaryList.stream().mapToInt(d -> findEmotionByUserAndDate(user, d.getDate()).getAnger()).sum());
+            anal.setWeeklyAnxiety(diaryList.stream().mapToInt(d -> findEmotionByUserAndDate(user, d.getDate()).getAnxiety()).sum());
+            anal.setWeeklyBoredom(diaryList.stream().mapToInt(d -> findEmotionByUserAndDate(user, d.getDate()).getBoredom()).sum());
         }
+
         weeklyRepository.save(anal);
         Map<String, Object> map = new HashMap<>();
         map.put("response", anal.toDto());

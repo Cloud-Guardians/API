@@ -1,74 +1,143 @@
 package com.cloudians.global.controller;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudians.domain.user.dto.response.UserResponse;
+import com.cloudians.domain.user.exception.UserException;
+import com.cloudians.domain.user.exception.UserExceptionType;
+import com.cloudians.domain.user.service.FcmNotificationService;
+import com.cloudians.domain.user.service.UserService;
+import com.cloudians.global.Message;
 import com.cloudians.global.service.FirebaseService;
-import com.google.cloud.storage.Blob;
-import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
+
+import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/api/users")
+@RequiredArgsConstructor
+@RequestMapping("/global")
 public class FirebaseController {
-	
-	@Autowired
-	private FirebaseService firebaseService;
-	
-	@GetMapping("/file")
-	public String aaa() throws FirebaseAuthException {
-	    
-	    FirebaseAuth mAuth = FirebaseAuth.getInstance();
-	    String uid = "c51e4662168a7a006bf6082dcd7a16ba5ff3fb0b";
-	  return FirebaseAuth.getInstance().createCustomToken(uid);
+
+    private static final String FIREBASE_API_URL = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=AIzaSyCRa6O8ERHxL_9CmWJeJyUKcxMgDxH65-A";
+	private final FirebaseService firebaseService;
+
+
+	public ResponseEntity<Message> errorMessage (Exception e){
+	    System.out.println(e);
+
+	    Message errorMessage = new Message(e.toString(), HttpStatus.BAD_REQUEST.value());
+		return ResponseEntity.status(HttpStatus.OK).body(errorMessage);
 	}
+
+	public ResponseEntity<Message> successMessage (Object object){
+	    Message message = new Message(object,null,HttpStatus.OK.value());
+	    return ResponseEntity.status(HttpStatus.OK).body(message);
+	}
+
+
+
+	// id Token
 	@GetMapping("/token")
-	public String tokenTest() throws FirebaseAuthException{
-		FirebaseAuth mAuth = FirebaseAuth.getInstance();
-		String uid = "pieeJ3r044hygNP7nqbVTu7LLk13";
+	public ResponseEntity<Message> tokenTest() throws FirebaseAuthException{
+		String uid = "c51e4662168a7a006bf6082dcd7a16ba5ff3fb0b";
+
 		try {
 			String customToken = FirebaseAuth.getInstance().createCustomToken(uid);
-			
+		Map<String, Object> firebaseRequest = new HashMap<>();
+		firebaseRequest.put("token",customToken);
+		firebaseRequest.put("returnSecureToken",true);
+
+		RestTemplate restTemplate = new RestTemplate();
+		HttpHeaders headers = new HttpHeaders();
+
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<Map<String,Object>> entity = new HttpEntity<>(firebaseRequest,headers);
+
+		ResponseEntity<Map> response = restTemplate.exchange(
+			FIREBASE_API_URL,
+			HttpMethod.POST,
+			entity,
+			Map.class);
+
+		Map<String,String> responseBody = new HashMap<>();
+		if(response.getBody() != null) {
+		    String idToken = (String) response.getBody().get("idToken");
+		    responseBody.put("idToken",idToken);
+		    return successMessage(idToken);
+		}
+		return successMessage("none");
 		} catch(Exception e) {
-			return e.toString();
+		    return errorMessage(e);
 		}
-		return null;
+
 	}
+
+	@DeleteMapping("/delete")
+	public ResponseEntity<Message> deleteFile(@RequestParam String fileName) throws Exception{
+	    System.out.println("Start");
+	    firebaseService.deleteFileUrl("dencodin@naver.com","profile",fileName);
+	    String message = "done";
+		   return successMessage(message);
+	}
+
+	@GetMapping("/get")
+	public ResponseEntity<Message> getFile(@RequestParam String fileName) throws Exception {
+	    System.out.println("Start");
+	    String userEmail = "dencoding@naver.com";
+	    String message=  firebaseService.getFileUrl(userEmail,"profile",fileName);
+		   return successMessage(message);
+	}
+
+	// uploadFile
 	@PostMapping("/files")
-	public String uploadFile(@RequestParam("file") MultipartFile file, String nameFile) throws IOException, FirebaseAuthException {
-		if(file.isEmpty()) return "is empty";
-		return firebaseService.uploadFiles(file, nameFile);
+	public ResponseEntity<Message> uploadFile(@RequestParam("file") MultipartFile file, String nameFile) throws IOException, FirebaseAuthException {
+	    try {
+		String userEmail = "dencoding@naver.com";
+		String domain = "profile";
+		String fileUrl = firebaseService.uploadFile(file, userEmail, nameFile, domain);
+		return successMessage(fileUrl);
+	    } catch(Exception e) {
+		 return errorMessage(e);
+	    }
 	}
-//	@GetMapping("/files")
-//	public String getFileUrl(String fileName)throws Exception {
-//		
-//	}
+
+
 	@GetMapping("/files")
-	public String viewFile(String fileName) throws IOException, FirebaseAuthException {
-		System.out.println(fileName+"은 들어온다.");
-		FirebaseAuth auth = FirebaseAuth.getInstance();
-		String idToken = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjFkYmUwNmI1ZDdjMmE3YzA0NDU2MzA2MWZmMGZlYTM3NzQwYjg2YmMiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL3NlY3VyZXRva2VuLmdvb2dsZS5jb20vY2xvdWRpYW5zLXBob3RvIiwiYXVkIjoiY2xvdWRpYW5zLXBob3RvIiwiYXV0aF90aW1lIjoxNzIyNjAyMzM5LCJ1c2VyX2lkIjoiYzUxZTQ2NjIxNjhhN2EwMDZiZjYwODJkY2Q3YTE2YmE1ZmYzZmIwYiIsInN1YiI6ImM1MWU0NjYyMTY4YTdhMDA2YmY2MDgyZGNkN2ExNmJhNWZmM2ZiMGIiLCJpYXQiOjE3MjI2MDIzMzksImV4cCI6MTcyMjYwNTkzOSwiZmlyZWJhc2UiOnsiaWRlbnRpdGllcyI6e30sInNpZ25faW5fcHJvdmlkZXIiOiJjdXN0b20ifX0.EaAFl4zWo9IMZB2oPMKBt6CizouHrpQRAH8ur7W_-5y8gqauFiKPAw8wWUz_xuE2z_HA8Sbo-xI7HCvYZWxmtcgzqNwInmpoDs7yYHdcHodewARC2EwysQxQ79rplyQS3lcF8emsIf9RrcHXLLlVA2Vv5ghTOvXV64AcITgROTrZuhsXEYDDtRhFflLUB2Bx7YHRWWguiVgwlX9N20MZJgpNFDHMM1GhQrL75z3tA0YjBE41-D9n5M46mPmag9Tg01lfI3T9vEZReMz6_m1I7pQavqGa4IYDYPv9TZcegbcKC7H2ShMAd_agNhdwF1Qun-qqeeFKony0rwnuew5z1g";
-		FirebaseToken token = auth.verifyIdToken(idToken);
-		if(token != null) {
-			System.out.println("일단 토큰은 있음.");
-			String url = firebaseService.getFileUrl(fileName);
-            return url;
-		}
-		return token.getClaims().toString();
+	public ResponseEntity<Message> viewFile(@RequestParam String fileName){
+	    System.out.println(fileName+"은 들어온다.");
+	        try {
+		System.out.println("일단 토큰은 있음.");
+		 String url = firebaseService.getFileUrl("dencoding","profile",fileName);
+		URL url2 = new URL(url);
+		return successMessage(url.toString());
+	    } catch(Exception e) {
+
+		 return errorMessage(e);
+	    }
+
 	}
-	
+
+
+
 
 
 }

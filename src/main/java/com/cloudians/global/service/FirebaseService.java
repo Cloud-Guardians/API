@@ -1,60 +1,90 @@
 package com.cloudians.global.service;
 
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.cloudians.domain.user.repository.UserRepository;
+import com.cloudians.global.Message;
+import com.cloudians.global.exception.FirebaseException;
+import com.cloudians.global.exception.FirebaseExceptionType;
 import com.google.cloud.storage.Blob;
 import com.google.cloud.storage.Bucket;
-import com.google.cloud.storage.Storage;
-import com.google.cloud.storage.StorageOptions;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseAuthException;
-import com.google.firebase.auth.FirebaseToken;
 import com.google.firebase.cloud.StorageClient;
 
+import lombok.RequiredArgsConstructor;
 @Service
+@RequiredArgsConstructor
 public class FirebaseService {
-	
-	private final Storage storage;
+    private final String firebaseBucket = "cloudians-photo.appspot.com";
+    private final UserRepository userRepository;
 
-    public FirebaseService() {
-        this.storage = StorageOptions.getDefaultInstance().getService();
+    public Bucket bucket() {
+        return StorageClient.getInstance().bucket(firebaseBucket);
     }
-    
-	
-	// 사진 업로드
-	public String uploadFiles(MultipartFile file, String nameFile) throws IOException, FirebaseAuthException {
-		String firebaseBucket = "cloudians-photo.appspot.com";
-		Bucket bucket = StorageClient.getInstance().bucket(firebaseBucket);
-		
-		InputStream content = new ByteArrayInputStream(file.getBytes());
-		Blob blob = bucket.create(nameFile.toString(), content, file.getContentType());
-	
-		
-        
-		return blob.getMediaLink();
-	}
-	
-	// 프로필 조회는 토큰 있어야 됨.. 
 
-	// 사진 url 얻기
-    public String getFileUrl(String fileName) {
-    	String firebaseBucket = "cloudians-photo.appspot.com";
-		Bucket bucket = StorageClient.getInstance().bucket(firebaseBucket);
-    	System.out.println(fileName+"서비스에 들어왓공.");
-        Blob blob = storage.get(bucket.getName(), fileName.toString());
-        System.out.println(blob.toString()+"들어왔을까..");
-        if (blob != null) {
-            // Blob의 media link를 통해 URL을 가져옵니다.
-            return blob.getMediaLink();
+   
+    // user folder
+    public String folderPath(String userEmail, String domain, String fileName) {
+        // 사용자 폴더 경로 설정
+        String folderPath = "users/" + userEmail + "/" + domain + "/" + fileName.toString(); // 사용자 ID에 따라 폴더를 생성
+        return folderPath;
+    }
+
+    // upload file
+    public String uploadFile(MultipartFile file, String userEmail, String domain, String fileName) {
+        try (InputStream content = new ByteArrayInputStream(file.getBytes())) {
+            Blob blob = bucket().create(folderPath(userEmail, domain, fileName), content, file.getContentType());
+            URL signedUrl = blob.signUrl(7, TimeUnit.DAYS);
+         
+            System.out.println("sign:"+signedUrl.toString());
+            return  blob.signUrl(365, TimeUnit.DAYS).toString();
+        } catch (Exception e) {
+            Message message = new Message(e, HttpStatus.BAD_REQUEST.value());
+            return message.toString();
         }
-        return null; // 파일을 찾을 수 없는 경우
     }
-    
 
+    // delete file
+    public void deleteFileUrl(String userEmail, String domain, String fileName) {
+        System.out.println(fileName);
+        String folderPath = folderPath(userEmail, domain, fileName);
+        Blob blob = bucket().get(folderPath);
+        if (blob != null) {
+            blob.delete();
+        } else throw new FirebaseException(FirebaseExceptionType.PHOTO_VALUE_NOT_FOUND);
+    }
 
+    // get file url
+    public String getFileUrl(String userEmail, String domain, String fileName) {
+        String folderPath = folderPath(userEmail, domain, fileName);
+       System.out.println("folder Path:"+folderPath);
+        Blob blob = bucket().get(folderPath);
+        if (blob != null) {
+//            System.out.println("yeah");
+//            String urlPath = folderPath.split("/")[0] + "%2F" + folderPath.split("/")[1] + "%2F" + folderPath.split("/")[2] + "%2F" + folderPath.split("/")[3];
+//            System.out.println(folderPath);
+//            System.out.println("mediaLink:" + blob.getMediaLink());
+//            System.out.println("selfLink:" + blob.getSelfLink());
+//            System.out.println("blob:" +  blob);
+//            Map<String, String> metadata = blob.getMetadata();
+//            System.out.println("tokens:"+metadata.toString());
+//            String tokens = metadata.get("firebaseStorageDownloadTokens");
+//          
+//            String dap = "https://firebasestorage.googleapis.com/v0/b/cloudians-photo.appspot.com/o/" + urlPath + "?alt=media&token=" + tokens;
+            return blob.signUrl(365, TimeUnit.DAYS).toString();
+        } else throw new FirebaseException(FirebaseExceptionType.PHOTO_VALUE_NOT_FOUND);
+    }
+
+    public Blob getBlob(String userEmail, String domain, String fileName) {
+        String folderPath = folderPath(userEmail, domain, fileName);
+        return bucket().get(folderPath);
+    }
 }
+

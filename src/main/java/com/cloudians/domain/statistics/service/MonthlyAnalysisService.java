@@ -1,6 +1,19 @@
 package com.cloudians.domain.statistics.service;
 
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import javax.transaction.Transactional;
+
+import org.springframework.stereotype.Service;
+
 import com.cloudians.domain.home.entity.WhisperMessage;
 import com.cloudians.domain.home.repository.WhisperMessageRepositoryImpl;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
@@ -10,26 +23,21 @@ import com.cloudians.domain.personaldiary.entity.analysis.FiveElementCharacter;
 import com.cloudians.domain.personaldiary.entity.analysis.PersonalDiaryAnalysis;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
-import com.cloudians.domain.personaldiary.repository.*;
-import com.cloudians.domain.statistics.dto.response.CollectionResponse;
+import com.cloudians.domain.personaldiary.repository.FiveElementCharacterRepository;
+import com.cloudians.domain.personaldiary.repository.FiveElementRepository;
+import com.cloudians.domain.personaldiary.repository.PersonalDiaryAnalysisRepository;
+import com.cloudians.domain.personaldiary.repository.PersonalDiaryEmotionRepository;
+import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
 import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
-import com.cloudians.domain.statistics.entity.Collection;
 import com.cloudians.domain.statistics.entity.MonthlyAnalysis;
 import com.cloudians.domain.statistics.exception.AnalysisException;
 import com.cloudians.domain.statistics.exception.AnalysisExceptionType;
 import com.cloudians.domain.statistics.repository.CollectionRepository;
 import com.cloudians.domain.statistics.repository.MonthlyAnalysisJPARepository;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.exception.UserException;
-import com.cloudians.domain.user.exception.UserExceptionType;
 import com.cloudians.domain.user.repository.UserRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
-import java.time.LocalDate;
-import java.util.*;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -80,8 +88,8 @@ public class MonthlyAnalysisService {
     public MonthlyAnalysisResponse getMonthlyAnalysis(User user, String yearMonth) {
 
         if (monthlyRepository.findByUserAndMonthlyDate(user, yearMonth).isEmpty()) {
-            MonthlyAnalysis newAnalysis = updateMonthlyAnalysis(user, yearMonth);
-            return newAnalysis.toDto();
+            MonthlyAnalysisResponse newAnalysis = updateMonthlyAnalysis(user, yearMonth);
+            return newAnalysis;
         } else {
             System.out.println("있지롱");
             MonthlyAnalysis analysis = findAnalysisByUserAndMonthlyDate(user, yearMonth);
@@ -91,7 +99,7 @@ public class MonthlyAnalysisService {
 
 
     // 월간 통계 없을 시
-    public MonthlyAnalysis updateMonthlyAnalysis(User user, String yearMonth) {
+    public MonthlyAnalysisResponse updateMonthlyAnalysis(User user, String yearMonth) {
         MonthlyAnalysis analysis = new MonthlyAnalysis();
         int totalDiary = 0;
         int monthlyJoy = 0;
@@ -140,7 +148,7 @@ public class MonthlyAnalysisService {
 
         monthlyRepository.save(analysis);
 
-        return analysis;
+        return MonthlyAnalysisResponse.of(analysis);
 
     }
 

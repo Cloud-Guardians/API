@@ -51,6 +51,7 @@ public class PersonalDiaryService {
     private final HarmonyTipRepository harmonyTipRepository;
 
     private final PublicDiaryRepository publicDiaryRepository;
+    private final PersonalDiaryJpaRepository personalDiaryJpaRepository;
 
     private Map<String, PersonalDiaryEmotion> tempEmotions = new HashMap<>();
     public static String DOMAIN = "diary";
@@ -114,6 +115,25 @@ public class PersonalDiaryService {
     public PersonalDiaryResponse getPersonalDiary(User user, Long personalDiaryId) {
         PersonalDiary personalDiary = getPersonalDiaryOrThrow(personalDiaryId, user);
         return PersonalDiaryResponse.of(personalDiary);
+    }
+
+    public PersonalDiaryResponse getPersonalDiaryByDate(User user, LocalDate date) {
+        PersonalDiary personalDiary = getPersonalDiaryOrThrowByDate(user, date);
+        return PersonalDiaryResponse.of(personalDiary);
+    }
+
+    private PersonalDiary getPersonalDiaryOrThrowByDate(User user, LocalDate date) {
+        return personalDiaryRepository.findByUserAndDate(user, date)
+                .orElseThrow(()-> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
+    }
+
+    public PersonalDiaryResponse getPersonalDiaryByEmotionId(Long emotionId, User user) {
+        PersonalDiary personalDiary = getPersonalDiaryOrThrowByEmotionId(user, emotionId);
+        return PersonalDiaryResponse.of(personalDiary);
+    }
+    private PersonalDiary getPersonalDiaryOrThrowByEmotionId(User user, Long emotionId) {
+        return personalDiaryJpaRepository.findByUserAndEmotionId(user, emotionId)
+                .orElseThrow(()-> new PersonalDiaryException(PersonalDiaryExceptionType.NON_EXIST_PERSONAL_DIARY));
     }
 
     public PersonalDiaryResponse editPersonalDiary(PersonalDiaryUpdateRequest request, Long personalDiaryId, User user, MultipartFile file) {

@@ -1,10 +1,13 @@
 package com.cloudians.domain.statistics.controller;
 
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.cloudians.domain.statistics.entity.MonthlyAnalysis;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,39 +45,34 @@ public class MonthlyAnalysisController {
 	return ResponseEntity.status(HttpStatus.OK).body(message);
 	
     }
-    
-    @GetMapping("/monthly/{year}/{month}")
-    public ResponseEntity<Message> monthlyReport(@AuthUser User user, @PathVariable("year") String year, @PathVariable("month") String month){	
-	String yearMonth = year+month;
-	MonthlyAnalysisResponse response = monthlyService.getMonthlyAnalysis(user, yearMonth);
-	Map<String, Object> map = monthlyService.getMonthlyReport(user,yearMonth);
-	FiveElement max = (FiveElement)map.get("max");
-	System.out.println("컨트롤러에서:"+max.toString());
-	FiveElement min = (FiveElement)map.get("min");
-	List<String> maxChar = personalDiaryService.getElementCharacters(max);
-	System.out.println(maxChar.toString());
-	List<String> minChar = personalDiaryService.getElementCharacters(min);
-	
-	Map<String, Object> result = new HashMap<>();
-	result.put("monthlyAnalysis",response);
-	result.put("maxCharacter",maxChar);
-	result.put("minCharacter",minChar);
-	Message message = new Message(result, HttpStatus.OK.value());
-	return ResponseEntity.status(HttpStatus.OK).body(message);
-	
-	
-    }
-    
-//    @GetMapping("/collection")
-//    public ResponseEntity<Message> monthlyCollection(@AuthUser User user, @RequestParam String yearMonth){
-//	List<CollectionResponse> collection = monthlyService.getMonthlyCollection(user, yearMonth);
-//	Message message = new Message(collection, HttpStatus.OK.value());
-//	return ResponseEntity.status(HttpStatus.OK).body(message);
-//	
-//    }
-//   
-    
 
-    
+
+	@GetMapping("/monthly/{year}/{month}")
+	public ResponseEntity<Message> getMonthlyReport(
+			@AuthUser User user,
+			@PathVariable("year") String year,
+			@PathVariable("month") String month) {
+		String yearMonth = year + month;
+		MonthlyAnalysis analysis = monthlyService.getMonthlyAnalysis(user, yearMonth);
+		MonthlyAnalysisResponse analysisResponse = MonthlyAnalysisResponse.of(analysis);
+
+		Map<String, Object> elementAnalysis = monthlyService.getMonthlyReport(user, year, month);
+		FiveElement maxElement = (FiveElement) elementAnalysis.get("max");
+		FiveElement minElement = (FiveElement) elementAnalysis.get("min");
+
+		List<String> maxCharacteristics = personalDiaryService.getElementCharacters(maxElement);
+		List<String> minCharacteristics = personalDiaryService.getElementCharacters(minElement);
+
+		Map<String, Object> response = new HashMap<>();
+		response.put("monthlyAnalysis", analysisResponse);
+		response.put("maxElementCharacteristics", maxCharacteristics);
+		response.put("minElementCharacteristics", minCharacteristics);
+		response.put("dominantElement", maxElement);
+		response.put("recessiveElement", minElement);
+
+		Message message = new Message(response, HttpStatus.OK.value());
+		return ResponseEntity.ok(message);
+	}
+
 
 }

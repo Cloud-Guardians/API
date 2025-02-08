@@ -9,6 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
+import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
 import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
 import com.cloudians.domain.statistics.dto.response.WeeklyAnalysisResponse;
 import com.cloudians.domain.user.entity.User;
@@ -69,4 +70,20 @@ public class WeeklyAnalysis {
   		.weeklyBoredom(weeklyBoredom)
   		.build();
       }
+
+    public void addAnalysisEmotion(PersonalDiaryEmotion emotion) {
+        weeklyJoy += emotion.getJoy();
+        weeklySadness += emotion.getSadness();
+        weeklyAnxiety += emotion.getAnxiety();
+        weeklyAnger += emotion.getAnger();
+        weeklyBoredom += emotion.getBoredom();
+    }
+
+    public void subtractAnalysisEmotion(PersonalDiaryEmotion emotion) {
+        weeklyJoy -= emotion.getJoy();
+        weeklySadness -= emotion.getSadness();
+        weeklyAnxiety -= emotion.getAnxiety();
+        weeklyAnger -= emotion.getAnger();
+        weeklyBoredom -= emotion.getBoredom();
+    }
 }

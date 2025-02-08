@@ -1,5 +1,6 @@
 package com.cloudians.domain.personaldiary.entity.analysis;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -10,6 +11,7 @@ import javax.persistence.Id;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 @Entity
 @Getter
 @NoArgsConstructor

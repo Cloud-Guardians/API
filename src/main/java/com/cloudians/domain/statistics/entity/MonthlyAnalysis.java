@@ -2,13 +2,9 @@ package com.cloudians.domain.statistics.entity;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
+import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
 import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
 import com.cloudians.domain.user.entity.User;
 
@@ -17,6 +13,11 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
+@Table(name="monthly_analysis",
+indexes = {
+        @Index(name ="idx_user_date", columnList="user_email,monthly_date"),
+        @Index(name="idx_monthly_date", columnList = "monthly_date")
+})
 @Entity
 public class MonthlyAnalysis {
     
@@ -75,6 +76,22 @@ public class MonthlyAnalysis {
 		.monthlyElement(monthlyElement)
 		.mostElementTop3(mostElementTop3)
 		.build();
+    }
+
+    public void addAnalysisEmotion(PersonalDiaryEmotion emotion) {
+        monthlyJoy += emotion.getJoy();
+        monthlySadness += emotion.getSadness();
+        monthlyAnxiety += emotion.getAnxiety();
+        monthlyAnger += emotion.getAnger();
+        monthlyBoredom += emotion.getBoredom();
+    }
+
+    public void subtractAnalysisEmotion(PersonalDiaryEmotion emotion) {
+        monthlyJoy -= emotion.getJoy();
+        monthlySadness -= emotion.getSadness();
+        monthlyAnxiety -= emotion.getAnxiety();
+        monthlyAnger -= emotion.getAnger();
+        monthlyBoredom -= emotion.getBoredom();
     }
     
 

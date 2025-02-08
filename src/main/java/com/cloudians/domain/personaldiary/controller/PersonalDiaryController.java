@@ -6,8 +6,11 @@ import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreate
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.response.*;
+import com.cloudians.domain.personaldiary.entity.PersonalDiary;
+import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.domain.statistics.service.MonthlyAnalysisService;
+import com.cloudians.domain.statistics.service.WeeklyAnalysisService;
 import com.cloudians.domain.user.entity.User;
 import com.cloudians.global.Message;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +27,7 @@ import javax.validation.Valid;
 public class PersonalDiaryController {
     private final PersonalDiaryService personalDiaryService;
     private final MonthlyAnalysisService monthlyService;
+    private final WeeklyAnalysisService weeklyService;
 
 
     // 자가 감정 측정 생성
@@ -54,9 +58,14 @@ public class PersonalDiaryController {
     public ResponseEntity<Message> editSelfEmotions(@AuthUser User user,
                                                     @PathVariable("emotion-id") Long emotionId,
                                                     @Valid @RequestBody PersonalDiaryEmotionUpdateRequest request) {
+        PersonalDiaryResponse oldDiary = personalDiaryService.getPersonalDiaryByEmotionId(emotionId, user);
+       monthlyService.deleteDiaryEntry(user, oldDiary.getPersonalDiaryId());
+       weeklyService.deleteDiaryEntry(user, oldDiary.getPersonalDiaryId());
         PersonalDiaryEmotionResponse response = personalDiaryService.editSelfEmotions(request, emotionId, user);
+        PersonalDiaryResponse diary = personalDiaryService.getPersonalDiaryByDate(user, response.getDate());
+        monthlyService.updateDiaryEntry(user, diary);
+        weeklyService.updateDiaryEntry(user, diary);
         Message message = new Message(response, HttpStatus.OK.value());
-
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
     }
@@ -67,7 +76,8 @@ public class PersonalDiaryController {
                                                        @RequestPart @Valid PersonalDiaryCreateRequest request,
                                                        @RequestPart(value = "file", required = false) MultipartFile file) {
         PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, user, file);
-        monthlyService.addDiaryEntry(user, response.getDate());
+        monthlyService.addDiaryEntry(user, response);
+        weeklyService.addDiaryEntry(user, response);
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -93,8 +103,10 @@ public class PersonalDiaryController {
                                                      @RequestPart @Valid PersonalDiaryUpdateRequest request,
                                                      @RequestPart(value = "file", required = false) MultipartFile file) {
         monthlyService.deleteDiaryEntry(user, personalDiaryId);
+        weeklyService.deleteDiaryEntry(user, personalDiaryId);
         PersonalDiaryResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, user, file);
-        monthlyService.addDiaryEntry(user, response.getDate());
+        monthlyService.updateDiaryEntry(user, response);
+        weeklyService.updateDiaryEntry(user, response);
         System.out.println("photo url:"+response.getPhotoUrl());
        
         Message message = new Message(response, HttpStatus.OK.value());
@@ -108,6 +120,7 @@ public class PersonalDiaryController {
     public ResponseEntity<Message> deletePersonalDiary(@AuthUser User user,
                                                        @PathVariable("personal-diary-id") Long personalDiaryId) {
         monthlyService.deleteDiaryEntry(user, personalDiaryId);
+        weeklyService.deleteDiaryEntry(user, personalDiaryId);
         personalDiaryService.deletePersonalDiary(user, personalDiaryId);
         Message message = new Message(null, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)

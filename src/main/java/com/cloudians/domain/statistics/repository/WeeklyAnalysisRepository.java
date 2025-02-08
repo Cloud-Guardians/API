@@ -11,6 +11,6 @@ import com.cloudians.domain.user.entity.User;
 @Repository
 public interface WeeklyAnalysisRepository extends JpaRepository<WeeklyAnalysis, Long> {
 
-    Optional<WeeklyAnalysis> findByUserAndWeeklyDate(User user, String date);
+    Optional<WeeklyAnalysis> findByUserAndWeeklyDate(User user, String weeklyDate);
 
 }

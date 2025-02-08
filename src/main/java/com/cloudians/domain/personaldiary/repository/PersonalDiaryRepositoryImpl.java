@@ -24,10 +24,6 @@ public class PersonalDiaryRepositoryImpl implements PersonalDiaryRepository {
         return personalDiaryJpaRepository.findByUserAndDate(user, date);
     }
 
-    @Override
-    public Optional<List<PersonalDiary>> findListByUser(User user) {
-        return personalDiaryJpaRepository.findListByUser(user);
-    }
 
 
 

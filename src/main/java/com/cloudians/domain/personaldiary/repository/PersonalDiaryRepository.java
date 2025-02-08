@@ -14,9 +14,6 @@ public interface PersonalDiaryRepository {
 
     Optional<PersonalDiary> findByUserAndDate(User user, LocalDate date);
 
-    Optional<List<PersonalDiary>> findListByUser(User user);
-
-
     Optional<List<PersonalDiary>> findPersonalDiaryByUserAndDateBetweenOrderByDate(User user, LocalDate startOfMonth, LocalDate endOfMonth);
 
     PersonalDiary save(PersonalDiary personalDiary);

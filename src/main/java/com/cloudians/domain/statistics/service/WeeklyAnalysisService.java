@@ -6,19 +6,15 @@ import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateRespon
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
 import com.cloudians.domain.personaldiary.entity.PersonalDiary;
 import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
-import com.cloudians.domain.personaldiary.entity.analysis.FiveElement;
-import com.cloudians.domain.personaldiary.entity.analysis.FiveElementCharacter;
 import com.cloudians.domain.personaldiary.entity.analysis.PersonalDiaryAnalysis;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryException;
 import com.cloudians.domain.personaldiary.exception.PersonalDiaryExceptionType;
 import com.cloudians.domain.personaldiary.repository.*;
-import com.cloudians.domain.statistics.entity.MonthlyAnalysis;
 import com.cloudians.domain.statistics.entity.WeeklyAnalysis;
 import com.cloudians.domain.statistics.exception.AnalysisException;
 import com.cloudians.domain.statistics.exception.AnalysisExceptionType;
 import com.cloudians.domain.statistics.repository.WeeklyAnalysisRepository;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

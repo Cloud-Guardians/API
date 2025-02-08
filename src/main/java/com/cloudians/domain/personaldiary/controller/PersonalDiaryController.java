@@ -6,8 +6,6 @@ import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionCreate
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryEmotionUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.response.*;
-import com.cloudians.domain.personaldiary.entity.PersonalDiary;
-import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
 import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
 import com.cloudians.domain.statistics.service.MonthlyAnalysisService;
 import com.cloudians.domain.statistics.service.WeeklyAnalysisService;

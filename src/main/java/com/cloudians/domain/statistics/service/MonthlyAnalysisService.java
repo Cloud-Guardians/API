@@ -3,12 +3,9 @@ package com.cloudians.domain.statistics.service;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import javax.transaction.Transactional;
-
-import com.cloudians.domain.personaldiary.dto.request.PersonalDiaryUpdateRequest;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryCreateResponse;
 import com.cloudians.domain.personaldiary.dto.response.PersonalDiaryResponse;
 import com.cloudians.domain.statistics.repository.MonthlyAnalysisRepositoryImpl;
@@ -30,14 +27,10 @@ import com.cloudians.domain.personaldiary.repository.FiveElementRepository;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryAnalysisRepository;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryEmotionRepository;
 import com.cloudians.domain.personaldiary.repository.PersonalDiaryRepository;
-import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
 import com.cloudians.domain.statistics.entity.MonthlyAnalysis;
 import com.cloudians.domain.statistics.exception.AnalysisException;
-import com.cloudians.domain.statistics.exception.AnalysisExceptionType;
-import com.cloudians.domain.statistics.repository.CollectionRepository;
 import com.cloudians.domain.statistics.repository.MonthlyAnalysisJPARepository;
 import com.cloudians.domain.user.entity.User;
-import com.cloudians.domain.user.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 

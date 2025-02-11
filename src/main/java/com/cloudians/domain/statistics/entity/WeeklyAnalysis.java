@@ -14,11 +14,12 @@ import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
 import com.cloudians.domain.statistics.dto.response.WeeklyAnalysisResponse;
 import com.cloudians.domain.user.entity.User;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
+@Builder
 @Entity
 public class WeeklyAnalysis {
 
@@ -34,42 +35,35 @@ public class WeeklyAnalysis {
     
     @Column(name="weekly_date")
     private String weeklyDate;
-    
+
+    @Builder.Default
     @Column(name="total_diary")
-    private int totalDiary;
-    
+    private int totalDiary =0;
+
+    @Builder.Default
     @Column(name="total_answer")
-    private int totalAnswer;
-    
+    private int totalAnswer=0;
+
+    @Builder.Default
     @Column(name="weekly_joy")
-    private int weeklyJoy;
-    
+    private int weeklyJoy=0;
+
+    @Builder.Default
     @Column(name="weekly_sadness")
-    private int weeklySadness;
-    
+    private int weeklySadness=0;
+
+    @Builder.Default
     @Column(name="weekly_anger")
-    private int weeklyAnger;
-    
+    private int weeklyAnger=0;
+
+    @Builder.Default
     @Column(name="weekly_anxiety")
-    private int weeklyAnxiety;
-    
+    private int weeklyAnxiety=0;
+
+    @Builder.Default
     @Column(name="weekly_boredom")
-    private int weeklyBoredom;
-    
-    
-    public WeeklyAnalysisResponse toDto() {
-  	return WeeklyAnalysisResponse.builder()
-  		.userEmail(user.getUserEmail())
-  		.weeklyDate(weeklyDate)
-  		.totalDiary(totalDiary)
-  		.totalAnswer(totalAnswer)
-  		.weeklyJoy(weeklyJoy)
-  		.weeklySadness(weeklySadness)
-  		.weeklyAnger(weeklyAnger)
-  		.weeklyAnxiety(weeklyAnxiety)
-  		.weeklyBoredom(weeklyBoredom)
-  		.build();
-      }
+    private int weeklyBoredom=0;
+
 
     public void addAnalysisEmotion(PersonalDiaryEmotion emotion) {
         weeklyJoy += emotion.getJoy();
@@ -86,4 +80,13 @@ public class WeeklyAnalysis {
         weeklyAnger -= emotion.getAnger();
         weeklyBoredom -= emotion.getBoredom();
     }
+
+    public void updateWhisperCount(int count) {
+        totalAnswer = count;
+    }
+
+    public void updateDiaryCount(int count) {
+        totalDiary += count;
+    }
+
 }

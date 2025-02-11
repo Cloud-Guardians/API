@@ -189,7 +189,7 @@ public class PersonalDiaryService {
     }
 
     public List<String> getElementCharacters(FiveElement element) {
-        return fiveElementCharacterRepository.findRandomCharactersByElementId(element.getId()).stream().map(FiveElementCharacter::getCharacteristic).collect(Collectors.toList());
+        return fiveElementCharacterRepository.findRandomCharactersByElementId(element.getId()).stream().map(FiveElementCharacter::getCharacter).collect(Collectors.toList());
     }
 
     private String updateDiaryPhoto(String userEmail, MultipartFile file, PersonalDiary personalDiary) {

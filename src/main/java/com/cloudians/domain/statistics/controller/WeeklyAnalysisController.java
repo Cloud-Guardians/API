@@ -1,8 +1,15 @@
 package com.cloudians.domain.statistics.controller;
 
 import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import com.cloudians.domain.personaldiary.entity.analysis.FiveElement;
+import com.cloudians.domain.personaldiary.service.PersonalDiaryService;
+import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
+import com.cloudians.domain.statistics.entity.MonthlyAnalysis;
+import com.cloudians.domain.statistics.entity.WeeklyAnalysis;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,18 +34,18 @@ public class WeeklyAnalysisController {
     
     private final WeeklyAnalysisService weeklyService;
 
-    @GetMapping("/{date}")
-    public ResponseEntity<Message> getTest(@AuthUser User user, @PathVariable ("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
-        int week = weeklyService.getWeek(date);
-        Message message = new Message(date.toString(), HttpStatus.OK.value());
-        return ResponseEntity.status(HttpStatus.OK).body(message);
-    }
+
+//    @GetMapping("/{date}")
+//    public ResponseEntity<Message> getTest(@AuthUser User user, @PathVariable ("date") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate date) {
+//        int week = weeklyService.getWeek(date);
+//        Message message = new Message(date.toString(), HttpStatus.OK.value());
+//        return ResponseEntity.status(HttpStatus.OK).body(message);
+//    }
 
     @GetMapping("/{year}/{month}/{week}")
-    public ResponseEntity<Message> getMonth(@AuthUser User user, @PathVariable("year") String year, @PathVariable("month") String month, @PathVariable("week") String week){
-	String yearMonth = year+month;
-	Map<String, Object> thisMonth = weeklyService.getWeeklyAnalysis(user,yearMonth,week);
-	    Message message = new Message(thisMonth, HttpStatus.OK.value());
+    public ResponseEntity<Message> getWeeklyReport(@AuthUser User user, @PathVariable("year") String year, @PathVariable("month") String month, @PathVariable("week") String week){
+	Map<String, Object> thisWeek = weeklyService.getWeeklyAnalysis(user,year, month,week);
+    Message message = new Message(thisWeek, HttpStatus.OK.value());
 	return ResponseEntity.status(HttpStatus.OK).body(message);
     }
 

@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface WhisperMessageJpaRepository extends JpaRepository<WhisperMessage, Long> {
     List<WhisperMessage> findByUserAndSender(User user, SenderType sender);
-    long countByUserAndTimestamp(User user, Timestamp timestamp);
+    // long countByUserAndTimestamp(User user, Timestamp timestamp);
+//    Long countByTimestampBetweenAndUser(User user, LocalDateTime start, LocalDateTime end);
 }

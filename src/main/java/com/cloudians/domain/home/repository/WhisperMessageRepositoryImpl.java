@@ -27,6 +27,17 @@ public class WhisperMessageRepositoryImpl implements WhisperMessageRepository {
     }
 
     @Override
+    public Long countByTimestampBetweenAndUser(User user, SenderType sender, LocalDateTime start, LocalDateTime end) {
+        Long count =  q.select(whisperMessage.count())
+                .from(whisperMessage)
+                .where(whisperMessage.user.eq(user))
+                .where(whisperMessage.sender.eq(sender))
+                .where(whisperMessage.timestamp.between(start, end))
+                .fetchOne();
+        return (count != null) ? count : 0;
+    }
+
+    @Override
     public boolean existsByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime questionDateTime, LocalDateTime twentyFourHoursLater) {
         return q.selectFrom(whisperMessage)
                 .where(whisperMessage.user.eq(user)

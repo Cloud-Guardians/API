@@ -61,8 +61,8 @@ public class PersonalDiaryController {
        weeklyService.deleteDiaryEntry(user, oldDiary.getPersonalDiaryId());
         PersonalDiaryEmotionResponse response = personalDiaryService.editSelfEmotions(request, emotionId, user);
         PersonalDiaryResponse diary = personalDiaryService.getPersonalDiaryByDate(user, response.getDate());
-        monthlyService.updateDiaryEntry(user, diary);
-        weeklyService.updateDiaryEntry(user, diary);
+        monthlyService.updateDiaryEntry(user, diary.getDate());
+        weeklyService.updateDiaryEntry(user, diary.getDate());
         Message message = new Message(response, HttpStatus.OK.value());
         return ResponseEntity.status(HttpStatus.OK)
                 .body(message);
@@ -74,8 +74,8 @@ public class PersonalDiaryController {
                                                        @RequestPart @Valid PersonalDiaryCreateRequest request,
                                                        @RequestPart(value = "file", required = false) MultipartFile file) {
         PersonalDiaryCreateResponse response = personalDiaryService.createPersonalDiary(request, user, file);
-        monthlyService.addDiaryEntry(user, response);
-        weeklyService.addDiaryEntry(user, response);
+        monthlyService.addDiaryEntry(user, response.getDate());
+        weeklyService.addDiaryEntry(user, response.getDate());
         Message message = new Message(response, HttpStatus.CREATED.value());
 
         return ResponseEntity.status(HttpStatus.CREATED)
@@ -103,8 +103,8 @@ public class PersonalDiaryController {
         monthlyService.deleteDiaryEntry(user, personalDiaryId);
         weeklyService.deleteDiaryEntry(user, personalDiaryId);
         PersonalDiaryResponse response = personalDiaryService.editPersonalDiary(request, personalDiaryId, user, file);
-        monthlyService.updateDiaryEntry(user, response);
-        weeklyService.updateDiaryEntry(user, response);
+        monthlyService.updateDiaryEntry(user, response.getDate());
+        weeklyService.updateDiaryEntry(user, response.getDate());
         System.out.println("photo url:"+response.getPhotoUrl());
        
         Message message = new Message(response, HttpStatus.OK.value());

@@ -27,4 +27,7 @@ public class FiveElementCharacter {
     private FiveElement element;
 
     private String characteristic;
+
+    @Column(name = "character")
+    private String character;
 }

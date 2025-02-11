@@ -64,31 +64,6 @@ public class MonthlyAnalysis {
     
     @Column(name="most_element_top3")
     private String mostElementTop3;
-    
-    public MonthlyAnalysisResponse toDto() {
-	return MonthlyAnalysisResponse.builder()
-		.userEmail(user.getUserEmail())
-		.monthlyDate(monthlyDate)
-		.totalDiary(totalDiary)
-		.totalAnswer(totalAnswer)
-		.monthlyJoy(monthlyJoy)
-		.monthlySadness(monthlySadness)
-		.monthlyAnger(monthlyAnger)
-		.monthlyAnxiety(monthlyAnxiety)
-		.monthlyBoredom(monthlyBoredom)
-		.monthlyElement(monthlyElement)
-		.mostElementTop3(mostElementTop3)
-		.build();
-    }
-
-//    @Builder
-//    public MonthlyAnalysis (User user, String monthlyDate) {
-//      this.user = user;
-//      this.monthlyDate = monthlyDate;
-//      this.totalAnswer = 0;
-//      this.totalDiary = 0;
-//    }
-
 
     public void addAnalysisEmotion(PersonalDiaryEmotion emotion) {
         totalDiary ++;
@@ -108,6 +83,9 @@ public class MonthlyAnalysis {
         monthlyBoredom -= emotion.getBoredom();
     }
 
+    public void updateWhisperCount(int count) {
+        totalAnswer = count;
+    }
     public void addWhisperCount() {
         totalAnswer ++;
     }

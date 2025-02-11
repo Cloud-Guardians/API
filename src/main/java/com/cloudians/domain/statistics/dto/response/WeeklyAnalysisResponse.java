@@ -1,29 +1,25 @@
 package com.cloudians.domain.statistics.dto.response;
 
-import com.cloudians.domain.user.dto.response.UserLockResponse;
+import com.cloudians.domain.statistics.entity.WeeklyAnalysis;
+import lombok.Getter;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+@Getter
+@ToString
+@SuperBuilder
+public class WeeklyAnalysisResponse extends AnalysisResponse {
 
-@Data
-@AllArgsConstructor
-@NoArgsConstructor
-@Builder
-public class WeeklyAnalysisResponse {
+    // 다음 주 예측 및 조언 필드
 
-    private Long weeklyId;
-    private String userEmail;
-    private String weeklyDate;
-    private int totalDiary;
-    private int totalAnswer;
-    private int weeklyJoy;
-    private int weeklySadness;
-    private int weeklyAnger;
-    private int weeklyAnxiety;
-    private int weeklyBoredom;
-    
-  
+    public static WeeklyAnalysisResponse of(WeeklyAnalysis analysis) {
+        EmotionAnalysisResponse emotionResponse = new EmotionAnalysisResponse(analysis);
+        TotalCountResponse totalCountResponse = new TotalCountResponse(analysis);
+        return WeeklyAnalysisResponse.builder()
+                .date(analysis.getWeeklyDate())
+                .totalCount(totalCountResponse)
+                .emotion(emotionResponse)
+                .build();
+    }
     
 }

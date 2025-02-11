@@ -32,16 +32,7 @@ import lombok.extern.slf4j.Slf4j;
 public class MonthlyAnalysisController {
     
     private final MonthlyAnalysisService monthlyService;
-    private final PersonalDiaryService personalDiaryService;
-    
-    @GetMapping("/test")
-    public ResponseEntity<Message> getMonth(){
-	Object thisMonth = monthlyService.getMonth();
-	String userEmail = "a@a.com";
-	    Message message = new Message(userEmail, HttpStatus.OK.value());
-	return ResponseEntity.status(HttpStatus.OK).body(message);
-	
-    }
+
 
 
 	@GetMapping("/monthly/{year}/{month}")
@@ -51,23 +42,10 @@ public class MonthlyAnalysisController {
 			@PathVariable("month") String month) {
 
 		String yearMonth = year + month;
+
+		// monthlyAnalysis 결과
 		MonthlyAnalysis analysis = monthlyService.getMonthlyAnalysis(user, yearMonth);
-		MonthlyAnalysisResponse analysisResponse = MonthlyAnalysisResponse.of(analysis);
-
-
-		Map<String, Object> elementAnalysis = monthlyService.getMonthlyReport(user, year, month);
-		FiveElement maxElement = (FiveElement) elementAnalysis.get("max");
-		FiveElement minElement = (FiveElement) elementAnalysis.get("min");
-
-		List<String> maxCharacteristics = personalDiaryService.getElementCharacters(maxElement);
-		List<String> minCharacteristics = personalDiaryService.getElementCharacters(minElement);
-
-		Map<String, Object> response = new HashMap<>();
-		response.put("monthlyAnalysis", analysisResponse);
-		response.put("maxElementCharacteristics", maxCharacteristics);
-		response.put("minElementCharacteristics", minCharacteristics);
-		response.put("dominantElement", maxElement);
-		response.put("recessiveElement", minElement);
+		Map<String, Object> response = monthlyService.getMonthlyReport(user, analysis);
 
 		Message message = new Message(response, HttpStatus.OK.value());
 		return ResponseEntity.ok(message);

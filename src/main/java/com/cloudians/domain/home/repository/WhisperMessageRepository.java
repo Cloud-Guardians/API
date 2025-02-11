@@ -16,6 +16,7 @@ public interface WhisperMessageRepository {
 
     void save(WhisperMessage whisperMessage);
 
+
     boolean existsByUserAndSenderAndTimestampBetween(User user, SenderType sender, LocalDateTime questionDateTime, LocalDateTime twentyFourHoursLater);
 
     List<WhisperMessage> findByUserOrderByTimeStampDesc(User user, Long cursor, Long count);

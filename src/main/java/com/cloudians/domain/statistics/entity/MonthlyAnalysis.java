@@ -8,16 +8,13 @@ import com.cloudians.domain.personaldiary.entity.PersonalDiaryEmotion;
 import com.cloudians.domain.statistics.dto.response.MonthlyAnalysisResponse;
 import com.cloudians.domain.user.entity.User;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Data
-@NoArgsConstructor
-@Table(name="monthly_analysis",
-indexes = {
-        @Index(name ="idx_user_date", columnList="user_email,monthly_date"),
-        @Index(name="idx_monthly_date", columnList = "monthly_date")
-})
+
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+@Getter
+@Builder
 @Entity
 public class MonthlyAnalysis {
     
@@ -30,32 +27,38 @@ public class MonthlyAnalysis {
     @JoinColumn(name = "user_email")
     private User user;
     
-
-    
     @Column(name="monthly_date")
     private String monthlyDate;
-    
+
+    @Builder.Default
     @Column(name="total_diary")
-    private int totalDiary;
-    
+    private int totalDiary = 0;
+
+    @Builder.Default
     @Column(name="total_answer")
-    private int totalAnswer;
-    
+    private int totalAnswer = 0;
+
+    @Builder.Default
     @Column(name="monthly_joy")
-    private int monthlyJoy;
-    
+    private int monthlyJoy = 0;
+
+    @Builder.Default
     @Column(name="monthly_sadness")
-    private int monthlySadness;
-    
+    private int monthlySadness = 0;
+
+    @Builder.Default
     @Column(name="monthly_anger")
-    private int monthlyAnger;
-    
+    private int monthlyAnger = 0;
+
+    @Builder.Default
     @Column(name="monthly_anxiety")
-    private int monthlyAnxiety;
-    
+    private int monthlyAnxiety = 0;
+
+    @Builder.Default
     @Column(name="monthly_boredom")
-    private int monthlyBoredom;
-    
+    private int monthlyBoredom = 0;
+
+
     @Column(name="monthly_element")
     private String monthlyElement;
     
@@ -78,7 +81,17 @@ public class MonthlyAnalysis {
 		.build();
     }
 
+//    @Builder
+//    public MonthlyAnalysis (User user, String monthlyDate) {
+//      this.user = user;
+//      this.monthlyDate = monthlyDate;
+//      this.totalAnswer = 0;
+//      this.totalDiary = 0;
+//    }
+
+
     public void addAnalysisEmotion(PersonalDiaryEmotion emotion) {
+        totalDiary ++;
         monthlyJoy += emotion.getJoy();
         monthlySadness += emotion.getSadness();
         monthlyAnxiety += emotion.getAnxiety();
@@ -87,11 +100,20 @@ public class MonthlyAnalysis {
     }
 
     public void subtractAnalysisEmotion(PersonalDiaryEmotion emotion) {
+        totalDiary --;
         monthlyJoy -= emotion.getJoy();
         monthlySadness -= emotion.getSadness();
         monthlyAnxiety -= emotion.getAnxiety();
         monthlyAnger -= emotion.getAnger();
         monthlyBoredom -= emotion.getBoredom();
+    }
+
+    public void addWhisperCount() {
+        totalAnswer ++;
+    }
+
+    public void subtractWhisperCount() {
+        totalAnswer --;
     }
     
 

@@ -35,6 +35,7 @@ import com.cloudians.domain.user.entity.User;
 import lombok.RequiredArgsConstructor;
 
 import static com.cloudians.domain.statistics.exception.AnalysisExceptionType.MONTHLY_ANALYSIS_NOT_FOUND;
+import static java.util.Map.Entry.comparingByValue;
 
 @Service
 @RequiredArgsConstructor
@@ -56,43 +57,48 @@ public class MonthlyAnalysisService {
     @Transactional
     public void deleteDiaryEntry(User user, Long personalDiaryId) {
         PersonalDiary diary = findDiaryByIdAndUser(user, personalDiaryId);
-        String year = getYearMonth(diary.getDate()).get("year");
-        String month = getYearMonth(diary.getDate()).get("month");
-        String date = year + month;
-        MonthlyAnalysis anal = getOrCreateMonthlyAnalysis(user, date);
+        String year = getYearMonthMap(diary.getDate()).get("year");
+        String month = getYearMonthMap(diary.getDate()).get("month");
+        String yearMonth = year + month;
+        MonthlyAnalysis anal = getOrCreateMonthlyAnalysis(user, yearMonth);
         PersonalDiaryEmotion emotion = findEmotionByUserAndDate(user, diary.getDate());
-        anal.setTotalDiary(anal.getTotalDiary() - 1);
         anal.subtractAnalysisEmotion(emotion);
         monthlyAnalysisJPARepository.save(anal);
     }
 
     @Transactional
     public void updateDiaryEntry(User user, PersonalDiaryResponse response) {;
-        String yearMonth = response.getDate().toString().substring(0,7).replace("-", "");
+        String yearMonth = getYearMonth(response.getDate());
         PersonalDiaryEmotion emotion = findEmotionByUserAndDate(user, response.getDate());
         MonthlyAnalysis analysis = getOrCreateMonthlyAnalysis(user, yearMonth);
-        analysis.setTotalDiary(analysis.getTotalDiary() + 1);
         analysis.addAnalysisEmotion(emotion);
         monthlyAnalysisJPARepository.save(analysis);
     }
 
+    private String getYearMonth(LocalDate date) {
+        return date.toString().substring(0,7).replace("-", "");
+    }
 
     @Transactional
     public void addDiaryEntry(User user, PersonalDiaryCreateResponse diary) {
-        String yearMonth = diary.getDate().toString().substring(0,7).replace("-", "");
+        String yearMonth = getYearMonth(diary.getDate());
         System.out.println(yearMonth);
         MonthlyAnalysis analysis = monthlyAnalysisRepository.findByUserAndMonthlyDate(user, yearMonth)
                 .orElseGet(()-> {
-                    MonthlyAnalysis newAnalysis = new MonthlyAnalysis();
-                    newAnalysis.setUser(user);
-                    newAnalysis.setMonthlyDate(yearMonth);
+                    MonthlyAnalysis newAnalysis = MonthlyAnalysis.builder()
+                            .user(user)
+                            .monthlyDate(yearMonth)
+                            .totalDiary(0)
+                            .totalAnswer(0)
+                            .build();
                     return monthlyAnalysisJPARepository.save(newAnalysis);
                 });
-        analysis.setTotalDiary(analysis.getTotalDiary() + 1);
         PersonalDiaryEmotion emotion = findEmotionByUserAndDate(user, diary.getDate());
         analysis.addAnalysisEmotion(emotion);
         monthlyAnalysisJPARepository.save(analysis);
     }
+
+
 
     // 월간 통계 제공
     @Cacheable(key = "#user.userEmail + #yearMonth")
@@ -105,7 +111,7 @@ public class MonthlyAnalysisService {
     public Map<String, Object> getMonthlyReport(User user, String year, String month) {
         List<Map.Entry<Object, Long>> elementList = getMonthlyMostElement(user, year, month);
         Map.Entry<Object, Long> maxEntry = elementList.stream()
-                .max(Map.Entry.comparingByValue())
+                .max(comparingByValue())
                 .orElseThrow(() -> new RuntimeException("List is empty"));
 
         String maxElement = maxEntry.getKey().toString();
@@ -114,7 +120,7 @@ public class MonthlyAnalysisService {
 
 
         Map.Entry<Object, Long> minEntry = elementList.stream()
-                .min(Map.Entry.comparingByValue())
+                .min(comparingByValue())
                 .orElseThrow(() -> new RuntimeException("List is empty"));
 
         String minElement = minEntry.getKey().toString();
@@ -123,26 +129,29 @@ public class MonthlyAnalysisService {
         map.put("max", max);
         map.put("min", min);
         return map;
-        // 제일 많은 기운과 제일 적은 기운에 대한 음양오행 내역과 특징 가져오기
-
-
     }
 
 
     // 위스퍼 대답 수 누적
     public void addWhisperEntry(User user, String yearMonth) {
         MonthlyAnalysis anal = getOrCreateMonthlyAnalysis(user, yearMonth);
-        anal.setTotalAnswer(anal.getTotalAnswer() + 1);
+        anal.addWhisperCount();
         monthlyAnalysisJPARepository.save(anal);
     }
 
+    private String formatTop3Elements(Map<String, Long> frequency) {
+        return frequency.entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(3)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.joining(","));
+    }
 
 
     // 월간 평균 기운 가져오기
     private List<Map.Entry<Object, Long>> getMonthlyMostElement(User user, String year, String month) {
 
         List<PersonalDiary> diaryList = getMonthlyDiaryList(user, year, month);
-        System.out.println("list start:" + diaryList.toString());
 
         List<String> elementList = new ArrayList<>();
         for (PersonalDiary diary : diaryList) {
@@ -155,19 +164,19 @@ public class MonthlyAnalysisService {
                 .collect(Collectors.groupingBy(e -> e, Collectors.counting()));
         System.out.println(frequencyMap.toString());
         Optional<Map.Entry<Object, Long>> mostFrequent = frequencyMap.entrySet().stream()
-                .max(Map.Entry.comparingByValue());
+                .max(comparingByValue());
         System.out.println(mostFrequent.toString());
         Map.Entry<Object, Long> entry = mostFrequent.get();
 
         if (frequencyMap.size() < 3) {
             List<Map.Entry<Object, Long>> list = frequencyMap.entrySet().stream()
-                    .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                    .sorted(comparingByValue(Comparator.reverseOrder()))
                     .limit(frequencyMap.size())
                     .collect(Collectors.toList());
             return list;
         }
         List<Map.Entry<Object, Long>> list = frequencyMap.entrySet().stream()
-                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .sorted(comparingByValue(Comparator.reverseOrder()))
                 .limit(3)
                 .collect(Collectors.toList());
         return list;
@@ -227,11 +236,12 @@ public class MonthlyAnalysisService {
         return monthlyAnalysisJPARepository.findByUserAndMonthlyDate(user, yearMonth)
                 .orElseGet(() -> {
                     System.out.println("통계 내역이 없어 새로 생성합니다.");
-                    MonthlyAnalysis newAnalysis = new MonthlyAnalysis();
-                    newAnalysis.setUser(user);
-                    newAnalysis.setMonthlyDate(yearMonth);
-                    newAnalysis.setTotalDiary(0);
-                    newAnalysis.setTotalAnswer(0);
+                    MonthlyAnalysis newAnalysis = MonthlyAnalysis.builder()
+                            .user(user)
+                            .monthlyDate(yearMonth)
+                            .totalAnswer(0)
+                            .totalDiary(0)
+                            .build();
                     return monthlyAnalysisJPARepository.save(newAnalysis);
                 });
     }
@@ -246,11 +256,9 @@ public class MonthlyAnalysisService {
 
     // 특정 달 다이어리 가져오기
     private List<PersonalDiary> getMonthlyDiaryList(User user, String year, String month) {
-        System.out.println("헨뇨");
         int yearInt = Integer.parseInt(year);
         int monthInt = Integer.parseInt(month);
         LocalDate startOfMonth = LocalDate.of(yearInt, monthInt, 1);
-        System.out.println(startOfMonth+"달");
         LocalDate endOfMonth = startOfMonth.withDayOfMonth(startOfMonth.lengthOfMonth());
 
         List<PersonalDiary> diaryList = diaryRepository.findPersonalDiaryByUserAndDateBetweenOrderByDate(user, startOfMonth, endOfMonth)
@@ -258,7 +266,7 @@ public class MonthlyAnalysisService {
         return diaryList;
     }
 
-    private Map<String, String> getYearMonth(LocalDate date) {
+    private Map<String, String> getYearMonthMap(LocalDate date) {
         String year = date.toString().split("-")[0];
         String month = date.toString().split("-")[1];
 

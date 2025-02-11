@@ -49,9 +49,11 @@ public class MonthlyAnalysisController {
 			@AuthUser User user,
 			@PathVariable("year") String year,
 			@PathVariable("month") String month) {
+
 		String yearMonth = year + month;
 		MonthlyAnalysis analysis = monthlyService.getMonthlyAnalysis(user, yearMonth);
 		MonthlyAnalysisResponse analysisResponse = MonthlyAnalysisResponse.of(analysis);
+
 
 		Map<String, Object> elementAnalysis = monthlyService.getMonthlyReport(user, year, month);
 		FiveElement maxElement = (FiveElement) elementAnalysis.get("max");
